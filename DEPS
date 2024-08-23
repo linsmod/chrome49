@@ -119,8 +119,6 @@ deps = {
     (Var("chromium_git")) + '/external/github.com/cisco/openh264@b37cda248234162033e3e11b0335f3131cdfe488',
   'src/third_party/openmax_dl':
     (Var("chromium_git")) + '/external/webrtc/deps/third_party/openmax.git@ff8766d39ce6b9c1c59fd6b752833e138852e778',
-  'src/third_party/opus/src':
-    (Var("chromium_git")) + '/chromium/deps/opus.git@cae696156f1e60006e39821e79a1811ae1933c69',
   'src/third_party/pdfium':
     'https://pdfium.googlesource.com/pdfium.git@f8eda05ad3696181dccbb1aad95c3b87a3897a0e',
   'src/third_party/py_trace_event/src':
