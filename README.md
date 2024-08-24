@@ -16,7 +16,7 @@ Which is defined in DEPS but the git link is broken.
 For the origin source of `opus@cae69615`,
 see here: [android.googlesource.com](https://android.googlesource.com/platform/external/chromium_org/third_party/opus/src/+/3add326b8269bc061065676d63a610951c1329f0)
 
-# How to build
+# Steps to build Chromium 49
 
 1、Make a directory for doing this.
 `mkdir chrome49` 
@@ -79,10 +79,10 @@ If `gclient runhooks` error, try switch to python2 and retry `gclient runhooks`
 ### fatal error: 'XPathGrammar.hpp' file not found
 Check the bison version installed on you system, 
 
-I solved this by downgrading from bison `3.7.2` to `3.6.4`.
+I solved this by downgrading bison version from `3.7.2` to `3.6.4`.
 
-Download `bison:3.6.4` from `https://ftp.gnu.org/gnu/bison/bison-3.6.4.tar.gz`
+Download `bison:3.6.4` from here: `https://ftp.gnu.org/gnu/bison/bison-3.6.4.tar.gz`
 
-Unpack it into some where the make install it.
+Unpack it into some where then make install it.
 `./configure && make && sudo make install`
 
