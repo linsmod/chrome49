@@ -45,8 +45,12 @@ We still have to install version 2.7, we'll use it below.
 `git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git` 
 
 
-Swiching your depot_tools brach to chrome/4147：
+Switch your depot_tools brach to chrome/4147：
 `git branch chrome/4147`
+You may need clean uncommit files after switching brach.
+
+Add to PATH
+`export PATH=~/depot_tools:$PATH`
 
 otherwise you will got gn error 
 `Unknown function: set_sources_assignment_filter`
