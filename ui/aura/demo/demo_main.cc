@@ -37,6 +37,8 @@
 #include "ui/gfx/win/dpi.h"
 #endif
 
+#include "ui/base/ime/input_method_initializer.h"
+
 namespace {
 
 // Trivial WindowDelegate implementation that draws a colored background.
@@ -122,6 +124,7 @@ class DemoWindowTreeClient : public aura::client::WindowTreeClient {
 };
 
 int DemoMain() {
+  ui::InitializeInputMethodForTesting();
 #if defined(USE_X11)
   // This demo uses InProcessContextFactory which uses X on a separate Gpu
   // thread.
