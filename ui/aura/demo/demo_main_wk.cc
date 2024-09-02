@@ -198,10 +198,12 @@ int DemoMain() {
 }
 
 }  // namespace
-// static double CurrentTime()
-// {
-//     return 0.0;
-// }
+// #include "web/PageOverlayTest_copy.h"
+#include "wtf/Partitions.h"
+
+#include "content/public/test/render_view_test_copy.h"
+
+#include "gin/v8_initializer.h"
 int main(int argc, char** argv) {
   base::CommandLine::Init(argc, argv);
 
@@ -209,9 +211,15 @@ int main(int argc, char** argv) {
   base::AtExitManager exit_manager;
 
   base::i18n::InitializeICU();
-  WTF::Partitions::initialize(nullptr);  
-  // WTF::setAlwaysZeroRandomSourceForTesting();
-  // WTF::initialize(CurrentTime, nullptr, nullptr, nullptr);
-  // WTF::initializeMainThread(0);
+  WTF::Partitions::initialize(nullptr);
+
+  #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
+    gin::V8Initializer::LoadV8Snapshot();
+    gin::V8Initializer::LoadV8Natives();
+  #endif
+  content::RenderViewTest* render_view_test = content::createRenderViewTest();
+  render_view_test->SetUp();
+  // blink::PageOverlayTest_copy* test = new blink::PageOverlayTest_copy();
+  //   test->runPageOverlayTestWithAcceleratedCompositing();
   return DemoMain();
 }

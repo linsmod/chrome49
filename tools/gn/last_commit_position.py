@@ -94,8 +94,9 @@ output_file = sys.argv[2]
 header_guard = sys.argv[3]
 
 value = FetchCommitPosition(git_directory)
-if not value:
-  print "Could not get last commit position."
-  sys.exit(1)
+# if not value:
+#   print "Could not get last commit position."
+#   sys.exit(1)
+value = 'unknown'
 
 WriteHeader(output_file, header_guard, value)

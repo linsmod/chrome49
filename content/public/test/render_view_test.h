@@ -70,7 +70,7 @@ class RenderViewTest : public testing::Test, blink::WebLeakDetectorClient {
   RenderViewTest();
   ~RenderViewTest() override;
 
- protected:
+//  protected:
   // Spins the message loop to process all messages that are currently pending.
   void ProcessPendingMessages();
 

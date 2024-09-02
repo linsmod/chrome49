@@ -288,6 +288,7 @@ void RenderViewTest::GoForward(const PageState& state) {
 }
 
 void RenderViewTest::SetUp() {
+
   // Blink needs to be initialized before calling CreateContentRendererClient()
   // because it uses blink internally.
   blink::initialize(blink_platform_impl_.Get());

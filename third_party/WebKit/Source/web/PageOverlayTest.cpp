@@ -23,13 +23,21 @@
 #include "web/WebLocalFrameImpl.h"
 #include "web/WebViewImpl.h"
 #include "web/tests/FrameTestHelpers.h"
-
+#include "web/WebViewImplUpdateListener.h"
 using testing::_;
 using testing::AtLeast;
 using testing::Property;
 
+
+
 namespace blink {
+    static blink::WebViewImplUpdateListener* m_wk_update_listener;
+    void webkitSetWebViewImplUpdateListener(blink::WebViewImplUpdateListener* listener)
+    {
+        m_wk_update_listener = listener;
+    }
 namespace {
+
 
 static const int viewportWidth = 800;
 static const int viewportHeight = 600;
@@ -109,6 +117,7 @@ TEST_F(PageOverlayTest, PageOverlay_AcceleratedCompositing)
 
     OwnPtr<PageOverlay> pageOverlay = PageOverlay::create(webViewImpl(), new SolidColorOverlay(SK_ColorYELLOW));
     pageOverlay->update();
+    // m_wk_update_listener->onUpdate(webViewImpl());
     webViewImpl()->updateAllLifecyclePhases();
 
     // Ideally, we would get results from the compositor that showed that this

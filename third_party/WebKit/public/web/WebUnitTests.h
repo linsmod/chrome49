@@ -28,38 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "public/platform/Platform.h"
-#include "public/web/WebKit.h"
-#include "web/tests/WebUnitTests.h"
-#include <content/test/blink_test_environment.h>
-#include <cstdio>
-// #include "web/PageOverlay.h"
-namespace {
+#ifndef WebUnitTests_h
+#define WebUnitTests_h
 
-// Test helpers to support the fact that blink tests are gloriously complicated
-// in a shared library build. See WebUnitTests.h for more details.
-void preTestHook()
-{
-    content::SetUpBlinkTestEnvironment();
-    // blink::PageOverlayTest_copy test;
-    // test.runPageOverlayTestWithAcceleratedCompositing();
-}
+#include "../platform/WebCommon.h"
 
-void postTestHook()
-{
-    content::TearDownBlinkTestEnvironment();
-}
+namespace blink {
 
-} // namespace
+// In a chromium multi-dll build, blink unittest code is compiled into
+// blink_web.dll, since some of the tests cover unexported methods.
+//
+// While gtest does support running tests in libraries, the chromium gtest is
+// not built with shared library support. As a result, if the test runner tries
+// to instantiate the test suite outside of blink_web.dll, it won't correctly
+// register the tests. In order to get around that, blink_web.dll exports this
+// helper function to instantiate and run the test suite in the right module.
+//
+// Unfortunately, to make things more complicated, blink tests require some test
+// support initialization in the content layer. Since the content layer depends
+// on blink_web.dll, runWebTests() can't initialize it directly since that
+// introduces a dependency cycle.
+//
+// To get around that, runWebTests() allows the caller to supply hooks to
+// execute code before and after running tests.
+BLINK_EXPORT int runWebTests(int argc, char** argv, void (*preTestHook)(void), void (*postTestHook)(void));
 
-//  class MyWebViewUpdateListener : public blink::WebViewImplUpdateListener {  
-//     public:  
-//         void onUpdate(blink::WebViewImpl* impl) override {  
-//              printf("MyWebViewUpdateListener::onUpdate");
-//         }  
-//     };  
+} // namespace blink
 
-int main(int argc, char** argv)
-{
-    return blink::runWebTests(argc, argv, &preTestHook, &postTestHook);
-}
+#endif

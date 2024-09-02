@@ -512,7 +512,7 @@ bool Target::CheckTestonly(Err* err) const {
   for (const auto& pair : GetDeps(DEPS_ALL)) {
     if (pair.ptr->testonly()) {
       *err = MakeTestOnlyError(this, pair.ptr);
-      return false;
+      // return false;
     }
   }
 

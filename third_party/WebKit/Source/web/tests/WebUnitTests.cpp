@@ -37,7 +37,8 @@
 #include <base/test/launcher/unit_test_launcher.h>
 #include <base/test/test_suite.h>
 #include <v8.h>
-
+#include "web/WebViewImpl.h"
+#include "web/PageOverlayTest_copy.h"
 namespace blink {
 
 namespace {
@@ -65,6 +66,8 @@ int runHelper(base::TestSuite* testSuite, void (*preTestHook)(void), void (*post
 
 int runWebTests(int argc, char** argv, void (*preTestHook)(void), void (*postTestHook)(void))
 {
+    blink::PageOverlayTest_copy test;
+    test.runPageOverlayTestWithAcceleratedCompositing();
     base::TestSuite testSuite(argc, argv);
     return base::LaunchUnitTests(argc, argv, base::Bind(&runHelper, base::Unretained(&testSuite), preTestHook, postTestHook));
 }

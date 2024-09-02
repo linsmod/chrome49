@@ -458,6 +458,7 @@ class Executive(object):
             string_args = args
         else:
             string_args = self._stringify_args(args)
+        print(string_args)
         return subprocess.Popen(string_args, **kwargs)
 
     def call(self, args, **kwargs):

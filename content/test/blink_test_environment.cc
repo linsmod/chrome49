@@ -56,12 +56,7 @@ void ParseBlinkCommandLineArgumentsForUnitTests() {
 
 class TestEnvironment {
  public:
-#if defined(OS_ANDROID)
-  // Android UI message loop goes through Java, so don't use it in tests.
-  typedef base::MessageLoop MessageLoopType;
-#else
-  typedef base::MessageLoopForUI MessageLoopType;
-#endif
+
 
   TestEnvironment() {
     main_message_loop_.reset(new MessageLoopType);
@@ -79,6 +74,9 @@ class TestEnvironment {
 
   TestBlinkWebUnitTestSupport* blink_platform_impl() const {
     return blink_test_support_.get();
+  }
+  MessageLoopType* main_message_loop() const {
+    return main_message_loop_.get();
   }
 
  private:
@@ -117,6 +115,11 @@ void SetUpBlinkTestEnvironment() {
   url::Initialize();
   test_environment = new TestEnvironment;
 }
+
+MessageLoopType* SetUpBlinkTestEnvironmentAndGetMainMessageLoop(){
+  SetUpBlinkTestEnvironment();
+  return test_environment->main_message_loop();
+} 
 
 void TearDownBlinkTestEnvironment() {
   // Flush any remaining messages before we kill ourselves.

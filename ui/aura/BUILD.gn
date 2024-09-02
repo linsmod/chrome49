@@ -227,12 +227,27 @@ executable("demo") {
   testonly = true
 
   sources = [
-    "demo/demo_main.cc",
+    "demo/demo_main_wk.cc",
   ]
 
+  configs += [ 
+    "//third_party/WebKit/Source:inside_blink",
+    "//v8:external_startup_data",
+   ]
+
+  include_dirs = [ 
+    ".",
+    "..",
+    "//third_party/WebKit/Source",
+    # "//third_party/WebKit/Source/web",
+    # "//third_party/WebKit/Source/public",
+    "$root_gen_dir/blink"
+  ]
   deps = [
     ":aura",
     ":test_support",
+     "//testing/gmock",
+    "//testing/gtest",
     "//base",
     "//base:i18n",
     "//build/config/sanitizers:deps",
@@ -245,6 +260,9 @@ executable("demo") {
     "//ui/gfx",
     "//ui/gfx/geometry",
     "//ui/gl",
+    "//third_party/WebKit/Source/web",
+    # "//third_party/WebKit/Source/web:webkit_unit_tests",
+    "//content/test:test_support",
   ]
 
   if (use_x11) {
