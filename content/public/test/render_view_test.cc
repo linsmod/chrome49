@@ -7,6 +7,7 @@
 #include <stddef.h>
 
 #include <cctype>
+#include <memory>
 
 #include "base/location.h"
 #include "base/run_loop.h"
@@ -49,6 +50,8 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "v8/include/v8.h"
+
+#include "content/renderer/in_process_renderer_thread.h"
 
 #if defined(OS_MACOSX)
 #include "base/mac/scoped_nsautorelease_pool.h"
@@ -207,21 +210,32 @@ void RenderViewTest::RendererBlinkPlatformImplTestOverride::Shutdown() {
 }
 
 RenderViewTest::RenderViewTest()
-    : view_(NULL) {
+    : msg_loop_(new base::MessageLoop()),view_(NULL) {
+  RenderFrameImpl::InstallCreateHook(&TestRenderFrame::CreateTestRenderFrame);
+}
+
+RenderViewTest::RenderViewTest(base::MessageLoop* message_loop_for_app_ui)
+    : msg_loop_(message_loop_for_app_ui),view_(NULL) {
   RenderFrameImpl::InstallCreateHook(&TestRenderFrame::CreateTestRenderFrame);
 }
 
 RenderViewTest::~RenderViewTest() {
+  if(msg_loop_->type() == base::MessageLoopForIO::TYPE_DEFAULT)
+    delete msg_loop_;
 }
 
 void RenderViewTest::ProcessPendingMessages() {
-  msg_loop_.task_runner()->PostTask(FROM_HERE,
+  msg_loop_->task_runner()->PostTask(FROM_HERE,
                                     base::MessageLoop::QuitWhenIdleClosure());
-  msg_loop_.Run();
+  msg_loop_->Run();
 }
 
 WebLocalFrame* RenderViewTest::GetMainFrame() {
   return view_->GetWebView()->mainFrame()->toWebLocalFrame();
+}
+
+blink::WebView* RenderViewTest::GetWebView(){
+  return view_->GetWebView();
 }
 
 void RenderViewTest::ExecuteJavaScriptForTests(const char* js) {
@@ -248,6 +262,13 @@ void RenderViewTest::LoadHTML(const char* html) {
   // The load actually happens asynchronously, so we pump messages to process
   // the pending continuation.
   FrameLoadWaiter(view_->GetMainRenderFrame()).Wait();
+}
+
+void RenderViewTest::LoadHTMLAsync(const char* html) {
+  GetMainFrame()->loadRequest(createDataRequest(html));
+  // The load actually happens asynchronously, so we pump messages to process
+  // the pending continuation.
+  // FrameLoadWaiter(view_->GetMainRenderFrame()).Wait();
 }
 
 void RenderViewTest::LoadHTMLWithUrlOverride(const char* html,
@@ -308,7 +329,6 @@ void RenderViewTest::SetUp() {
   // font IPCs, causing all font loading to fail.
   SetDWriteFontProxySenderForTesting(CreateFakeCollectionSender());
 #endif
-
   // Subclasses can set render_thread_ with their own implementation before
   // calling RenderViewTest::SetUp().
   if (!render_thread_)

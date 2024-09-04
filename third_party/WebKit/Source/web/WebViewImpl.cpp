@@ -4273,8 +4273,8 @@ void WebViewImpl::setRootGraphicsLayer(GraphicsLayer* layer)
     VisualViewport& visualViewport = page()->frameHost().visualViewport();
     visualViewport.attachToLayerTree(layer, graphicsLayerFactory());
     if (layer) {
-        m_rootGraphicsLayer = visualViewport.rootGraphicsLayer();
-        m_rootLayer = m_rootGraphicsLayer->platformLayer();
+        m_rootGraphicsLayer = visualViewport.rootGraphicsLayer(); //GraphicsLayer*
+        m_rootLayer = m_rootGraphicsLayer->platformLayer(); //blink::WebLayer&
         updateRootLayerTransform();
         m_layerTreeView->setRootLayer(*m_rootLayer);
         // We register viewport layers here since there may not be a layer

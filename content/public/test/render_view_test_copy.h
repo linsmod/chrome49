@@ -6,7 +6,7 @@
 #define CONTENT_PUBLIC_TEST_RENDER_VIEW_TEST_COPY_H_
 #include "content/public/test/render_view_test.h"
 namespace content{
-  CONTENT_EXPORT __attribute__((used)) RenderViewTest* createRenderViewTest();
+  CONTENT_EXPORT RenderViewTest* createRenderViewTest(base::MessageLoop* message_loop_for_app_ui);
 }  // namespace content
 
 #endif  // CONTENT_PUBLIC_TEST_RENDER_VIEW_TEST_H_

@@ -130,6 +130,7 @@ class PepperPluginInstanceImpl;
 class RenderViewImplTest;
 class RenderViewObserver;
 class RenderViewTest;
+class MyRenderViewTest;
 class RendererDateTimePicker;
 class RendererWebColorChooserImpl;
 class SpeechRecognitionDispatcher;
@@ -525,6 +526,7 @@ class CONTENT_EXPORT RenderViewImpl
   friend class RenderViewImplScaleFactorTest;
   friend class RenderViewImplTest;
   friend class RenderViewTest;
+  friend class MyRenderViewTest;
   friend class RendererAccessibilityTest;
 
   // TODO(nasko): Temporarily friend RenderFrameImpl, so we don't duplicate

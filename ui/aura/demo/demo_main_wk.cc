@@ -39,8 +39,12 @@
 
 #include "ui/base/ime/input_method_initializer.h"
 
+// #include "web/PageOverlayTest_copy.h"
+#include "wtf/Partitions.h"
+#include "content/public/test/render_view_test_copy.h"
+#include "gin/v8_initializer.h"
 namespace {
-
+content::RenderViewTest* render_view_test = 0;
 // Trivial WindowDelegate implementation that draws a colored background.
 class DemoWindowDelegate : public aura::WindowDelegate {
  public:
@@ -60,6 +64,11 @@ class DemoWindowDelegate : public aura::WindowDelegate {
   }
   int GetNonClientComponent(const gfx::Point& point) const override {
     return HTCAPTION;
+  }
+  void OnMouseEvent(ui::MouseEvent* event) override{
+     
+    render_view_test->LoadHTMLAsync("<html><body><script type=\"text/javascript\">document.onload=(){location.href='https://baidu.com'}</script></body></html>");
+    render_view_test->RunMyTestBody();
   }
   bool ShouldDescendIntoChildForEventHandling(
       aura::Window* child,
@@ -126,6 +135,7 @@ class DemoWindowTreeClient : public aura::client::WindowTreeClient {
 };
 
 int DemoMain() {
+  
   ui::InitializeInputMethodForTesting();
 #if defined(USE_X11)
   // This demo uses InProcessContextFactory which uses X on a separate Gpu
@@ -147,6 +157,11 @@ int DemoMain() {
 
   // Create the message-loop here before creating the root window.
   base::MessageLoopForUI message_loop;
+
+
+//
+  render_view_test = content::createRenderViewTest(&message_loop);
+    render_view_test->SetUp();
 
   base::PowerMonitor power_monitor(make_scoped_ptr(
       new base::PowerMonitorDeviceSource));
@@ -198,12 +213,6 @@ int DemoMain() {
 }
 
 }  // namespace
-// #include "web/PageOverlayTest_copy.h"
-#include "wtf/Partitions.h"
-
-#include "content/public/test/render_view_test_copy.h"
-
-#include "gin/v8_initializer.h"
 int main(int argc, char** argv) {
   base::CommandLine::Init(argc, argv);
 
@@ -217,9 +226,13 @@ int main(int argc, char** argv) {
     gin::V8Initializer::LoadV8Snapshot();
     gin::V8Initializer::LoadV8Natives();
   #endif
-  content::RenderViewTest* render_view_test = content::createRenderViewTest();
-  render_view_test->SetUp();
+  // content::RenderViewTest* render_view_test = content::createRenderViewTest();
+  // render_view_test->SetUp();
+  // render_view_test->LoadHTMLAsync("<html><body><script type=\"text/javascript\">document.onload=(){location.href='https://baidu.com'}</script></body></html>");
   // blink::PageOverlayTest_copy* test = new blink::PageOverlayTest_copy();
   //   test->runPageOverlayTestWithAcceleratedCompositing();
   return DemoMain();
+
+  //  base::MessageLoopForUI::current()->Run();
+  // return 0;
 }

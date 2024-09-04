@@ -24,7 +24,7 @@
 #include "third_party/WebKit/public/web/WebFrame.h"
 #include "third_party/WebKit/public/web/WebLeakDetector.h"
 #include "third_party/mojo/src/mojo/edk/test/scoped_ipc_support.h"
-
+#include "third_party/WebKit/public/web/WebView.h"
 struct ViewMsg_Resize_Params;
 
 namespace blink {
@@ -68,14 +68,19 @@ class RenderViewTest : public testing::Test, blink::WebLeakDetectorClient {
   };
 
   RenderViewTest();
+  RenderViewTest(base::MessageLoop* message_loop_for_app_ui);
   ~RenderViewTest() override;
 
 //  protected:
   // Spins the message loop to process all messages that are currently pending.
   void ProcessPendingMessages();
 
+  virtual void RunMyTestBody()=0;
+
   // Returns a pointer to the main frame.
   blink::WebLocalFrame* GetMainFrame();
+
+  blink::WebView* GetWebView();
 
   // Executes the given JavaScript in the context of the main frame. The input
   // is a NULL-terminated UTF-8 string.
@@ -91,6 +96,8 @@ class RenderViewTest : public testing::Test, blink::WebLeakDetectorClient {
   // Loads |html| into the main frame as a data: URL and blocks until the
   // navigation is committed.
   void LoadHTML(const char* html);
+
+  void LoadHTMLAsync(const char* html);
 
   // Pretends to load |url| into the main frame, but substitutes |html| for the
   // response body (and does not include any response headers). This can be used
@@ -188,7 +195,7 @@ class RenderViewTest : public testing::Test, blink::WebLeakDetectorClient {
   // blink::WebLeakDetectorClient implementation.
   void onLeakDetectionComplete(const Result& result) override;
 
-  base::MessageLoop msg_loop_;
+  base::MessageLoop* msg_loop_;
   scoped_ptr<FakeCompositorDependencies> compositor_deps_;
   scoped_ptr<MockRenderProcess> mock_process_;
   // We use a naked pointer because we don't want to expose RenderViewImpl in
@@ -215,6 +222,7 @@ class RenderViewTest : public testing::Test, blink::WebLeakDetectorClient {
 
  private:
   void GoToOffset(int offset, const PageState& state);
+   DISALLOW_COPY_AND_ASSIGN(RenderViewTest);
 };
 
 }  // namespace content
