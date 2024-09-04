@@ -9,7 +9,7 @@
 #include "ui/base/ime/linux/linux_input_method_context_factory.h"
 #include "ui/base/ime/text_input_client.h"
 #include "ui/events/event.h"
-
+#include "ui/base/ime/input_method_initializer.h"
 namespace ui {
 
 InputMethodAuraLinux::InputMethodAuraLinux(
@@ -19,6 +19,7 @@ InputMethodAuraLinux::InputMethodAuraLinux(
       composition_changed_(false),
       suppress_next_result_(false) {
   SetDelegate(delegate);
+  ui::InitializeInputMethodForTesting();
   context_ =
       LinuxInputMethodContextFactory::instance()->CreateInputMethodContext(
           this, false);
