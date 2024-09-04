@@ -223,6 +223,10 @@ void BlimpEngineSession::Initialize() {
   render_widget_feature_.set_compositor_message_sender(
       RegisterFeature(BlimpMessage::COMPOSITOR, &render_widget_feature_));
 
+  const int tab_id = 0;
+  CreateWebContents(tab_id);
+  LoadUrl(tab_id,
+                GURL("https://baidu.com"));
   // Initialize must only be posted after the RegisterFeature calls have
   // completed.
   content::BrowserThread::PostTask(
@@ -487,7 +491,7 @@ void BlimpEngineSession::NavigationStateChanged(
 
   if (changed_flags & content::InvalidateTypes::INVALIDATE_TYPE_TAB) {
     // TODO(dtrainor): Serialize the favicon?
-    NOTIMPLEMENTED();
+    // NOTIMPLEMENTED();
   }
 
   if (changed_flags & content::InvalidateTypes::INVALIDATE_TYPE_TITLE)
