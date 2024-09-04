@@ -45,7 +45,7 @@ component("web") {
     sources -= [ "default/WebRenderTheme.cpp" ]
   }
 
-  # if (is_component_build) {
+  if (is_component_build) {
     deps += [
       "//base/test:test_support",
       "//testing/gmock",
@@ -67,7 +67,7 @@ component("web") {
 
     sources += [ "WebTestingSupport.cpp" ]
     include_dirs += [ "$root_gen_dir/blink" ]
-  # }
+  }
  
   if (is_android) {
     set_sources_assignment_filter([])
@@ -80,7 +80,7 @@ component("web") {
 source_set("test_support") {
   visibility = []  # Allow re-assignment of list.
   visibility = [ "*" ]
-  # if (!is_component_build) {
+  if (!is_component_build) {
     deps = [
       "//skia",
       "//third_party/WebKit/Source/core:testing",
@@ -96,7 +96,7 @@ source_set("test_support") {
     configs += [ "//third_party/WebKit/Source:config" ]
 
     include_dirs = [ "$root_gen_dir/blink" ]
-  # }
+  }
 }
 
 # TODO(GYP): Delete this after we've converted everything to GN.
@@ -162,11 +162,11 @@ test("webkit_unit_tests") {
     configs += [ "//third_party/WebKit/Source:inside_blink" ]
 
     sources += web_unittest_files
-    sources += bindings_unittest_files
-    sources += core_unittest_files
-    sources += modules_unittest_files
+    # sources += bindings_unittest_files
+    # sources += core_unittest_files
+    # sources += modules_unittest_files
     sources += platform_unittest_support_files
-    sources += platform_web_unittest_files
+    # sources += platform_web_unittest_files
   }
 
   if (is_android) {

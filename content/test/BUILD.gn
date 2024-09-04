@@ -74,7 +74,16 @@ source_set("test_support") {
         rebase_path(content_tests_gypi_values.test_support_content_sources,
                     ".",
                     "//content")
-
+    sources += [
+      "//content/browser/renderer_host/render_widget_helper_copy.cc",
+      "//content/browser/renderer_host/render_widget_helper_copy.h",
+    ]
+    if(is_component_build){
+      sources += [
+        "//content/browser/dom_storage/session_storage_namespace_impl.cc",
+        "//content/browser/dom_storage/session_storage_namespace_impl.h",
+      ]
+    }
     if (is_android) {
       sources -= [
         "mock_google_streaming_server.cc",
