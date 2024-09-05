@@ -60,9 +60,8 @@ class BlimpBrowserContext;
 class BlimpFocusClient;
 class BlimpScreen;
 class BlimpUiContextFactory;
-class BlimpWindowTreeHost;
 class EngineNetworkComponents;
-
+class DemoWindowTreeClient;
 class BlimpEngineSession
     : public BlimpMessageProcessor,
       public content::WebContentsDelegate,
@@ -160,6 +159,8 @@ class BlimpEngineSession
 
   // Only one web_contents is supported for blimp 0.5
   scoped_ptr<content::WebContents> web_contents_;
+
+  scoped_ptr<DemoWindowTreeClient> window_tree_client_;
 
   // Handles all incoming and outgoing messages related to RenderWidget,
   // including INPUT, COMPOSITOR and RENDER_WIDGET messages.

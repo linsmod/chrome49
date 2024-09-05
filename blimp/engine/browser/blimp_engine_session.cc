@@ -30,7 +30,9 @@
 #include "net/base/net_errors.h"
 #include "ui/aura/client/default_capture_client.h"
 #include "ui/aura/env.h"
+#include "ui/aura/client/window_tree_client.h"
 #include "ui/aura/window.h"
+#include "ui/aura/window_delegate.h"
 #include "ui/aura/window_tree_host.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/wm/core/base_focus_rules.h"
@@ -43,6 +45,37 @@
 
 namespace blimp {
 namespace engine {
+
+
+
+class DemoWindowTreeClient : public aura::client::WindowTreeClient {
+ public:
+  explicit DemoWindowTreeClient(aura::Window* window) : window_(window) {
+    aura::client::SetWindowTreeClient(window_, this);
+  }
+
+  ~DemoWindowTreeClient() override {
+    aura::client::SetWindowTreeClient(window_, nullptr);
+  }
+
+  // Overridden from aura::client::WindowTreeClient:
+  aura::Window* GetDefaultParent(aura::Window* context,
+                                 aura::Window* window,
+                                 const gfx::Rect& bounds) override {
+    if (!capture_client_) {
+      capture_client_.reset(
+          new aura::client::DefaultCaptureClient(window_->GetRootWindow()));
+    }
+    return window_;
+  }
+
+ private:
+  aura::Window* window_;
+
+  scoped_ptr<aura::client::DefaultCaptureClient> capture_client_;
+
+  DISALLOW_COPY_AND_ASSIGN(DemoWindowTreeClient);
+};
 namespace {
 
 const int kDummyTabId = 0;
@@ -519,9 +552,16 @@ void BlimpEngineSession::PlatformSetContents(
   web_contents_ = std::move(new_contents);
 
   aura::Window* parent = window_tree_host_->window();
+
+  window_tree_client_.reset(
+      new DemoWindowTreeClient(window_tree_host_->window()));
+
   aura::Window* content = web_contents_->GetNativeView();
-  if (!parent->Contains(content))
-    parent->AddChild(content);
+  DLOG(WARNING) << "----------PlatformSetContents-------------";
+  if (!parent->Contains(content)){
+    DLOG(WARNING) << "----------AddChild-------------";
+    aura::client::ParentWindowWithContext(content, window_tree_host_->window(), gfx::Rect());
+  }
   content->Show();
 }
 

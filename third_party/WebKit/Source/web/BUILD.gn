@@ -15,7 +15,7 @@ web_gypi = exec_script("//build/gypi_to_gn.py",
                        [ rebase_path("web.gypi") ],
                        "scope",
                        [ "web.gypi" ])
-web_unittest_files = web_gypi.web_unittest_files
+# web_unittest_files = web_gypi.web_unittest_files
 
 component("web") {
   output_name = "blink_web"
@@ -36,7 +36,7 @@ component("web") {
   configs += [
     "//third_party/WebKit/Source:config",
     "//third_party/WebKit/Source:inside_blink",
-    # "//third_party/WebKit/Source:non_test_config",
+    # "//third_party/WebKit/Source:non_test_config", // clang -Wglobal-constructors
   ]
 
   sources = web_gypi.web_files
@@ -45,29 +45,29 @@ component("web") {
     sources -= [ "default/WebRenderTheme.cpp" ]
   }
 
-  if (is_component_build) {
-    deps += [
-      "//base/test:test_support",
-      "//testing/gmock",
-      "//testing/gtest",
-      "//third_party/WebKit/Source/core:testing",
-      "//third_party/WebKit/Source/modules:modules_testing",
-      "//third_party/WebKit/Source/platform:test_support",
-      "//third_party/WebKit/Source/wtf:test_support",
-    ]
+  # if (is_component_build) {
+  #   deps += [
+  #     "//base/test:test_support",
+  #     "//testing/gmock",
+  #     "//testing/gtest",
+  #     "//third_party/WebKit/Source/core:testing",
+  #     "//third_party/WebKit/Source/modules:modules_testing",
+  #     "//third_party/WebKit/Source/platform:test_support",
+  #     "//third_party/WebKit/Source/wtf:test_support",
+  #   ]
 
-    # configs -= [ "//third_party/WebKit/Source:non_test_config" ]
+  #   # configs -= [ "//third_party/WebKit/Source:non_test_config" ]
 
-    sources += web_unittest_files
-    # sources += bindings_unittest_files
-    # sources += core_unittest_files
-    # sources += modules_unittest_files
-    sources += platform_unittest_support_files
-    # sources += platform_web_unittest_files
+  #   sources += web_unittest_files
+  #   # sources += bindings_unittest_files
+  #   # sources += core_unittest_files
+  #   # sources += modules_unittest_files
+  #   sources += platform_unittest_support_files
+  #   # sources += platform_web_unittest_files
 
-    sources += [ "WebTestingSupport.cpp" ]
-    include_dirs += [ "$root_gen_dir/blink" ]
-  }
+  #   sources += [ "WebTestingSupport.cpp" ]
+  #   include_dirs += [ "$root_gen_dir/blink" ]
+  # }
  
   if (is_android) {
     set_sources_assignment_filter([])
@@ -161,11 +161,11 @@ test("webkit_unit_tests") {
 
     configs += [ "//third_party/WebKit/Source:inside_blink" ]
 
-    sources += web_unittest_files
+    # sources += web_unittest_files
     # sources += bindings_unittest_files
     # sources += core_unittest_files
     # sources += modules_unittest_files
-    sources += platform_unittest_support_files
+    # sources += platform_unittest_support_files
     # sources += platform_web_unittest_files
   }
 
