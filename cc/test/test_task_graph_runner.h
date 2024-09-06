@@ -8,15 +8,25 @@
 #include "base/macros.h"
 #include "base/threading/simple_thread.h"
 #include "cc/raster/single_thread_task_graph_runner.h"
-
+#include <mutex> 
 namespace cc {
 
 class TestTaskGraphRunner : public SingleThreadTaskGraphRunner {
  public:
-  TestTaskGraphRunner();
+  static TestTaskGraphRunner* Instance() {  
+    std::lock_guard<std::mutex> lock(mutex_);  
+    if (!s_instance) {  
+      s_instance = new TestTaskGraphRunner();  
+    }  
+    return s_instance;  
+  }  
+  
   ~TestTaskGraphRunner() override;
 
  private:
+  TestTaskGraphRunner();
+  static TestTaskGraphRunner* s_instance;  
+  static std::mutex mutex_;  
   DISALLOW_COPY_AND_ASSIGN(TestTaskGraphRunner);
 };
 

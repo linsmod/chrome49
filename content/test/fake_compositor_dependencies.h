@@ -47,7 +47,7 @@ class FakeCompositorDependencies : public CompositorDependencies {
  private:
   cc::TestSharedBitmapManager shared_bitmap_manager_;
   cc::TestGpuMemoryBufferManager gpu_memory_buffer_manager_;
-  cc::TestTaskGraphRunner task_graph_runner_;
+  cc::TestTaskGraphRunner* task_graph_runner_=cc::TestTaskGraphRunner::Instance();
   FakeRendererScheduler renderer_scheduler_;
 
   DISALLOW_COPY_AND_ASSIGN(FakeCompositorDependencies);

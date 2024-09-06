@@ -65,7 +65,7 @@ class InProcessContextFactory : public ContextFactory {
   cc::TestSharedBitmapManager shared_bitmap_manager_;
   cc::TestGpuMemoryBufferManager gpu_memory_buffer_manager_;
   cc::TestImageFactory image_factory_;
-  cc::TestTaskGraphRunner task_graph_runner_;
+  cc::TestTaskGraphRunner* task_graph_runner_ = cc::TestTaskGraphRunner::Instance();
   uint32_t next_surface_id_namespace_;
   bool use_test_surface_;
   bool context_factory_for_test_;

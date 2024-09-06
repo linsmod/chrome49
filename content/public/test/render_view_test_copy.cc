@@ -22,7 +22,7 @@ namespace content {
       view()->OnSetZoomLevelForLoadingURL(common_params.url, kMinZoomLevel);
       frame()->Navigate(common_params, StartNavigationParams(),
                         RequestNavigationParams());
-      // ProcessPendingMessages();
+      ProcessPendingMessages();
       GetWebView()->updateAllLifecyclePhases();
     }
   

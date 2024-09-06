@@ -155,7 +155,7 @@ class LayerTestCommon {
 
    private:
     FakeLayerTreeHostClient client_;
-    TestTaskGraphRunner task_graph_runner_;
+    TestTaskGraphRunner* task_graph_runner_ = TestTaskGraphRunner::Instance();
     scoped_ptr<OutputSurface> output_surface_;
     scoped_ptr<FakeLayerTreeHost> host_;
     scoped_ptr<LayerImpl> root_layer_impl_;

@@ -123,7 +123,7 @@ class ResourceManagerTest : public testing::Test {
  protected:
   scoped_ptr<MockLayerTreeHost> host_;
   TestResourceManagerImpl resource_manager_;
-  cc::TestTaskGraphRunner task_graph_runner_;
+  cc::TestTaskGraphRunner* task_graph_runner_ = cc::TestTaskGraphRunner::Instance();
   cc::FakeLayerTreeHostClient fake_client_;
 };
 

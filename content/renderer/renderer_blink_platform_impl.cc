@@ -79,6 +79,7 @@
 #include "media/base/mime_util.h"
 #include "media/blink/webcontentdecryptionmodule_impl.h"
 #include "media/filters/stream_parser_factory.h"
+#include "render_thread_impl.h"
 #include "storage/common/database/database_identifier.h"
 #include "storage/common/quota/quota_types.h"
 #include "third_party/WebKit/public/platform/WebBatteryStatusListener.h"
@@ -265,6 +266,7 @@ RendererBlinkPlatformImpl::RendererBlinkPlatformImpl(
     web_database_observer_impl_.reset(
         new WebDatabaseObserverImpl(sync_message_filter_.get()));
   }
+
 }
 
 RendererBlinkPlatformImpl::~RendererBlinkPlatformImpl() {

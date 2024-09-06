@@ -97,7 +97,7 @@ class WebLayerTreeViewImplForTesting
   void DidAbortSwapBuffers() override {}
 
  private:
-  cc::TestTaskGraphRunner task_graph_runner_;
+  cc::TestTaskGraphRunner* task_graph_runner_ = cc::TestTaskGraphRunner::Instance();
   scoped_ptr<cc::LayerTreeHost> layer_tree_host_;
 
   DISALLOW_COPY_AND_ASSIGN(WebLayerTreeViewImplForTesting);

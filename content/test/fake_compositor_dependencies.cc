@@ -97,7 +97,7 @@ FakeCompositorDependencies::CreateExternalBeginFrameSource(int routing_id) {
 }
 
 cc::TaskGraphRunner* FakeCompositorDependencies::GetTaskGraphRunner() {
-  return &task_graph_runner_;
+  return task_graph_runner_;
 }
 
 bool FakeCompositorDependencies::AreImageDecodeTasksEnabled() {

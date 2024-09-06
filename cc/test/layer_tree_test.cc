@@ -811,7 +811,7 @@ void LayerTreeTest::RunTest(CompositorMode mode, bool delegating_renderer) {
 
   shared_bitmap_manager_.reset(new TestSharedBitmapManager);
   gpu_memory_buffer_manager_.reset(new TestGpuMemoryBufferManager);
-  task_graph_runner_.reset(new TestTaskGraphRunner);
+  task_graph_runner_.reset(TestTaskGraphRunner::Instance());
 
   delegating_renderer_ = delegating_renderer;
 

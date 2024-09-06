@@ -8,6 +8,7 @@
 
 #include <cctype>
 #include <memory>
+#include <string>
 
 #include "base/location.h"
 #include "base/run_loop.h"
@@ -169,12 +170,27 @@ private:
   std::unique_ptr<WebURLLoader> wrapped_loader_;
 };
 
+  #include "content/renderer/render_process_impl.h"
 class RendererBlinkPlatformImplTestOverrideImpl
     : public RendererBlinkPlatformImpl {
  public:
   RendererBlinkPlatformImplTestOverrideImpl(
       scheduler::RendererScheduler* scheduler)
-      : RendererBlinkPlatformImpl(scheduler) {}
+      : RendererBlinkPlatformImpl(scheduler) {
+
+
+        // linsmod Added
+        // if(!RenderThreadImpl::current()){
+        //   // scoped_ptr<base::MessageLoop> main_message_loop;
+        //   // main_message_loop.reset(base::MessageLoop::current());
+        //   scoped_ptr<base::MessageLoop> main_message_loop(base::MessageLoop::current());
+        //   scoped_ptr<scheduler::RendererScheduler> renderer_scheduler_pass;
+        //   renderer_scheduler_pass.reset(scheduler);
+        //   // content::RenderProcessImpl render_process;
+        //   RenderThreadImpl::Create(std::move(main_message_loop),
+        //                           std::move(renderer_scheduler_pass));
+        // }
+      }
 
   // Get rid of the dependency to the sandbox, which is not available in
   // RenderViewTest.
@@ -331,8 +347,9 @@ void RenderViewTest::SetUp() {
 #endif
   // Subclasses can set render_thread_ with their own implementation before
   // calling RenderViewTest::SetUp().
-  if (!render_thread_)
+  if (!render_thread_){
     render_thread_.reset(new MockRenderThread());
+  }
   render_thread_->set_routing_id(kRouteId);
   render_thread_->set_new_window_routing_id(kNewWindowRouteId);
   render_thread_->set_new_window_main_frame_widget_routing_id(

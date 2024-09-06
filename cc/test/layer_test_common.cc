@@ -121,7 +121,7 @@ LayerTestCommon::LayerImplTest::LayerImplTest()
 LayerTestCommon::LayerImplTest::LayerImplTest(const LayerTreeSettings& settings)
     : client_(FakeLayerTreeHostClient::DIRECT_3D),
       output_surface_(FakeOutputSurface::Create3d()),
-      host_(FakeLayerTreeHost::Create(&client_, &task_graph_runner_, settings)),
+      host_(FakeLayerTreeHost::Create(&client_, task_graph_runner_, settings)),
       root_layer_impl_(LayerImpl::Create(host_->host_impl()->active_tree(), 1)),
       render_pass_(RenderPass::Create()),
       layer_impl_id_(2) {

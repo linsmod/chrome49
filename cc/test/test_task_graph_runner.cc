@@ -5,7 +5,8 @@
 #include "cc/test/test_task_graph_runner.h"
 
 namespace cc {
-
+TestTaskGraphRunner* TestTaskGraphRunner::s_instance = nullptr;  
+std::mutex TestTaskGraphRunner::mutex_; 
 TestTaskGraphRunner::TestTaskGraphRunner() {
   Start("TestTaskGraphRunner", base::SimpleThread::Options());
 }

@@ -158,7 +158,6 @@ int DemoMain() {
   // Create the message-loop here before creating the root window.
   base::MessageLoopForUI message_loop;
 
-
 //
   render_view_test = content::createRenderViewTest(&message_loop);
     render_view_test->SetUp();
@@ -187,24 +186,6 @@ int DemoMain() {
   window1.SetBounds(window1_bounds);
   window1.Show();
   aura::client::ParentWindowWithContext(&window1, host->window(), gfx::Rect());
-
-  gfx::Rect window2_bounds(200, 200, 350, 350);
-  DemoWindowDelegate window_delegate2(SK_ColorRED);
-  aura::Window window2(&window_delegate2);
-  window2.set_id(2);
-  window2.Init(ui::LAYER_TEXTURED);
-  window2.SetBounds(window2_bounds);
-  window2.Show();
-  aura::client::ParentWindowWithContext(&window2, host->window(), gfx::Rect());
-
-  gfx::Rect window3_bounds(10, 10, 50, 50);
-  DemoWindowDelegate window_delegate3(SK_ColorGREEN);
-  aura::Window window3(&window_delegate3);
-  window3.set_id(3);
-  window3.Init(ui::LAYER_TEXTURED);
-  window3.SetBounds(window3_bounds);
-  window3.Show();
-  window2.AddChild(&window3);
 
   host->Show();
   base::MessageLoopForUI::current()->Run();

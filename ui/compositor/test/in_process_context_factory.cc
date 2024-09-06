@@ -232,7 +232,7 @@ InProcessContextFactory::GetGpuMemoryBufferManager() {
 }
 
 cc::TaskGraphRunner* InProcessContextFactory::GetTaskGraphRunner() {
-  return &task_graph_runner_;
+  return task_graph_runner_;
 }
 
 scoped_ptr<cc::SurfaceIdAllocator>
