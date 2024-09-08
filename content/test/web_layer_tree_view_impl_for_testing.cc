@@ -24,6 +24,10 @@
 #include "third_party/WebKit/public/platform/WebSize.h"
 #include "third_party/WebKit/public/web/WebRuntimeFeatures.h"
 
+// linsmod Add includes
+#include "ui/gl/test/gl_surface_test_support.h"
+#include "ui/compositor/compositor.h"
+#include "ui/compositor/test/context_factories_for_test.h"
 using blink::WebColor;
 using blink::WebRect;
 using blink::WebSize;
@@ -33,6 +37,9 @@ namespace content {
 WebLayerTreeViewImplForTesting::WebLayerTreeViewImplForTesting() {}
 
 WebLayerTreeViewImplForTesting::~WebLayerTreeViewImplForTesting() {}
+
+// linsmod Add fields
+scoped_ptr<ui::Compositor> compositor_;
 
 void WebLayerTreeViewImplForTesting::Initialize() {
   cc::LayerTreeSettings settings;
@@ -51,8 +58,21 @@ void WebLayerTreeViewImplForTesting::Initialize() {
   params.settings = &settings;
   params.main_task_runner = base::ThreadTaskRunnerHandle::Get();
   params.task_graph_runner = task_graph_runner_;
-  layer_tree_host_ = cc::LayerTreeHost::CreateSingleThreaded(this, &params);
-  DCHECK(layer_tree_host_);
+
+  // linsmod comment out
+  // layer_tree_host_ = cc::LayerTreeHost::CreateSingleThreaded(this, &params);
+  // DCHECK(layer_tree_host_);
+
+  // linsmod Add
+  gfx::GLSurfaceTestSupport::InitializeOneOff();
+  bool enable_pixel_output = false;
+  ui::ContextFactory* context_factory =
+      ui::InitializeContextFactoryForTests(enable_pixel_output);
+  compositor_.reset(
+      new ui::Compositor(context_factory, base::ThreadTaskRunnerHandle::Get()));
+  compositor_->SetAcceleratedWidget(gfx::kNullAcceleratedWidget);
+
+  layer_tree_host_ = make_scoped_ptr( compositor_->GetLayerTreeHost());
 }
 
 void WebLayerTreeViewImplForTesting::setRootLayer(
@@ -151,10 +171,18 @@ void WebLayerTreeViewImplForTesting::ApplyViewportDeltas(
 
 void WebLayerTreeViewImplForTesting::RequestNewOutputSurface() {
   // Intentionally do not create and set an OutputSurface.
+
+  // linsmod Add
+  // 不需要自己创建output_surface_了，
+  // 直接用compositor_来管理
+  compositor_->RequestNewOutputSurface();
 }
 
 void WebLayerTreeViewImplForTesting::DidFailToInitializeOutputSurface() {
   NOTREACHED();
+
+  // linsmod Add
+  RequestNewOutputSurface();
 }
 
 void WebLayerTreeViewImplForTesting::registerForAnimations(

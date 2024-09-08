@@ -66,9 +66,9 @@ int runHelper(base::TestSuite* testSuite, void (*preTestHook)(void), void (*post
 
 int runWebTests(int argc, char** argv, void (*preTestHook)(void), void (*postTestHook)(void))
 {
-    blink::PageOverlayTest_copy test;
-    test.runPageOverlayTestWithAcceleratedCompositing();
     base::TestSuite testSuite(argc, argv);
+    // blink::PageOverlayTest_copy test;
+    // test.runPageOverlayTestWithAcceleratedCompositing();
     return base::LaunchUnitTests(argc, argv, base::Bind(&runHelper, base::Unretained(&testSuite), preTestHook, postTestHook));
 }
 

@@ -291,7 +291,10 @@ void Compositor::SetLatencyInfo(const ui::LatencyInfo& latency_info) {
       new cc::LatencyInfoSwapPromise(latency_info));
   host_->QueueSwapPromise(std::move(swap_promise));
 }
-
+// linsmod add method
+cc::LayerTreeHost* Compositor::GetLayerTreeHost(){
+  return host_.get();
+}
 void Compositor::SetScaleAndSize(float scale, const gfx::Size& size_in_pixel) {
   DCHECK_GT(scale, 0);
   if (!size_in_pixel.IsEmpty()) {

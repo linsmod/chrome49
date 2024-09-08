@@ -15,7 +15,7 @@ web_gypi = exec_script("//build/gypi_to_gn.py",
                        [ rebase_path("web.gypi") ],
                        "scope",
                        [ "web.gypi" ])
-# web_unittest_files = web_gypi.web_unittest_files
+web_unittest_files = web_gypi.web_unittest_files
 
 component("web") {
   output_name = "blink_web"
@@ -161,11 +161,11 @@ test("webkit_unit_tests") {
 
     configs += [ "//third_party/WebKit/Source:inside_blink" ]
 
-    # sources += web_unittest_files
+    sources += web_unittest_files
     # sources += bindings_unittest_files
     # sources += core_unittest_files
     # sources += modules_unittest_files
-    # sources += platform_unittest_support_files
+    sources += platform_unittest_support_files
     # sources += platform_web_unittest_files
   }
 

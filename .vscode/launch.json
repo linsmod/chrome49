@@ -120,7 +120,7 @@
             ]
         },
         {
-            "name": "(gdb) 启动webkit_unitests",
+            "name": "(gdb) 启动webkit_unitests Default",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/out/Default/webkit_unit_tests",

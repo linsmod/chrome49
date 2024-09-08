@@ -181,6 +181,10 @@ class COMPOSITOR_EXPORT Compositor
   Layer* root_layer() { return root_layer_; }
   void SetRootLayer(Layer* root_layer);
 
+
+  // linsmod add method decl
+  cc::LayerTreeHost* GetLayerTreeHost();
+
   cc::AnimationTimeline* GetAnimationTimeline() const;
 
   // Called when we need the compositor to preserve the alpha channel in the
