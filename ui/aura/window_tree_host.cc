@@ -253,6 +253,7 @@ void WindowTreeHost::CreateCompositor() {
         scoped_ptr<ui::EventTargeter>(new WindowTargeter()));
     dispatcher_.reset(new WindowEventDispatcher(this));
   }
+  aura::Env::GetInstance()->set_compositor(compositor_.get());
 }
 
 void WindowTreeHost::OnAcceleratedWidgetAvailable() {

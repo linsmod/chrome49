@@ -13,6 +13,7 @@
 #include "ui/events/event_handler.h"
 #include "ui/events/event_target.h"
 #include "ui/gfx/geometry/point.h"
+#include "window_tree_host.h"
 
 namespace ui {
 class ContextFactory;
@@ -67,7 +68,12 @@ class AURA_EXPORT Env : public ui::EventTarget, public base::SupportsUserData {
     context_factory_ = context_factory;
   }
   ui::ContextFactory* context_factory() { return context_factory_; }
-
+  ui::Compositor* compositor(){
+    return compositor_;
+  }
+  void set_compositor(ui::Compositor* compositor){
+     compositor_ = compositor;
+  }
  private:
   friend class test::EnvTestHelper;
   friend class Window;
@@ -93,7 +99,7 @@ class AURA_EXPORT Env : public ui::EventTarget, public base::SupportsUserData {
   ui::EventTarget* GetParentTarget() override;
   scoped_ptr<ui::EventTargetIterator> GetChildIterator() const override;
   ui::EventTargeter* GetEventTargeter() override;
-
+  
   base::ObserverList<EnvObserver> observers_;
 
   int mouse_button_flags_;
@@ -105,6 +111,8 @@ class AURA_EXPORT Env : public ui::EventTarget, public base::SupportsUserData {
   scoped_ptr<ui::PlatformEventSource> event_source_;
 
   ui::ContextFactory* context_factory_;
+
+  ui::Compositor* compositor_;
 
   DISALLOW_COPY_AND_ASSIGN(Env);
 };

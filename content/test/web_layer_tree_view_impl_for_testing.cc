@@ -28,6 +28,7 @@
 #include "ui/gl/test/gl_surface_test_support.h"
 #include "ui/compositor/compositor.h"
 #include "ui/compositor/test/context_factories_for_test.h"
+#include "ui/aura/env.h"
 using blink::WebColor;
 using blink::WebRect;
 using blink::WebSize;
@@ -42,36 +43,41 @@ WebLayerTreeViewImplForTesting::~WebLayerTreeViewImplForTesting() {}
 scoped_ptr<ui::Compositor> compositor_;
 
 void WebLayerTreeViewImplForTesting::Initialize() {
-  cc::LayerTreeSettings settings;
+  
+  if(aura::Env::GetInstance()->compositor()){
+    compositor_.reset(aura::Env::GetInstance()->compositor());
+  }
+  else{
+    cc::LayerTreeSettings settings;
 
-  // For web contents, layer transforms should scale up the contents of layers
-  // to keep content always crisp when possible.
-  settings.layer_transforms_should_scale_layer_contents = true;
+    // For web contents, layer transforms should scale up the contents of layers
+    // to keep content always crisp when possible.
+    settings.layer_transforms_should_scale_layer_contents = true;
 
-  // Accelerated animations are enabled for unit tests.
-  settings.accelerated_animation_enabled = true;
-  // External cc::AnimationHost is enabled for unit tests.
-  settings.use_compositor_animation_timelines = true;
+    // Accelerated animations are enabled for unit tests.
+    settings.accelerated_animation_enabled = true;
+    // External cc::AnimationHost is enabled for unit tests.
+    settings.use_compositor_animation_timelines = true;
 
-  cc::LayerTreeHost::InitParams params;
-  params.client = this;
-  params.settings = &settings;
-  params.main_task_runner = base::ThreadTaskRunnerHandle::Get();
-  params.task_graph_runner = task_graph_runner_;
+    cc::LayerTreeHost::InitParams params;
+    params.client = this;
+    params.settings = &settings;
+    params.main_task_runner = base::ThreadTaskRunnerHandle::Get();
+    params.task_graph_runner = task_graph_runner_;
 
-  // linsmod comment out
-  // layer_tree_host_ = cc::LayerTreeHost::CreateSingleThreaded(this, &params);
-  // DCHECK(layer_tree_host_);
+    // linsmod comment out
+    // layer_tree_host_ = cc::LayerTreeHost::CreateSingleThreaded(this, &params);
+    // DCHECK(layer_tree_host_);
 
-  // linsmod Add
-  gfx::GLSurfaceTestSupport::InitializeOneOff();
-  bool enable_pixel_output = false;
-  ui::ContextFactory* context_factory =
-      ui::InitializeContextFactoryForTests(enable_pixel_output);
-  compositor_.reset(
-      new ui::Compositor(context_factory, base::ThreadTaskRunnerHandle::Get()));
-  compositor_->SetAcceleratedWidget(gfx::kNullAcceleratedWidget);
-
+    // linsmod Add
+    gfx::GLSurfaceTestSupport::InitializeOneOff();
+    bool enable_pixel_output = false;
+    ui::ContextFactory* context_factory =
+        ui::InitializeContextFactoryForTests(enable_pixel_output);
+    compositor_.reset(
+        new ui::Compositor(context_factory, base::ThreadTaskRunnerHandle::Get()));
+    compositor_->SetAcceleratedWidget(gfx::kNullAcceleratedWidget);
+  }
   layer_tree_host_ = make_scoped_ptr( compositor_->GetLayerTreeHost());
 }
 
