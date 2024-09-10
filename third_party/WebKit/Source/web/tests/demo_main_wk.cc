@@ -28,6 +28,7 @@
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/skia_util.h"
 #include "ui/gl/gl_surface.h"
+#include <memory>
 
 #if defined(USE_X11)
 #include "ui/gfx/x/x11_connection.h"
@@ -43,8 +44,13 @@
 #include "wtf/Partitions.h"
 #include "content/public/test/render_view_test_copy.h"
 #include "gin/v8_initializer.h"
+
+#include "public/platform/Platform.h"
+#include "public/web/WebKit.h"
+#include "web/tests/WebUnitTests.h"
+#include <content/test/blink_test_environment.h>
+
 namespace {
-content::RenderViewTest* render_view_test = 0;
 // Trivial WindowDelegate implementation that draws a colored background.
 class DemoWindowDelegate : public aura::WindowDelegate {
  public:
@@ -67,8 +73,6 @@ class DemoWindowDelegate : public aura::WindowDelegate {
   }
   void OnMouseEvent(ui::MouseEvent* event) override{
      
-    render_view_test->LoadHTMLAsync("<html><body><script type=\"text/javascript\">document.onload=(){location.href='https://baidu.com'}</script></body></html>");
-    render_view_test->RunMyTestBody();
   }
   bool ShouldDescendIntoChildForEventHandling(
       aura::Window* child,
@@ -133,7 +137,12 @@ class DemoWindowTreeClient : public aura::client::WindowTreeClient {
 
   DISALLOW_COPY_AND_ASSIGN(DemoWindowTreeClient);
 };
-
+scoped_ptr<DemoWindowTreeClient> window_tree_client;
+scoped_ptr<aura::WindowTreeHost> host;
+scoped_ptr<aura::TestScreen> test_screen;
+scoped_ptr<aura::Window> window1;
+scoped_ptr<ui::InProcessContextFactory> context_factory;
+scoped_ptr<DemoWindowDelegate> window_delegate1;
 int DemoMain() {
   
   ui::InitializeInputMethodForTesting();
@@ -149,48 +158,56 @@ int DemoMain() {
   gfx::SetDefaultDeviceScaleFactor(1.0f);
 #endif
 
-  // The ContextFactory must exist before any Compositors are created.
+// The ContextFactory must exist before any Compositors are created.
   bool context_factory_for_test = false;
-  scoped_ptr<ui::InProcessContextFactory> context_factory(
+  context_factory.reset(
       new ui::InProcessContextFactory(context_factory_for_test, nullptr));
   context_factory->set_use_test_surface(false);
 
   // Create the message-loop here before creating the root window.
-  base::MessageLoopForUI message_loop;
-
-//
-  // render_view_test = content::createRenderViewTest(&message_loop);
-  //   render_view_test->SetUp();
+  // base::MessageLoopForUI message_loop;
+ 
 
   base::PowerMonitor power_monitor(make_scoped_ptr(
       new base::PowerMonitorDeviceSource));
 
   aura::Env::CreateInstance(true);
   aura::Env::GetInstance()->set_context_factory(context_factory.get());
-  scoped_ptr<aura::TestScreen> test_screen(
+  test_screen.reset(
       aura::TestScreen::Create(gfx::Size()));
   gfx::Screen::SetScreenInstance(gfx::SCREEN_TYPE_NATIVE, test_screen.get());
-  scoped_ptr<aura::WindowTreeHost> host(
+  host.reset(
       test_screen->CreateHostForPrimaryDisplay());
-  scoped_ptr<DemoWindowTreeClient> window_tree_client(
+  window_tree_client.reset(
       new DemoWindowTreeClient(host->window()));
   aura::test::TestFocusClient focus_client;
   aura::client::SetFocusClient(host->window(), &focus_client);
 
   // Create a hierarchy of test windows.
   gfx::Rect window1_bounds(100, 100, 400, 400);
-  DemoWindowDelegate window_delegate1(SK_ColorBLUE);
-  aura::Window window1(&window_delegate1);
-  window1.set_id(1);
-  window1.Init(ui::LAYER_TEXTURED);
-  window1.SetBounds(window1_bounds);
-  window1.Show();
-  aura::client::ParentWindowWithContext(&window1, host->window(), gfx::Rect());
+  window_delegate1.reset(new DemoWindowDelegate(SK_ColorBLUE));
+  window1.reset(new aura::Window (window_delegate1.get()));
+  window1->set_id(1);
+  window1->Init(ui::LAYER_TEXTURED);
+  window1->SetBounds(window1_bounds);
+  window1->Show();
+  aura::client::ParentWindowWithContext(window1.get(), host->window(), gfx::Rect());
 
   host->Show();
-  base::MessageLoopForUI::current()->Run();
-
+  // base::MessageLoopForUI::current()->Run();
   return 0;
+}
+
+void preTestHook()
+{
+  content::SetUpBlinkTestEnvironment();
+  DemoMain();
+}
+
+void postTestHook()
+{
+    base::MessageLoopForUI::current()->Run();
+    // content::TearDownBlinkTestEnvironment();
 }
 
 }  // namespace
@@ -198,22 +215,17 @@ int main(int argc, char** argv) {
   base::CommandLine::Init(argc, argv);
 
   // The exit manager is in charge of calling the dtors of singleton objects.
-  base::AtExitManager exit_manager;
+  // base::AtExitManager exit_manager;
 
-  base::i18n::InitializeICU();
+  // base::i18n::InitializeICU();
   WTF::Partitions::initialize(nullptr);
 
   #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
     gin::V8Initializer::LoadV8Snapshot();
     gin::V8Initializer::LoadV8Natives();
   #endif
-  // content::RenderViewTest* render_view_test = content::createRenderViewTest();
-  // render_view_test->SetUp();
-  // render_view_test->LoadHTMLAsync("<html><body><script type=\"text/javascript\">document.onload=(){location.href='https://baidu.com'}</script></body></html>");
-  // blink::PageOverlayTest_copy* test = new blink::PageOverlayTest_copy();
-  //   test->runPageOverlayTestWithAcceleratedCompositing();
-  return DemoMain();
-
-  //  base::MessageLoopForUI::current()->Run();
-  // return 0;
+  
+  
+  
+  return blink::runWebTests(argc, argv, &preTestHook, &postTestHook);
 }

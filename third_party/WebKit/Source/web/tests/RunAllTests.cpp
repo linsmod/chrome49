@@ -34,19 +34,26 @@
 #include <content/test/blink_test_environment.h>
 #include <cstdio>
 // #include "web/PageOverlay.h"
+
+#include "ui/aura/env.h"
+#include "base/command_line.h"
 namespace {
 
 // Test helpers to support the fact that blink tests are gloriously complicated
 // in a shared library build. See WebUnitTests.h for more details.
+base::MessageLoop* message_loop;
 void preTestHook()
 {
-    content::SetUpBlinkTestEnvironment();
+    message_loop = content::SetUpBlinkTestEnvironmentAndGetMainMessageLoop();
     // blink::PageOverlayTest_copy test;
     // test.runPageOverlayTestWithAcceleratedCompositing();
 }
 
 void postTestHook()
 {
+    // 使用 out/Default/webkit_unit_tests --single-process-tests
+    // 否则我们添加的loop->Run()会导致test框架的频繁重试
+    message_loop->Run();
     content::TearDownBlinkTestEnvironment();
 }
 
@@ -61,5 +68,7 @@ void postTestHook()
 
 int main(int argc, char** argv)
 {
+    base::CommandLine::Init(argc, argv);
+    aura::Env::CreateInstance(true);
     return blink::runWebTests(argc, argv, &preTestHook, &postTestHook);
 }

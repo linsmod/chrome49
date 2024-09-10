@@ -47,7 +47,7 @@ int runHelper(base::TestSuite* testSuite, void (*preTestHook)(void), void (*post
 {
     preTestHook();
     int result = testSuite->Run();
-
+    
     // Tickle EndOfTaskRunner which among other things will flush the queue
     // of error messages via V8Initializer::reportRejectedPromisesOnMainThread.
     base::MessageLoop::current()->PostTask(FROM_HERE, base::Bind(&base::DoNothing));
