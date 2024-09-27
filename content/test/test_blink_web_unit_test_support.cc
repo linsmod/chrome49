@@ -120,7 +120,7 @@ TestBlinkWebUnitTestSupport::TestBlinkWebUnitTestSupport() {
   web_thread_ = renderer_scheduler_->CreateMainThread();
 
   blink::initialize(this);
-  blink::setLayoutTestMode(true);
+  // blink::setLayoutTestMode(true); // comment out to use normal FPS
   blink::WebRuntimeFeatures::enableApplicationCache(true);
   blink::WebRuntimeFeatures::enableDatabase(true);
   blink::WebRuntimeFeatures::enableNotifications(true);
