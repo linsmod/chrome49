@@ -27,6 +27,7 @@
 // linsmod Add includes
 #include "ui/gl/test/gl_surface_test_support.h"
 #include "ui/compositor/compositor.h"
+#include "ui/compositor/compositor_observer.h"
 #include "ui/compositor/test/context_factories_for_test.h"
 #include "ui/aura/env.h"
 using blink::WebColor;
@@ -48,22 +49,22 @@ void WebLayerTreeViewImplForTesting::Initialize() {
     compositor_.reset(aura::Env::GetInstance()->compositor());
   }
   else{
-    cc::LayerTreeSettings settings;
+    // cc::LayerTreeSettings settings;
 
-    // For web contents, layer transforms should scale up the contents of layers
-    // to keep content always crisp when possible.
-    settings.layer_transforms_should_scale_layer_contents = true;
+    // // For web contents, layer transforms should scale up the contents of layers
+    // // to keep content always crisp when possible.
+    // settings.layer_transforms_should_scale_layer_contents = true;
 
-    // Accelerated animations are enabled for unit tests.
-    settings.accelerated_animation_enabled = true;
-    // External cc::AnimationHost is enabled for unit tests.
-    settings.use_compositor_animation_timelines = true;
+    // // Accelerated animations are enabled for unit tests.
+    // settings.accelerated_animation_enabled = true;
+    // // External cc::AnimationHost is enabled for unit tests.
+    // settings.use_compositor_animation_timelines = true;
 
-    cc::LayerTreeHost::InitParams params;
-    params.client = this;
-    params.settings = &settings;
-    params.main_task_runner = base::ThreadTaskRunnerHandle::Get();
-    params.task_graph_runner = task_graph_runner_;
+    // cc::LayerTreeHost::InitParams params;
+    // params.client = this;
+    // params.settings = &settings;
+    // params.main_task_runner = base::ThreadTaskRunnerHandle::Get();
+    // params.task_graph_runner = task_graph_runner_;
 
     // linsmod comment out
     // layer_tree_host_ = cc::LayerTreeHost::CreateSingleThreaded(this, &params);
@@ -165,6 +166,8 @@ void WebLayerTreeViewImplForTesting::setDeferCommits(bool defer_commits) {
 }
 
 void WebLayerTreeViewImplForTesting::UpdateLayerTreeHost() {
+  // @linsmod
+  layer_tree_host_->client()->UpdateLayerTreeHost();
 }
 
 void WebLayerTreeViewImplForTesting::ApplyViewportDeltas(
@@ -195,6 +198,14 @@ void WebLayerTreeViewImplForTesting::registerForAnimations(
     blink::WebLayer* layer) {
   cc::Layer* cc_layer = static_cast<cc_blink::WebLayerImpl*>(layer)->layer();
   cc_layer->RegisterForAnimations(layer_tree_host_->animation_registrar());
+
+  // @linsmod
+  // WebViewImpl在初始化之后，对它的ViewPort的Resize会导致执行updateAllLifecyclePhases
+  // 直到运行到这里。
+  // 由于是是测试代码，它并不会设置cc_layer的layer_tree_host，必须在创建cc_layer的步骤中设置它
+  // 在这里设置是一个比较好的位置
+
+  cc_layer->SetLayerTreeHost(layer_tree_host_.get());
 }
 
 void WebLayerTreeViewImplForTesting::registerViewportLayers(

@@ -96,4 +96,17 @@ SimDisplayItemList SimCompositor::beginFrame()
     return displayList;
 }
 
+void SimCompositor::beginFrame2(){
+    ASSERT(m_webViewImpl);
+    ASSERT(!m_deferCommits);
+    ASSERT(m_needsAnimate);
+    m_needsAnimate = false;
+
+    // Always advance the time as if the compositor was running at 60fps.
+    m_lastFrameTimeMonotonic = monotonicallyIncreasingTime() + 0.016;
+
+    m_webViewImpl->beginFrame(m_lastFrameTimeMonotonic);
+    m_webViewImpl->updateAllLifecyclePhases();
+}
+
 } // namespace blink

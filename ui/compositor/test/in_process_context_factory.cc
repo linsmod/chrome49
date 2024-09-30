@@ -64,21 +64,19 @@ class DirectOutputSurface : public cc::OutputSurface {
           frame->gl_frame_data->sub_buffer_rect);
     }
 
-    // 注释掉以下代码，因为SignalSyncToken实际会直接执行OnSwapBuffersComplete
-    // 这会导致相反的代码执行顺序，正确顺序是：DidSwapBuffers+OnSwapBuffersComplete
     // @linsmod
-
-    // gpu::gles2::GLES2Interface* gl = context_provider_->ContextGL();
-    // const uint64_t fence_sync = gl->InsertFenceSyncCHROMIUM();
-    // gl->ShallowFlushCHROMIUM();
-
-    // gpu::SyncToken sync_token;
-    // gl->GenUnverifiedSyncTokenCHROMIUM(fence_sync, sync_token.GetData());
-    // context_provider_->ContextSupport()->SignalSyncToken(
-    //     sync_token, base::Bind(&OutputSurface::OnSwapBuffersComplete,
-    //                            weak_ptr_factory_.GetWeakPtr()));
+    // 调整了执行顺序，否则会挂掉：
+    // 正确顺序DidSwapBuffers, OnSwapBuffersComplete
     client_->DidSwapBuffers();
-    cc::OutputSurface::PostSwapBuffersComplete();
+    gpu::gles2::GLES2Interface* gl = context_provider_->ContextGL();
+    const uint64_t fence_sync = gl->InsertFenceSyncCHROMIUM();
+    gl->ShallowFlushCHROMIUM();
+
+    gpu::SyncToken sync_token;
+    gl->GenUnverifiedSyncTokenCHROMIUM(fence_sync, sync_token.GetData());
+    context_provider_->ContextSupport()->SignalSyncToken(
+        sync_token, base::Bind(&OutputSurface::OnSwapBuffersComplete,
+                               weak_ptr_factory_.GetWeakPtr()));
   }
 
  private:

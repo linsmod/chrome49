@@ -78,6 +78,11 @@ source_set("test_support") {
       "//content/browser/renderer_host/render_widget_helper_copy.cc",
       "//content/browser/renderer_host/render_widget_helper_copy.h",
     ]
+    # WebThread
+    sources += [
+      "//ios/web/web_thread_impl.cc",
+      "//ios/web/web_thread_impl.h",
+    ]
     if(is_component_build){
       sources += [
         "//content/browser/dom_storage/session_storage_namespace_impl.cc",

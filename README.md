@@ -60,7 +60,7 @@ otherwise you will got gn error
 5、Obtain all code.
 
  `cd chrome49/` 
- `gclient sync`
+ `gclient sync --no-history`
 This command also download third_party dependencies defined in DEPS after this repo is pull into `chrome49/src` successful.
 Downloading third_party dependencies will take much time.
 

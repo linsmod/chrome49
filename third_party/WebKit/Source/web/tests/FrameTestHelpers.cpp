@@ -182,7 +182,7 @@ TestWebFrameClient* defaultWebFrameClient()
     return &client;
 }
 
-WebViewClient* defaultWebViewClient()
+TestWebViewClient* defaultWebViewClient()
 {
     DEFINE_STATIC_LOCAL(TestWebViewClient,  client, ());
     return &client;
@@ -244,11 +244,13 @@ WebViewHelper::~WebViewHelper()
 WebViewImpl* WebViewHelper::initialize(bool enableJavascript, TestWebFrameClient* webFrameClient, WebViewClient* webViewClient, void (*updateSettingsFunc)(WebSettings*))
 {
     reset();
-
+    TestWebViewClient* testWebViewClient_ = nullptr;
     if (!webFrameClient)
         webFrameClient = defaultWebFrameClient();
-    if (!webViewClient)
-        webViewClient = defaultWebViewClient();
+    if (!webViewClient){
+        testWebViewClient_ = defaultWebViewClient();
+        webViewClient = testWebViewClient_;
+    }
     m_webView = WebViewImpl::create(webViewClient);
     m_webView->settings()->setJavaScriptEnabled(enableJavascript);
     m_webView->settings()->setPluginsEnabled(true);
@@ -271,7 +273,8 @@ WebViewImpl* WebViewHelper::initialize(bool enableJavascript, TestWebFrameClient
     // TODO(dcheng): The main frame widget currently has a special case.
     // Eliminate this once WebView is no longer a WebWidget.
     m_webViewWidget = blink::WebFrameWidget::create(webViewClient, m_webView, frame);
-
+    if(testWebViewClient_)
+        testWebViewClient_->Initialize(m_webViewWidget);
     return m_webView;
 }
 
@@ -354,10 +357,34 @@ void TestWebRemoteFrameClient::frameDetached(DetachType type)
     m_frame->close();
 }
 
+class HostMethodTask : public test_runner::WebMethodTask<TestWebViewClient> {
+public:
+    typedef void (TestWebViewClient::*CallbackMethodType)();
+    HostMethodTask(TestWebViewClient* object, CallbackMethodType callback)
+        : WebMethodTask<TestWebViewClient>(object)
+        , callback_(callback)
+    {
+    }
+
+    void RunIfValid() override { (object_->*callback_)(); }
+
+private:
+    CallbackMethodType callback_;
+};
+
 void TestWebViewClient::initializeLayerTreeView()
 {
     m_layerTreeView = adoptPtr(Platform::current()->unitTestSupport()->createLayerTreeViewForTesting());
     ASSERT(m_layerTreeView);
+}
+
+void TestWebViewClient::scheduleAnimation()
+{
+    if (!animate_scheduled_) {
+        animate_scheduled_ = true;
+        PostDelayedTask(
+            new HostMethodTask(this, &TestWebViewClient::AnimateNow), 1);
+    }
 }
 
 } // namespace FrameTestHelpers

@@ -116,9 +116,9 @@ void SetUpBlinkTestEnvironment() {
   test_environment = new TestEnvironment;
 }
 
-MessageLoopType* SetUpBlinkTestEnvironmentAndGetMainMessageLoop(){
+TestBlinkWebUnitTestSupport* SetUpBlinkTestEnvironment2(){
   SetUpBlinkTestEnvironment();
-  return test_environment->main_message_loop();
+  return test_environment->blink_platform_impl();
 } 
 
 void TearDownBlinkTestEnvironment() {

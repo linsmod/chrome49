@@ -43,6 +43,53 @@
                     "ignoreFailures": true
                 }
             ]
+        }
+        ,{
+            "name": "(gdb) 启动content_shell",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/Default/content_shell",
+            "args": ["--no-sandbox","--single-process"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },{
+            "name": "(gdb) 启动webkit_unit_tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/out/Default/webkit_unit_tests",
+            "args": ["--single-process-tests"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         },{
             "name": "(gdb) ash_shell_with_content Release",
             "type": "cppdbg",

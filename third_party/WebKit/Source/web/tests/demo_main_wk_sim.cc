@@ -11,6 +11,7 @@
 #include "base/power_monitor/power_monitor.h"
 #include "base/power_monitor/power_monitor_device_source.h"
 #include "build/build_config.h"
+#include "sim/SimNotTest.h"
 #include "third_party/skia/include/core/SkXfermode.h"
 #include "ui/aura/client/default_capture_client.h"
 #include "ui/aura/client/window_tree_client.h"
@@ -51,15 +52,14 @@
 #include "web/tests/WebUnitTests.h"
 #include <content/test/blink_test_environment.h>
 
-#include "web/myRunHelper.h"
+#include "web/tests/sim/SimNotTest.h"
 namespace {
-scoped_ptr<blink::myRunHelper> myRunHelper;
+scoped_ptr<blink::SimNotTest> simNotTest;
 // Trivial WindowDelegate implementation that draws a colored background.
 class DemoWindowDelegate : public aura::WindowDelegate {
 public:
-    explicit DemoWindowDelegate(SkColor color, blink::WebUnitTestSupport* s1)
+    explicit DemoWindowDelegate(SkColor color)
         : color_(color)
-        , s1_(s1)
     {
     }
 
@@ -72,8 +72,8 @@ public:
         const gfx::Rect& new_bounds) override
     {
         window_bounds_ = new_bounds;
-        if (myRunHelper)
-            myRunHelper->navigateTo("https://baidu.com");
+        if (simNotTest)
+            simNotTest->webView().resize(blink::WebSize(window_bounds_.width(),window_bounds_.height()));
     }
     gfx::NativeCursor GetCursor(const gfx::Point& point) override
     {
@@ -85,7 +85,8 @@ public:
     }
     void OnMouseEvent(ui::MouseEvent* event) override
     {
-        myRunHelper->forceFullCompositingUpdate();
+        if(simNotTest->compositor().needsAnimate())
+            simNotTest->compositor().beginFrame2();
     }
     bool ShouldDescendIntoChildForEventHandling(
         aura::Window* child,
@@ -117,7 +118,6 @@ public:
 
 private:
     SkColor color_;
-    blink::WebUnitTestSupport* s1_;
     gfx::Rect window_bounds_;
 
     DISALLOW_COPY_AND_ASSIGN(DemoWindowDelegate);
@@ -202,11 +202,9 @@ int DemoMain()
     aura::test::TestFocusClient focus_client;
     aura::client::SetFocusClient(host->window(), &focus_client);
 
-    blink::WebUnitTestSupport* s1 = support->unitTestSupport();
-
     // Create a hierarchy of test windows.
     gfx::Rect window1_bounds(100, 100, 400, 400);
-    window_delegate1.reset(new DemoWindowDelegate(SK_ColorBLUE, s1));
+    window_delegate1.reset(new DemoWindowDelegate(SK_ColorBLUE));
     window1.reset(new aura::Window(window_delegate1.get()));
     window1->set_id(1);
     window1->Init(ui::LAYER_TEXTURED);
@@ -216,9 +214,8 @@ int DemoMain()
 
     host->Show();
 
-    myRunHelper.reset(blink::createMyRunHelper());
-    myRunHelper->run();
-    myRunHelper->navigateTo("https://baidu.com");
+    simNotTest.reset(new blink::SimNotTest());
+    simNotTest->loadURL("https://baidu.com");
     // base::MessageLoopForUI::current()->Run();
     return 0;
 }

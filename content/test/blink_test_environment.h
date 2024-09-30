@@ -7,6 +7,7 @@
 #include "base/message_loop/message_loop.h"
 // This package provides functions used by webkit_unit_tests.
 namespace content {
+  class TestBlinkWebUnitTestSupport;
 #if defined(OS_ANDROID)
   // Android UI message loop goes through Java, so don't use it in tests.
   typedef base::MessageLoop MessageLoopType;
@@ -17,7 +18,7 @@ namespace content {
 // Initializes Blink test environment for unit tests.
 void SetUpBlinkTestEnvironment();
 
-MessageLoopType* SetUpBlinkTestEnvironmentAndGetMainMessageLoop();
+TestBlinkWebUnitTestSupport* SetUpBlinkTestEnvironment2();
 
 // Terminates Blink test environment for unit tests.
 void TearDownBlinkTestEnvironment();

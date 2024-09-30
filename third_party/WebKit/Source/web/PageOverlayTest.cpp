@@ -136,7 +136,7 @@ protected:
     {
         RuntimeEnabledFeatures::setCompositorWorkerEnabled(true);
         m_helper.initialize(
-            false /* enableJavascript */, nullptr /* webFrameClient */, nullptr /* webViewClient */,
+            true /* enableJavascript */, nullptr /* webFrameClient */, nullptr /* webViewClient */,
             compositingMode == AcceleratedCompositing ? enableAcceleratedCompositing : disableAcceleratedCompositing);
         webViewImpl()->resize(WebSize(viewportWidth, viewportHeight));
         webViewImpl()->updateAllLifecyclePhases();

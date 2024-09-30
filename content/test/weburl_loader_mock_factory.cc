@@ -17,6 +17,10 @@
 #include "third_party/WebKit/public/platform/WebURLResponse.h"
 #include "third_party/WebKit/public/web/WebCache.h"
 
+// @linsmod include
+#include "url/gurl.h"
+#include "net/base/escape.h"
+
 using blink::WebCache;
 using blink::WebData;
 using blink::WebString;
@@ -107,7 +111,9 @@ void WebURLLoaderMockFactory::ServeAsynchronousRequests() {
 }
 
 bool WebURLLoaderMockFactory::IsMockedURL(const blink::WebURL& url) {
-  return url_to_reponse_info_.find(url) != url_to_reponse_info_.end();
+  // return url_to_reponse_info_.find(url) != url_to_reponse_info_.end();
+  // @linsmod
+  return true;
 }
 
 void WebURLLoaderMockFactory::CancelLoad(WebURLLoaderMock* loader) {
@@ -133,7 +139,31 @@ void WebURLLoaderMockFactory::LoadAsynchronouly(const WebURLRequest& request,
   DCHECK(iter == pending_loaders_.end());
   pending_loaders_[loader] = request;
 }
+// 假设这是你的根目录
+const base::FilePath::CharType kWebRoot[] = FILE_PATH_LITERAL("/home/wulin/blinkApp/");
 
+// 将 URL 转换为文件路径
+base::FilePath urlToPath(const GURL& url) {
+  if (!url.is_valid())
+    return base::FilePath();
+
+  // 获取 scheme 和主机名
+  std::string scheme = url.scheme();
+  std::string host = url.host();
+  std::string path = url.path();
+
+  // 构建文件路径
+  base::FilePath file_path(kWebRoot);
+  file_path = file_path.AppendASCII(host);
+
+  // 如果路径为空，则默认使用 index.html
+  if (path.empty() || path == "/")
+    file_path = file_path.AppendASCII("index.html");
+  else
+    file_path = file_path.Append(net::UnescapeURLComponent(path, net::UnescapeRule::SPACES | net::UnescapeRule::URL_SPECIAL_CHARS));
+
+  return file_path;
+}
 void WebURLLoaderMockFactory::LoadRequest(const WebURLRequest& request,
                                           WebURLResponse* response,
                                           WebURLError* error,
@@ -147,7 +177,21 @@ void WebURLLoaderMockFactory::LoadRequest(const WebURLRequest& request,
       url_to_reponse_info_.find(request.url());
   if (iter == url_to_reponse_info_.end()) {
     // Non mocked URLs should not have been passed to the default URLLoader.
-    NOTREACHED();
+    // NOTREACHED();
+
+    // @linsmod
+    // Fill the response by treat request.url() as local file path
+    // eg. if https://abc.com/ requested, response file ~/www/abc.com/index.html
+    if(!ReadFile(urlToPath(request.url()), data)) {
+      NOTREACHED();
+      return;
+    }
+    WebURLResponse ok_response;
+    ok_response.initialize();
+    ok_response.setMIMEType("text/html");
+    ok_response.setHTTPStatusCode(200);
+    ok_response.addHTTPHeaderField("access-control-allow-origin", "*");
+    *response = ok_response;
     return;
   }
 
