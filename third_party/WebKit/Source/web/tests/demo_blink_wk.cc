@@ -97,16 +97,16 @@ public:
     void OnCaptureLost() override { }
     void OnPaint(const ui::PaintContext& context) override
     {
-        ui::PaintRecorder recorder(context, window_bounds_.size());
-        recorder.canvas()->DrawColor(color_, SkXfermode::kSrc_Mode);
-        gfx::Rect r;
-        recorder.canvas()->GetClipBounds(&r);
-        // Fill with a non-solid color so that the compositor will exercise its
-        // texture upload path.
-        while (!r.IsEmpty()) {
-            r.Inset(2, 2);
-            recorder.canvas()->FillRect(r, color_, SkXfermode::kXor_Mode);
-        }
+        // ui::PaintRecorder recorder(context, window_bounds_.size());
+        // recorder.canvas()->DrawColor(color_, SkXfermode::kSrc_Mode);
+        // gfx::Rect r;
+        // recorder.canvas()->GetClipBounds(&r);
+        // // Fill with a non-solid color so that the compositor will exercise its
+        // // texture upload path.
+        // while (!r.IsEmpty()) {
+        //     r.Inset(2, 2);
+        //     recorder.canvas()->FillRect(r, color_, SkXfermode::kXor_Mode);
+        // }
     }
     void OnDeviceScaleFactorChanged(float device_scale_factor) override { }
     void OnWindowDestroying(aura::Window* window) override { }

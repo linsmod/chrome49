@@ -151,7 +151,7 @@ test("webkit_unit_tests") {
   ]
 
   sources = [
-    "tests/demo_main_wk.cc",
+    "tests/demo_blink_wk.cc",
     # "tests/RunAllTests.cpp",
   ]
   cflags = [ "-Wno-unused-function" ]
