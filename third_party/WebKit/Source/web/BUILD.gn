@@ -152,11 +152,11 @@ test("webkit_unit_tests") {
 
   sources = [
     "tests/demo_blink_wk.cc",
+    "MyBlinkWKImpl.cpp",
     # "tests/RunAllTests.cpp",
   ]
   cflags = [ "-Wno-unused-function" ]
   sources += [
-    "PageOverlayNotTest.cpp",
     "//components/test_runner/web_task.cc",
     "//components/test_runner/web_task.h",
     "//remoting/base/auto_thread_task_runner.cc",

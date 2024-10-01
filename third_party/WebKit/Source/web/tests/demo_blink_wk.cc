@@ -50,10 +50,10 @@
 #include "public/web/WebKit.h"
 #include "web/tests/WebUnitTests.h"
 #include <content/test/blink_test_environment.h>
-
-#include "web/myRunHelper.h"
+#include "web/WebViewImpl.h"
+#include "web/MyBlinkWK.h"
 namespace {
-scoped_ptr<blink::myRunHelper> myRunHelper;
+scoped_ptr<blink::MyBlinkWK> myBlinkWK;
 // Trivial WindowDelegate implementation that draws a colored background.
 class DemoWindowDelegate : public aura::WindowDelegate {
 public:
@@ -72,8 +72,8 @@ public:
         const gfx::Rect& new_bounds) override
     {
         window_bounds_ = new_bounds;
-        if (myRunHelper)
-            myRunHelper->navigateTo("https://baidu.com");
+        if (myBlinkWK)
+            myBlinkWK->webViewImpl()->resize(blink::WebSize(window_bounds_.width(), window_bounds_.height()));
     }
     gfx::NativeCursor GetCursor(const gfx::Point& point) override
     {
@@ -85,7 +85,7 @@ public:
     }
     void OnMouseEvent(ui::MouseEvent* event) override
     {
-        myRunHelper->forceFullCompositingUpdate();
+        // myBlinkWK->forceFullCompositingUpdate();
     }
     bool ShouldDescendIntoChildForEventHandling(
         aura::Window* child,
@@ -216,9 +216,9 @@ int DemoMain()
 
     host->Show();
 
-    myRunHelper.reset(blink::createMyRunHelper());
-    myRunHelper->run();
-    myRunHelper->navigateTo("https://baidu.com");
+    myBlinkWK.reset(blink::Create());
+    myBlinkWK->run();
+    myBlinkWK->navigateTo("https://baidu.com");
     // base::MessageLoopForUI::current()->Run();
     return 0;
 }

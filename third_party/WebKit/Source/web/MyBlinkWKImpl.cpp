@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "myRunHelper.h"
+#include "MyBlinkWK.h"
 #include "web/PageOverlay.h"
 
 #include "core/frame/FrameView.h"
@@ -37,7 +37,7 @@
 #include "public/web/WebPagePopup.h"
 // @linsmod
 #include "components/test_runner/web_task.h"
-#include "myRunHelper.h"
+#include "MyBlinkWK.h"
 using testing::_;
 using testing::AtLeast;
 using testing::Property;
@@ -97,9 +97,9 @@ namespace {
             return nullptr;
         return webLayerFromGraphicsLayer(compositedLayerMapping->mainGraphicsLayer());
     }
-    class PageOverlayTest {
+    class MyBinkWKBase {
     public:
-        PageOverlayTest()
+        MyBinkWKBase()
             : m_baseURL("http://www.test.com/")
         {
         }
@@ -230,25 +230,25 @@ namespace {
 
 } // namespace
 
-class AcceleratedCompositingNotTest : public PageOverlayTest, public myRunHelper {
+class MyBinkWKImpl : public MyBinkWKBase, public MyBlinkWK {
 public:
-    ~AcceleratedCompositingNotTest() { }
+    ~MyBinkWKImpl() { }
     void run() override;
     WebViewImpl* webViewImpl() const override
     {
-        return static_cast<PageOverlayTest*>(const_cast<AcceleratedCompositingNotTest*>(this))->webViewImpl();
+        return static_cast<MyBinkWKBase*>(const_cast<MyBinkWKImpl*>(this))->webViewImpl();
     }
     LocalFrame* frame() const override
     {
-        return static_cast<PageOverlayTest*>(const_cast<AcceleratedCompositingNotTest*>(this))->frame();
+        return static_cast<MyBinkWKBase*>(const_cast<MyBinkWKImpl*>(this))->frame();
     }
     void navigateTo(const String& url) override
     {
-        static_cast<PageOverlayTest*>(this)->navigateTo(url);
+        static_cast<MyBinkWKBase*>(this)->navigateTo(url);
     }
     void forceFullCompositingUpdate() override
     {
-        static_cast<PageOverlayTest*>(this)->forceFullCompositingUpdate();
+        static_cast<MyBinkWKBase*>(this)->forceFullCompositingUpdate();
     }
 
     void ScheduleAnimation();
@@ -298,11 +298,11 @@ private:
     test_runner::WebTaskList task_list_;
 };
 
-class HostMethodTask : public test_runner::WebMethodTask<AcceleratedCompositingNotTest> {
+class HostMethodTask : public test_runner::WebMethodTask<MyBinkWKImpl> {
 public:
-    typedef void (AcceleratedCompositingNotTest::*CallbackMethodType)();
-    HostMethodTask(AcceleratedCompositingNotTest* object, CallbackMethodType callback)
-        : WebMethodTask<AcceleratedCompositingNotTest>(object)
+    typedef void (MyBinkWKImpl::*CallbackMethodType)();
+    HostMethodTask(MyBinkWKImpl* object, CallbackMethodType callback)
+        : WebMethodTask<MyBinkWKImpl>(object)
         , callback_(callback)
     {
     }
@@ -314,15 +314,15 @@ private:
 };
 
 double m_lastFrameTimeMonotonic = 0;
-void AcceleratedCompositingNotTest::ScheduleAnimation()
+void MyBinkWKImpl::ScheduleAnimation()
 {
     if (!animate_scheduled_) {
         animate_scheduled_ = true;
         PostDelayedTask(
-            new HostMethodTask(this, &AcceleratedCompositingNotTest::AnimateNow), 1);
+            new HostMethodTask(this, &MyBinkWKImpl::AnimateNow), 1);
     }
 }
-void AcceleratedCompositingNotTest::run()
+void MyBinkWKImpl::run()
 {
     initialize(AcceleratedCompositing);
     webViewImpl()->layerTreeView()->setViewportSize(WebSize(viewportWidth, viewportHeight));
@@ -368,8 +368,8 @@ void AcceleratedCompositingNotTest::run()
     // base::RunLoop().Run();
 }
 // static
-myRunHelper* createMyRunHelper()
+MyBlinkWK* Create()
 {
-    return new AcceleratedCompositingNotTest();
+    return new MyBinkWKImpl();
 }
 } // namespace blink
