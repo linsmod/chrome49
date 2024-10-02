@@ -4340,7 +4340,7 @@ void WebViewImpl::scheduleAnimation()
 {
     if (m_layerTreeView) {
         m_layerTreeView->setNeedsBeginFrame();
-        // return;
+        // return; //@ linsmod: Do not return here becase scheduleAnimation is needed.
     }
     if (m_client)
         m_client->scheduleAnimation();
