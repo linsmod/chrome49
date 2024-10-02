@@ -51,10 +51,6 @@
 #ifdef V8_USE_EXTERNAL_STARTUP_DATA
 #include "gin/v8_initializer.h"
 #endif
-
-#include "ios/web/public/web_thread.h"
-#include "ios/web/web_thread_impl.cc"
-using WebThread = web::WebThread;
 namespace {
 class DummyTaskRunner : public base::SingleThreadTaskRunner {
  public:
@@ -113,8 +109,7 @@ TestBlinkWebUnitTestSupport::TestBlinkWebUnitTestSupport() {
     // of message loops, and their types are not known upfront. Some tests also
     // create their own thread bundles or message loops, and doing the same in
     // TestBlinkWebUnitTestSupport would introduce a conflict.
-    // dummy_task_runner = make_scoped_refptr(new DummyTaskRunner());
-    dummy_task_runner = web::WebThread::GetTaskRunnerForThread(web::WebThread::UI);
+    dummy_task_runner = make_scoped_refptr(new DummyTaskRunner());
     dummy_task_runner_handle.reset(
         new base::ThreadTaskRunnerHandle(dummy_task_runner));
   }
