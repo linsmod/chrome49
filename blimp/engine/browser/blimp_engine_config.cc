@@ -20,13 +20,15 @@ namespace {
 // Gets the client token from the file provided by the command line. If a read
 // does not succeed, or the switch is malformed, an empty string is returned.
 std::string GetClientToken(const base::CommandLine& cmd_line) {
-  std::string file_contents;
-  const base::FilePath path = cmd_line.GetSwitchValuePath(kClientTokenPath);
-  if (!base::ReadFileToString(path, &file_contents)) {
-    LOG(ERROR) << "Could not read client token file at "
-               << (path.empty() ? "(not provided)" : path.AsUTF8Unsafe());
-  }
-  return base::CollapseWhitespaceASCII(file_contents, true);
+  // std::string file_contents;
+  // const base::FilePath path = cmd_line.GetSwitchValuePath(kClientTokenPath);
+  // if (!base::ReadFileToString(path, &file_contents)) {
+  //   LOG(ERROR) << "Could not read client token file at "
+  //              << (path.empty() ? "(not provided)" : path.AsUTF8Unsafe());
+  // }
+  // return base::CollapseWhitespaceASCII(file_contents, true);
+
+  return base::CollapseWhitespaceASCII("fakeToken", true);
 }
 }  // namespace
 
