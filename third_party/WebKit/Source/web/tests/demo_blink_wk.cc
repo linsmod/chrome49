@@ -244,7 +244,7 @@ int main(int argc, char** argv)
     // The exit manager is in charge of calling the dtors of singleton objects.
     // base::AtExitManager exit_manager;
 
-    // base::i18n::InitializeICU();
+    base::i18n::InitializeICU();
     WTF::Partitions::initialize(nullptr);
 
 #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
