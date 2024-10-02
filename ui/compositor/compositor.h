@@ -319,7 +319,6 @@ class COMPOSITOR_EXPORT Compositor
   // cc::LayerTreeHostSingleThreadClient implementation.
   void DidPostSwapBuffers() override;
   void DidAbortSwapBuffers() override;
-  void ScheduleAnimation() override;
 
   bool IsLocked() { return compositor_lock_ != NULL; }
 

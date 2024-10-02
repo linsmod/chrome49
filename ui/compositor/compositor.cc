@@ -413,7 +413,7 @@ void Compositor::BeginMainFrame(const cc::BeginFrameArgs& args) {
   FOR_EACH_OBSERVER(CompositorAnimationObserver,
                     animation_observer_list_,
                     OnAnimationStep(args.frame_time));
-  // if (animation_observer_list_.might_have_observers())
+  if (animation_observer_list_.might_have_observers())
     host_->SetNeedsAnimate();
 }
 
@@ -473,11 +473,6 @@ void Compositor::DidAbortSwapBuffers() {
   FOR_EACH_OBSERVER(CompositorObserver,
                     observer_list_,
                     OnCompositingAborted(this));
-}
-
-// @linsmod add function
-void Compositor::ScheduleAnimation() {
-  // host_->SetNeedsAnimate();
 }
 
 void Compositor::SendBeginFramesToChildren(const cc::BeginFrameArgs& args) {

@@ -166,8 +166,6 @@ void WebLayerTreeViewImplForTesting::setDeferCommits(bool defer_commits) {
 }
 
 void WebLayerTreeViewImplForTesting::UpdateLayerTreeHost() {
-  // @linsmod
-  layer_tree_host_->client()->UpdateLayerTreeHost();
 }
 
 void WebLayerTreeViewImplForTesting::ApplyViewportDeltas(
