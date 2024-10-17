@@ -140,7 +140,7 @@ void WebURLLoaderMockFactory::LoadAsynchronouly(const WebURLRequest& request,
   pending_loaders_[loader] = request;
 }
 // 假设这是你的根目录
-const base::FilePath::CharType kWebRoot[] = FILE_PATH_LITERAL("/home/wulin/blinkApp/");
+const base::FilePath::CharType kWebRoot[] = FILE_PATH_LITERAL("/home/wahaha/blinkApp/");
 
 // 将 URL 转换为文件路径
 base::FilePath urlToPath(const GURL& url) {
