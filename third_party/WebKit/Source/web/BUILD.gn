@@ -159,10 +159,10 @@ test("webkit_unit_tests") {
   sources += [
     "//components/test_runner/web_task.cc",
     "//components/test_runner/web_task.h",
-    "//remoting/base/auto_thread_task_runner.cc",
-    "//remoting/base/auto_thread_task_runner.h",
-    "//remoting/base/auto_thread.cc",
-    "//remoting/base/auto_thread.h"
+    # "//remoting/base/auto_thread_task_runner.cc",
+    # "//remoting/base/auto_thread_task_runner.h",
+    # "//remoting/base/auto_thread.cc",
+    # "//remoting/base/auto_thread.h"
   ]
   
   configs += [ "//third_party/WebKit/Source:config" ]
