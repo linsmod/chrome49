@@ -3,20 +3,9 @@
 This directory contains chromium project source code of version 49.0.2623.112.
 
 It's mainly a copy of https://github.com/chromium/chromium/tree/49.0.2623.112
-
-
-# What changes made on.
-
-I put a missing third_party project in this repo:
-
-`opus@cae696156f1e60006e39821e79a1811ae1933c69`
-
-Which is defined in DEPS but the git link is broken.
-
-For the origin source of `opus@cae69615`,
-see here: [android.googlesource.com](https://android.googlesource.com/platform/external/chromium_org/third_party/opus/src/+/3add326b8269bc061065676d63a610951c1329f0)
-
 # Steps to build Chromium 49
+
+-DONT clone this project directly, chrome have its special build tool `depot_tools`-
 
 1、Make a directory for doing this.
 `mkdir chrome49` 
@@ -46,7 +35,7 @@ We still have to install version 2.7, we'll use it below.
 
 
 Switch your depot_tools brach to chrome/4147：
-`git branch chrome/4147`
+`git checkout chrome/4147`
 You may need clean uncommit files after switching brach.
 
 Add to PATH
@@ -85,4 +74,16 @@ Download `bison:3.6.4` from here: `https://ftp.gnu.org/gnu/bison/bison-3.6.4.tar
 
 Unpack it into some where then make install it.
 `./configure && make && sudo make install`
+
+# What changes made on.
+
+I put a missing third_party project in this repo:
+
+`opus@cae696156f1e60006e39821e79a1811ae1933c69`
+
+Which is defined in DEPS but the git link is broken.
+
+For the origin source of `opus@cae69615`,
+see here: [android.googlesource.com](https://android.googlesource.com/platform/external/chromium_org/third_party/opus/src/+/3add326b8269bc061065676d63a610951c1329f0)
+
 
