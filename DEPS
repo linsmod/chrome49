@@ -4,7 +4,7 @@ vars = {
   'boringssl_revision':
     'afe57cb14d36f70ad4a109fc5e7765d1adc67035',
   'buildspec_platforms':
-    'all',
+    'unix',
   'buildtools_revision':
     '0f8e6e4b126ee88137930a0ae4776c4741808740',
   'chromium_git':
