@@ -10,11 +10,23 @@
 
 #include "web/html_viewer/blink_web_wrapper.h"
 
+#include "wtf/WTF.h"
+#include "wtf/MainThread.h"
+
 using namespace html_viewer;
+
+static double CurrentTime()
+{
+    return 0.0;
+}
 
 int main(int argc, char** argv) {
     printf("HTMLViewer - Blink + GLAPP\n");
     printf("Initializing...\n");
+
+    // 初始化 WTF (必须在任何 Blink 操作之前)
+    WTF::initialize(CurrentTime, nullptr, nullptr, nullptr);
+    WTF::initializeMainThread(0);
 
     // 创建配置
     BlinkWebConfig config = {0};

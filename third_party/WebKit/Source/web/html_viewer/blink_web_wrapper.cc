@@ -236,6 +236,7 @@ bool BlinkWebRenderer::Initialize() {
     m_layerTreeView->setRenderer(this);
 
     // 3. 设置测试环境 (参考 SimTest)
+    LayoutTestSupport::setIsRunningLayoutTest(true);
     Document::setThreadedParsingEnabledForTesting(false);
     LayoutTestSupport::setMockThemeEnabledForTest(true);
     ScrollbarTheme::setMockScrollbarsEnabled(true);
