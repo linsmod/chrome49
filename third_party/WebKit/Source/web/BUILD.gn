@@ -97,6 +97,14 @@ source_set("test_support") {
   }
 }
 
+# HTMLViewer - Blink Web Layer Wrapper for GLAPP
+group("html_viewer") {
+  testonly = true
+  deps = [
+    "//third_party/WebKit/Source/web/html_viewer:HTMLViewer",
+  ]
+}
+
 # TODO(GYP): Delete this after we've converted everything to GN.
 # The _run targets exist only for compatibility w/ GYP.
 group("webkit_unit_tests_run") {

@@ -8,7 +8,33 @@
 #include <string.h>
 #include <time.h>
 
-// Blink 头文件 - 使用相对于 web 目录的路径
+// Blink public API headers
+#include "public/platform/Platform.h"
+#include "public/platform/WebClipboard.h"
+#include "public/platform/WebCookieJar.h"
+#include "public/platform/WebURL.h"
+#include "public/platform/WebURLRequest.h"
+#include "public/platform/WebData.h"
+#include "public/platform/WebSize.h"
+#include "public/platform/WebColor.h"
+#include "public/platform/WebRect.h"
+#include "public/platform/WebString.h"
+#include "public/platform/WebLayerTreeView.h"
+#include "public/web/WebInputEvent.h"
+#include "public/web/WebFrameClient.h"
+#include "public/web/WebViewClient.h"
+#include "public/web/WebSettings.h"
+#include "public/web/WebLocalFrame.h"
+#include "public/web/WebTreeScopeType.h"
+#include "public/web/WebFrame.h"
+#include "public/platform/WebDragData.h"
+#include "public/platform/WebImage.h"
+#include "public/web/WebNode.h"
+#include "public/web/WebWindowFeatures.h"
+#include "public/web/WebFileChooserParams.h"
+#include "public/web/WebDateTimeChooserParams.h"
+
+// Blink internal headers
 #include "web/WebViewImpl.h"
 #include "web/WebLocalFrameImpl.h"
 #include "web/tests/FrameTestHelpers.h"
@@ -23,6 +49,13 @@
 #include "platform/graphics/GraphicsLayer.h"
 #include "platform/testing/URLTestHelpers.h"
 #include "wtf/CurrentTime.h"
+#include "wtf/OwnPtr.h"
+
+// Skia headers
+#include "third_party/skia/include/core/SkBitmap.h"
+#include "third_party/skia/include/core/SkCanvas.h"
+#include "third_party/skia/include/core/SkColor.h"
+#include "third_party/skia/include/core/SkImageInfo.h"
 
 using namespace blink;
 
@@ -88,12 +121,12 @@ public:
     void setNeedsCompositorUpdate() override {}
     void setDeferCommits(bool defer) override { m_deferCommits = defer; }
 
-    void layoutAndPaintAsync(WebLayerTreeView::CompositorCallback*) override {
+    void layoutAndPaintAsync(WebLayoutAndPaintAsyncCallback*) override {
         // 同步执行
         if (m_renderer) m_renderer->Render();
     }
 
-    void compositeAndReadbackAsync(WebLayerTreeView::CompositorCallback*) override {
+    void compositeAndReadbackAsync(WebCompositeAndReadbackAsyncCallback*) override {
         if (m_renderer) m_renderer->Render();
     }
 
@@ -101,10 +134,9 @@ public:
     void setDeviceScaleFactor(float) override {}
     void setBackgroundColor(WebColor color) override { m_backgroundColor = color; }
     void setHasTransparentBackground(bool) override {}
-    void setSelectionBounds(const WebRect&, const WebRect&) override {}
 
-    WebSize viewportSize() const override { return m_viewportSize; }
-    float deviceScaleFactor() const override { return 1.0f; }
+    WebSize getViewportSize() const { return m_viewportSize; }
+    float getDeviceScaleFactor() const { return 1.0f; }
     bool needsAnimate() const { return m_needsAnimate; }
     bool deferCommits() const { return m_deferCommits; }
 
@@ -241,11 +273,8 @@ void BlinkWebRenderer::LoadHTML(const std::string& html) {
         return;
 
     WebURL baseURL = URLTestHelpers::toKURL("http://example.com/");
-    FrameTestHelpers::loadHTMLString(
-        m_webView->mainFrame(),
-        html,
-        baseURL
-    );
+    WebData data(html.data(), html.size());
+    m_webView->mainFrame()->loadHTMLString(data, baseURL);
 
     // 标记需要渲染
     m_needsRender = true;
@@ -308,20 +337,20 @@ void BlinkWebRenderer::ExtractPixels() {
         return;
 
     // 使用 Skia 获取像素
-    // 注意: 这里需要通过 SkCanvas 进行绘制
-    // 简化版本: 创建 SkBitmap
+    // 创建 SkImageInfo 并分配像素
+    SkImageInfo info = SkImageInfo::MakeN32Premul(m_width, m_height);
     SkBitmap bitmap;
-    bitmap.setConfig(SkBitmap::kARGB_8888_Config, m_width, m_height);
-    bitmap.allocPixels();
-    bitmap.setPixels(m_pixels);
-
+    bitmap.allocPixels(info);
+    
     SkCanvas canvas(bitmap);
     canvas.clear(SK_ColorWHITE);
 
     // 调用 WebView 绘制
     // m_webView->paint(&canvas, SkIntToScalar(m_width), SkIntToScalar(m_height));
     
-    // 暂时使用空白，实际需要调用 paint 方法
+    // 复制像素到输出缓冲区
+    memcpy(m_pixels, bitmap.getPixels(), m_width * m_height * 4);
+    
     // TODO: 实现完整的 paint 调用
 }
 
