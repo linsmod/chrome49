@@ -622,7 +622,7 @@ hooks = [
   {
     'action': [
       'python',
-      'src/build/get_syzygy_binaries.py',
+      'src/build/get_kasko_binaries.py',
       '--output-dir=src/third_party/kasko/binaries',
       '--revision=266a18d9209be5ca5c5dcd0620942b82a2d238f3',
       '--resource=kasko.zip',

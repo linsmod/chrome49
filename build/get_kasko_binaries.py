@@ -411,11 +411,11 @@ def _RemoveOrphanedFiles(options):
   # not start deleting random things if the script is run from an alternate
   # location, or not called from the gclient hooks.
   expected_syzygy_dir = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', 'third_party', 'syzygy'))
+      os.path.dirname(__file__), '..', 'third_party', 'kasko'))
   expected_output_dir = os.path.join(expected_syzygy_dir, 'binaries')
-  # if expected_output_dir != output_dir:
-  #   _LOGGER.info('Unexpected output directory, skipping cleanup.')
-  #   return
+  if expected_output_dir != output_dir:
+    _LOGGER.info('Unexpected output directory, skipping cleanup.')
+    return
 
   if not os.path.isdir(expected_syzygy_dir):
     _LOGGER.info('Output directory does not exist, skipping cleanup.')
@@ -425,9 +425,9 @@ def _RemoveOrphanedFiles(options):
     """Logs error encountered by shutil.rmtree."""
     _LOGGER.error('Error when running %s(%s)', function, path, exc_info=excinfo)
 
-  _LOGGER.info('Removing orphaned files from %s', expected_syzygy_dir)
-  if not options.dry_run:
-    shutil.rmtree(expected_syzygy_dir, True, OnError)
+  # _LOGGER.info('Removing orphaned files from %s', expected_syzygy_dir)
+  # if not options.dry_run:
+  #   shutil.rmtree(expected_syzygy_dir, True, OnError)
 
 
 def main():
