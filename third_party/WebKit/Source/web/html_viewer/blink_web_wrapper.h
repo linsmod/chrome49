@@ -1,0 +1,101 @@
+// Copyright 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#ifndef BLINK_WEB_WRAPPER_H_
+#define BLINK_WEB_WRAPPER_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string>
+#include <memory>
+
+// 前向声明
+namespace blink {
+class WebView;
+class WebViewImpl;
+class WebFrame;
+class WebInputEvent;
+class WebLayerTreeView;
+}
+
+namespace html_viewer {
+
+// 配置结构体
+struct BlinkWebConfig {
+    int width;
+    int height;
+    const char* user_agent;
+    bool enable_js;
+    bool enable_gpu;
+    
+    // 渲染完成回调
+    void (*on_frame_ready)(uint8_t* pixels, int width, int height, void* user_data);
+    void* user_data;
+};
+
+// 主渲染器类
+class BlinkWebRenderer {
+public:
+    explicit BlinkWebRenderer(int width, int height);
+    ~BlinkWebRenderer();
+
+    // 初始化 Blink
+    bool Initialize();
+
+    // 加载内容
+    void LoadHTML(const std::string& html);
+    void LoadURL(const std::string& url);
+
+    // 渲染控制
+    void Resize(int width, int height);
+    void Render();
+
+    // 获取像素数据 (调用者负责 free)
+    uint8_t* GetPixels() { return m_pixels; }
+    int GetWidth() const { return m_width; }
+    int GetHeight() const { return m_height; }
+    bool NeedsRender() const { return m_needsRender; }
+    void ClearNeedsRender() { m_needsRender = false; }
+
+    // 输入事件处理
+    void HandleMouseMove(int x, int y);
+    void HandleMouseDown(int x, int y, int button);
+    void HandleMouseUp(int x, int y, int button);
+    void HandleMouseWheel(int x, int y, int delta);
+    void HandleKeyDown(int keyCode);
+    void HandleKeyUp(int keyCode);
+    void HandleKeyPress(int keyCode);
+
+    // 关闭
+    void Close();
+
+private:
+    // 内部初始化
+    void InitPlatform();
+    void InitWebView();
+
+    // 渲染实现
+    void DoRender();
+    void ExtractPixels();
+
+    // 成员变量
+    int m_width;
+    int m_height;
+    uint8_t* m_pixels;
+    bool m_needsRender;
+    bool m_initialized;
+
+    // Blink 对象 - 使用前向声明
+    class PlatformImpl* m_platform;
+    class LayerTreeViewImpl* m_layerTreeView;
+    blink::WebViewImpl* m_webView;
+};
+
+// 全局初始化/关闭
+void InitializeBlinkWeb(const BlinkWebConfig* config);
+void ShutdownBlinkWeb();
+
+}  // namespace html_viewer
+
+#endif  // BLINK_WEB_WRAPPER_H_

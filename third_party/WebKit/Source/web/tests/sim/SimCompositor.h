@@ -32,8 +32,6 @@ public:
     // cc::ThreadProxy::BeginMainFrame would do.
     SimDisplayItemList beginFrame();
 
-    void beginFrame2();
-
     bool needsAnimate() const { return m_needsAnimate; }
     bool deferCommits() const { return m_deferCommits; }
 

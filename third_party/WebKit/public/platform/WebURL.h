@@ -35,7 +35,9 @@
 #include "WebString.h"
 #include "url/third_party/mozilla/url_parse.h"
 
+#if !INSIDE_BLINK
 #include "url/gurl.h"
+#endif
 
 namespace blink {
 
@@ -92,9 +94,11 @@ public:
         return m_string.isEmpty();
     }
 
+#if INSIDE_BLINK
     BLINK_PLATFORM_EXPORT WebURL(const KURL&);
     BLINK_PLATFORM_EXPORT WebURL& operator=(const KURL&);
     BLINK_PLATFORM_EXPORT operator KURL() const;
+#else
     WebURL(const GURL& url)
         : m_string(WebString::fromUTF8(url.possibly_invalid_spec()))
         , m_parsed(url.parsed_for_possibly_invalid_spec())
@@ -114,6 +118,7 @@ public:
     {
         return isNull() ? GURL() : GURL(m_string.utf8(), m_parsed, m_isValid);
     }
+#endif
 
 private:
     WebString m_string;

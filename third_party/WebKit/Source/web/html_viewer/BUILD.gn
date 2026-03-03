@@ -1,0 +1,75 @@
+# Copyright 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# HTMLViewer - Blink Web Layer Wrapper for GLAPP
+# 
+# This component wraps the Blink web layer to provide HTML rendering
+# capabilities for the GLAPP-based HTMLViewer application.
+
+import("//build/config/ui.gni")
+import("//third_party/WebKit/Source/config.gni")
+import("//third_party/WebKit/Source/core/core.gni")
+import("//third_party/WebKit/Source/platform/platform.gni")
+
+# HTMLViewer static library - provides HTML rendering capability
+source_set("HTMLViewer_source_set") {
+
+  # 依赖 - 参考 web BUILD.gn 格式
+  deps = [
+    "//skia",
+    "//third_party/WebKit/Source/core",
+    "//third_party/WebKit/Source/modules",
+    "//third_party/WebKit/Source/platform",
+    "//third_party/WebKit/Source/wtf",
+    "//third_party/icu",
+    "//third_party/angle:translator",
+    "//ui/gfx/geometry",
+    "//v8",
+  ]
+
+  # 添加 Blink 配置
+  configs += [
+    "//third_party/WebKit/Source:config",
+    "//third_party/WebKit/Source:inside_blink",
+  ]
+
+  # 包含目录
+  include_dirs = [
+    "//third_party/skia/include/utils",
+  ]
+
+  # 源文件 - HTMLViewer 封装实现
+  sources = [
+    "blink_web_wrapper.cc",
+    "blink_web_wrapper.h",
+  ]
+}
+
+# HTMLViewer 可执行程序示例
+executable("HTMLViewer") {
+  # 只在桌面平台构建
+  if (!is_linux && !is_mac && !is_win) {
+    enabled = false
+  }
+
+  output_name = "HTMLViewer"
+
+  deps = [
+    ":HTMLViewer_source_set",
+    "//base",
+    "//skia",
+    "//third_party/WebKit/Source/core",
+    "//third_party/WebKit/Source/platform",
+    "//third_party/WebKit/Source/wtf",
+  ]
+
+  configs += [
+    "//third_party/WebKit/Source:config",
+    "//third_party/WebKit/Source:inside_blink",
+  ]
+
+  sources = [
+    "main.cc",
+  ]
+}

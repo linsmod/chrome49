@@ -4273,8 +4273,8 @@ void WebViewImpl::setRootGraphicsLayer(GraphicsLayer* layer)
     VisualViewport& visualViewport = page()->frameHost().visualViewport();
     visualViewport.attachToLayerTree(layer, graphicsLayerFactory());
     if (layer) {
-        m_rootGraphicsLayer = visualViewport.rootGraphicsLayer(); //GraphicsLayer*
-        m_rootLayer = m_rootGraphicsLayer->platformLayer(); //blink::WebLayer&
+        m_rootGraphicsLayer = visualViewport.rootGraphicsLayer();
+        m_rootLayer = m_rootGraphicsLayer->platformLayer();
         updateRootLayerTransform();
         m_layerTreeView->setRootLayer(*m_rootLayer);
         // We register viewport layers here since there may not be a layer
@@ -4340,7 +4340,7 @@ void WebViewImpl::scheduleAnimation()
 {
     if (m_layerTreeView) {
         m_layerTreeView->setNeedsBeginFrame();
-        // return; //@ linsmod: Do not return here becase scheduleAnimation is needed.
+        return;
     }
     if (m_client)
         m_client->scheduleAnimation();

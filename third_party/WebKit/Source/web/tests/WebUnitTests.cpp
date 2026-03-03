@@ -37,8 +37,7 @@
 #include <base/test/launcher/unit_test_launcher.h>
 #include <base/test/test_suite.h>
 #include <v8.h>
-#include "web/WebViewImpl.h"
-#include "web/PageOverlayTest_copy.h"
+
 namespace blink {
 
 namespace {
@@ -47,7 +46,7 @@ int runHelper(base::TestSuite* testSuite, void (*preTestHook)(void), void (*post
 {
     preTestHook();
     int result = testSuite->Run();
-    
+
     // Tickle EndOfTaskRunner which among other things will flush the queue
     // of error messages via V8Initializer::reportRejectedPromisesOnMainThread.
     base::MessageLoop::current()->PostTask(FROM_HERE, base::Bind(&base::DoNothing));
@@ -67,8 +66,6 @@ int runHelper(base::TestSuite* testSuite, void (*preTestHook)(void), void (*post
 int runWebTests(int argc, char** argv, void (*preTestHook)(void), void (*postTestHook)(void))
 {
     base::TestSuite testSuite(argc, argv);
-    // blink::PageOverlayTest_copy test;
-    // test.runPageOverlayTestWithAcceleratedCompositing();
     return base::LaunchUnitTests(argc, argv, base::Bind(&runHelper, base::Unretained(&testSuite), preTestHook, postTestHook));
 }
 

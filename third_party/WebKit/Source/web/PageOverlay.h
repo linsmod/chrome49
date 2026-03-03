@@ -42,8 +42,6 @@ class GraphicsContext;
 class WebPageOverlay;
 class WebViewImpl;
 
-
-
 // Manages a layer that is overlaid on a WebView's content.
 // Clients can paint by implementing WebPageOverlay.
 //
