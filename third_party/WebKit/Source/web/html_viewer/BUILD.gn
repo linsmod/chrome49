@@ -19,8 +19,6 @@ source_set("HTMLViewer_source_set") {
 
   # 依赖 - 参考 web BUILD.gn 格式
   deps = [
-    "//cc",
-    "//cc/blink",
     "//skia",
     "//testing/gmock",
     "//testing/gtest",
@@ -67,8 +65,6 @@ executable("HTMLViewer") {
   deps = [
     ":HTMLViewer_source_set",
     "//base",
-    "//cc",
-    "//cc/blink",
     "//skia",
     "//testing/gmock",
     "//third_party/WebKit/Source/core",

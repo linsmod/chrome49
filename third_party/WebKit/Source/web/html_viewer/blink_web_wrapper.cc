@@ -74,7 +74,6 @@
 #include "public/platform/WebContentLayer.h"
 #include "public/platform/WebLayer.h"
 #include "public/platform/WebContentLayerClient.h"
-#include "cc/blink/web_compositor_support_impl.h"
 
 using namespace blink;
 
@@ -229,8 +228,7 @@ private:
 class SimplePlatform : public Platform {
 public:
     SimplePlatform() 
-        : m_thread(adoptPtr(new SimpleWebThread()))
-        , m_compositorSupport(adoptPtr(new cc_blink::WebCompositorSupportImpl())) {
+        : m_thread(adoptPtr(new SimpleWebThread())) {
         // 不在这里初始化 Platform，由 blink::initialize 完成
     }
 
@@ -240,9 +238,8 @@ public:
     
     WebThread* currentThread() override { return m_thread.get(); }
     
-    // Compositor 支持 - 关键！
     WebCompositorSupport* compositorSupport() override {
-        return m_compositorSupport.get();
+        return nullptr;
     }
     
     // 时间函数
@@ -338,7 +335,6 @@ public:
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
-    OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
 };
 
 // ============================================================
@@ -405,6 +401,9 @@ public:
 
     // 关键: 必须返回 layerTreeView
     WebLayerTreeView* layerTreeView() override { return m_layerTree; }
+    
+    // 允许 null layerTreeView - 软件渲染模式必需
+    bool allowsBrokenNullLayerTreeView() const override { return true; }
 
     // 其他方法返回空实现
     WebView* createView(WebLocalFrame*, const WebURLRequest&,
@@ -483,10 +482,6 @@ bool BlinkWebRenderer::Initialize() {
     // 2.5 初始化 EventTracer (用于 tracing 支持)
     blink::EventTracer::initialize();
 
-    // 3. 初始化 WebLayerTreeView
-    m_layerTreeView = new LayerTreeViewImpl();
-    m_layerTreeView->setRenderer(this);
-
     // 3. 设置测试环境 (参考 SimTest)
     LayoutTestSupport::setIsRunningLayoutTest(true);
     Document::setThreadedParsingEnabledForTesting(false);
@@ -495,9 +490,8 @@ bool BlinkWebRenderer::Initialize() {
     FrameView::setInitialTracksPaintInvalidationsForTesting(true);
     GraphicsLayer::setDrawDebugRedFillForTesting(false);
 
-    // 4. 创建 WebView
-    // 使用 FrameTestHelpers::WebViewHelper 方式
-    WebViewClientImpl* viewClient = new WebViewClientImpl(m_layerTreeView);
+    // 4. 创建 WebView (软件渲染模式 - 不需要 WebLayerTreeView)
+    WebViewClientImpl* viewClient = new WebViewClientImpl(nullptr);
     WebFrameClientImpl* frameClient = new WebFrameClientImpl();
     
     m_webView = WebViewImpl::create(viewClient);
@@ -505,14 +499,15 @@ bool BlinkWebRenderer::Initialize() {
         WebTreeScopeType::Document, frameClient);
     m_webView->setMainFrame(frame);
     
-    // 5. 设置视口大小
-    m_webView->resize(WebSize(m_width, m_height));
-    m_layerTreeView->setViewportSize(WebSize(m_width, m_height));
-
-    // 6. 启用 JavaScript
+    // 5. 关键: 禁用加速合成模式 - 这样就不会创建 GraphicsLayer
+    // 这是软件渲染的关键设置
     WebSettings* settings = m_webView->settings();
+    settings->setAcceleratedCompositingEnabled(false);  // 禁用合成层
     settings->setJavaScriptEnabled(true);
     settings->setLoadsImagesAutomatically(true);
+
+    // 6. 设置视口大小
+    m_webView->resize(WebSize(m_width, m_height));
 
     // 7. 分配像素缓冲区
     m_pixels = (uint8_t*)malloc(m_width * m_height * 4);  // RGBA
@@ -598,8 +593,10 @@ void BlinkWebRenderer::ExtractPixels() {
     if (!m_pixels || !m_webView)
         return;
 
-    // 使用 Skia 获取像素
-    // 创建 SkImageInfo 并分配像素
+    // 软件渲染: 使用 WebViewImpl::paint() 直接绘制到 SkCanvas
+    // 注意: paint() 只能在合成未激活时使用 (setAcceleratedCompositingEnabled(false))
+    
+    // 创建 Skia 位图和画布
     SkImageInfo info = SkImageInfo::MakeN32Premul(m_width, m_height);
     SkBitmap bitmap;
     bitmap.allocPixels(info);
@@ -607,13 +604,21 @@ void BlinkWebRenderer::ExtractPixels() {
     SkCanvas canvas(bitmap);
     canvas.clear(SK_ColorWHITE);
 
-    // 调用 WebView 绘制
-    // m_webView->paint(&canvas, SkIntToScalar(m_width), SkIntToScalar(m_height));
+    // 使用 WebView 的软件渲染 paint 方法
+    // 这会调用 PageWidgetDelegate::paint() 进行软件绘制
+    WebRect rect(0, 0, m_width, m_height);
+    m_webView->paint(&canvas, rect);
     
     // 复制像素到输出缓冲区
-    memcpy(m_pixels, bitmap.getPixels(), m_width * m_height * 4);
-    
-    // TODO: 实现完整的 paint 调用
+    // 注意: Skia 使用 BGRA 格式，可能需要转换为 RGBA
+    const uint8_t* srcPixels = static_cast<const uint8_t*>(bitmap.getPixels());
+    for (int i = 0; i < m_width * m_height; ++i) {
+        // BGRA -> RGBA
+        m_pixels[i * 4 + 0] = srcPixels[i * 4 + 2];  // R
+        m_pixels[i * 4 + 1] = srcPixels[i * 4 + 1];  // G
+        m_pixels[i * 4 + 2] = srcPixels[i * 4 + 0];  // B
+        m_pixels[i * 4 + 3] = srcPixels[i * 4 + 3];  // A
+    }
 }
 
 void BlinkWebRenderer::HandleMouseMove(int x, int y) {
