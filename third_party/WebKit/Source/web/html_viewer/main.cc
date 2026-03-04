@@ -76,7 +76,10 @@ int main(int argc, char** argv) {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = &allocator;
     Isolate* isolate = Isolate::New(create_params);
-    (void)isolate;
+    
+    // 进入 isolate 作用域
+    Isolate::Scope isolate_scope(isolate);
+    
     // 创建配置
     BlinkWebConfig config = {0};
     config.width = 1024;
