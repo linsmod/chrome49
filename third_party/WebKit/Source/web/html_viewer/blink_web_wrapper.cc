@@ -24,6 +24,9 @@
 #include "public/platform/WebViewScheduler.h"
 #include "public/platform/WebFrameScheduler.h"
 #include "public/platform/WebTaskRunner.h"
+#include "public/platform/WebURLLoader.h"
+#include "public/platform/WebURLLoaderClient.h"
+#include "public/platform/WebURLResponse.h"
 #include "public/web/WebInputEvent.h"
 #include "public/web/WebFrameClient.h"
 #include "public/web/WebViewClient.h"
@@ -41,7 +44,6 @@
 // Blink internal headers
 #include "web/WebViewImpl.h"
 #include "web/WebLocalFrameImpl.h"
-#include "web/tests/FrameTestHelpers.h"
 
 #include "core/frame/Settings.h"
 #include "core/frame/FrameView.h"
@@ -72,6 +74,7 @@
 #include "public/platform/WebContentLayer.h"
 #include "public/platform/WebLayer.h"
 #include "public/platform/WebContentLayerClient.h"
+#include "cc/blink/web_compositor_support_impl.h"
 
 using namespace blink;
 
@@ -177,10 +180,57 @@ private:
     OwnPtr<SimpleWebScheduler> m_scheduler;
 };
 
+// 简单的 WebURLLoader 实现 - 用于 loadHTMLString
+class SimpleWebURLLoader : public WebURLLoader {
+public:
+    SimpleWebURLLoader() : m_client(nullptr) {}
+    ~SimpleWebURLLoader() override {}
+    
+    void loadSynchronously(const WebURLRequest& request,
+                          WebURLResponse& response,
+                          WebURLError& error,
+                          WebData& data) override {
+        // 同步加载 - 不支持
+        error.reason = -1;
+        error.domain = WebString::fromUTF8("SimpleWebURLLoader");
+    }
+    
+    void loadAsynchronously(const WebURLRequest& request,
+                           WebURLLoaderClient* client) override {
+        m_client = client;
+        m_request = request;
+        
+        // 对于 loadHTMLString，我们需要立即失败
+        // 这样 Blink 会使用 fallback 机制
+        WebURLError error;
+        error.reason = -1;
+        error.domain = WebString::fromUTF8("SimpleWebURLLoader");
+        error.isCancellation = false;
+        error.staleCopyInCache = false;
+        
+        if (m_client) {
+            m_client->didFail(this, error);
+        }
+    }
+    
+    void cancel() override {
+        m_client = nullptr;
+    }
+    
+    void setDefersLoading(bool defers) override {}
+    void setLoadingTaskRunner(WebTaskRunner*) override {}
+    
+private:
+    WebURLLoaderClient* m_client;
+    WebURLRequest m_request;
+};
+
 // 自定义 Platform 实现
 class SimplePlatform : public Platform {
 public:
-    SimplePlatform() : m_thread(adoptPtr(new SimpleWebThread())) {
+    SimplePlatform() 
+        : m_thread(adoptPtr(new SimpleWebThread()))
+        , m_compositorSupport(adoptPtr(new cc_blink::WebCompositorSupportImpl())) {
         // 不在这里初始化 Platform，由 blink::initialize 完成
     }
 
@@ -189,6 +239,11 @@ public:
     }
     
     WebThread* currentThread() override { return m_thread.get(); }
+    
+    // Compositor 支持 - 关键！
+    WebCompositorSupport* compositorSupport() override {
+        return m_compositorSupport.get();
+    }
     
     // 时间函数
     double currentTimeSeconds() override { 
@@ -204,6 +259,11 @@ public:
     }
     
     WebString defaultLocale() override { return WebString::fromUTF8("en-US"); }
+    
+    // User Agent - 必需！
+    WebString userAgent() override {
+        return WebString::fromUTF8("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.0.0 Safari/537.36");
+    }
     
     // Tracing 支持 - 返回禁用状态
     const unsigned char* getTraceCategoryEnabledFlag(const char* categoryName) override {
@@ -260,6 +320,11 @@ public:
         return WebData();
     }
     
+    // URL Loader - 返回简单的实现
+    WebURLLoader* createURLLoader() override {
+        return new SimpleWebURLLoader();
+    }
+    
     // 其他必需方法返回空实现
     WebBlobRegistry* blobRegistry() override { return nullptr; }
     WebFileSystem* fileSystem() override { return nullptr; }
@@ -269,11 +334,11 @@ public:
     WebFileUtilities* fileUtilities() override { return nullptr; }
     WebMimeRegistry* mimeRegistry() override { return nullptr; }
     WebThemeEngine* themeEngine() override { return nullptr; }
-    WebURLLoader* createURLLoader() override { return nullptr; }
     WebCookieJar* cookieJar() override { return nullptr; }
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
+    OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
 };
 
 // ============================================================
@@ -460,10 +525,19 @@ void BlinkWebRenderer::LoadHTML(const std::string& html) {
     if (!m_webView || !m_initialized)
         return;
 
-    WebURL baseURL = URLTestHelpers::toKURL("http://example.com/");
-    WebData data(html.data(), html.size());
-    m_webView->mainFrame()->loadHTMLString(data, baseURL);
-
+    // 使用 Document::setContent 直接设置 HTML 内容
+    // 首先获取 Document
+    WebLocalFrameImpl* frame = m_webView->mainFrameImpl();
+    if (!frame || !frame->frame())
+        return;
+    
+    Document* doc = frame->frame()->document();
+    if (!doc)
+        return;
+    
+    // 设置内容
+    doc->setContent(String::fromUTF8(html.c_str(), html.size()));
+    
     // 标记需要渲染
     m_needsRender = true;
 }

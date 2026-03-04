@@ -102,6 +102,7 @@ int main(int argc, char** argv) {
     // 8. 加载测试 HTML
     const char* test_html = "<html><body><h1>Hello World!</h1></body></html>";
     renderer->LoadHTML(test_html);
+    printf("HTML loaded successfully!\n");
 
     // 9. 渲染一帧
     renderer->Render();
