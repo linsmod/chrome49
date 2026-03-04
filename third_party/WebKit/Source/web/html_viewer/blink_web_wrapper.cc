@@ -53,6 +53,7 @@
 #include "platform/graphics/GraphicsLayer.h"
 #include "platform/testing/URLTestHelpers.h"
 #include "platform/testing/TestingPlatformSupport.h"
+#include "platform/EventTracer.h"
 #include "wtf/CurrentTime.h"
 #include "wtf/OwnPtr.h"
 
@@ -75,23 +76,29 @@ namespace html_viewer {
 // 简单的 WebFrameScheduler 实现
 class SimpleFrameScheduler : public WebFrameScheduler {
 public:
-    SimpleFrameScheduler() {}
+    explicit SimpleFrameScheduler(WebTaskRunner* runner) : m_taskRunner(runner) {}
     ~SimpleFrameScheduler() override {}
     
-    WebTaskRunner* loadingTaskRunner() override { return nullptr; }
-    WebTaskRunner* timerTaskRunner() override { return nullptr; }
+    WebTaskRunner* loadingTaskRunner() override { return m_taskRunner; }
+    WebTaskRunner* timerTaskRunner() override { return m_taskRunner; }
+
+private:
+    WebTaskRunner* m_taskRunner;
 };
 
 // 简单的 WebViewScheduler 实现
 class SimpleWebViewScheduler : public WebViewScheduler {
 public:
-    SimpleWebViewScheduler() {}
+    explicit SimpleWebViewScheduler(WebTaskRunner* runner) : m_taskRunner(runner) {}
     ~SimpleWebViewScheduler() override {}
     
     void setPageInBackground(bool) override {}
     WebPassOwnPtr<WebFrameScheduler> createFrameScheduler() override {
-        return adoptWebPtr(new SimpleFrameScheduler());
+        return adoptWebPtr(new SimpleFrameScheduler(m_taskRunner));
     }
+
+private:
+    WebTaskRunner* m_taskRunner;
 };
 
 // 自定义 WebScheduler，提供 createWebViewScheduler
@@ -111,7 +118,7 @@ public:
     void postIdleTaskAfterWakeup(const WebTraceLocation&, WebThread::IdleTask*) override {}
     
     WebPassOwnPtr<WebViewScheduler> createWebViewScheduler(blink::WebView*) override {
-        return adoptWebPtr(new SimpleWebViewScheduler());
+        return adoptWebPtr(new SimpleWebViewScheduler(m_mockTaskRunner.get()));
     }
     
     void suspendTimerQueue() override {}
@@ -187,6 +194,12 @@ public:
     }
     
     WebString defaultLocale() override { return WebString::fromUTF8("en-US"); }
+    
+    // Tracing 支持 - 返回禁用状态
+    const unsigned char* getTraceCategoryEnabledFlag(const char* categoryName) override {
+        static const unsigned char tracingIsDisabled = 0;
+        return &tracingIsDisabled;
+    }
     
     // 其他必需方法返回空实现
     WebBlobRegistry* blobRegistry() override { return nullptr; }
@@ -342,6 +355,9 @@ bool BlinkWebRenderer::Initialize() {
 
     // 2. 初始化 Blink (必须传入有效的 Platform)
     blink::initialize(m_platform);
+
+    // 2.5 初始化 EventTracer (用于 tracing 支持)
+    blink::EventTracer::initialize();
 
     // 3. 初始化 WebLayerTreeView
     m_layerTreeView = new LayerTreeViewImpl();
