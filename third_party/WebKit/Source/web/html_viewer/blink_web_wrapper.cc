@@ -10,6 +10,7 @@
 
 // Blink public API headers
 #include "public/platform/Platform.h"
+#include "public/web/WebKit.h"  // for blink::initialize
 #include "public/platform/WebClipboard.h"
 #include "public/platform/WebCookieJar.h"
 #include "public/platform/WebURL.h"
@@ -163,12 +164,11 @@ private:
 class SimplePlatform : public Platform {
 public:
     SimplePlatform() : m_thread(adoptPtr(new SimpleWebThread())) {
-        // 注册为当前 Platform
-        Platform::initialize(this);
+        // 不在这里初始化 Platform，由 blink::initialize 完成
     }
-    
+
     ~SimplePlatform() override {
-        Platform::shutdown();
+        // Platform::shutdown 由 blink::shutdown 完成
     }
     
     WebThread* currentThread() override { return m_thread.get(); }
@@ -340,7 +340,10 @@ bool BlinkWebRenderer::Initialize() {
     // 提供完整的 Platform 实现，包括 WebThread 和 WebScheduler
     m_platform = new SimplePlatform();
 
-    // 2. 初始化 WebLayerTreeView
+    // 2. 初始化 Blink (必须传入有效的 Platform)
+    blink::initialize(m_platform);
+
+    // 3. 初始化 WebLayerTreeView
     m_layerTreeView = new LayerTreeViewImpl();
     m_layerTreeView->setRenderer(this);
 
