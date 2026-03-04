@@ -10,8 +10,32 @@
 
 #include "web/html_viewer/blink_web_wrapper.h"
 
+#include "base/command_line.h"
+#include "base/at_exit.h"
+#include "base/i18n/icu_util.h"
+#include "base/message_loop/message_loop.h"
+#include "base/files/file.h"
 #include "wtf/WTF.h"
 #include "wtf/MainThread.h"
+#include "wtf/Partitions.h"
+#include "bindings/core/v8/V8Initializer.h"
+#include "gin/public/isolate_holder.h"
+#include "gin/array_buffer.h"
+#include "gin/v8_initializer.h"
+#include "libplatform/libplatform.h"
+#include "v8.h"
+
+using namespace v8;
+
+class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+ public:
+  virtual void* Allocate(size_t length) {
+    void* data = AllocateUninitialized(length);
+    return data == NULL ? data : memset(data, 0, length);
+  }
+  virtual void* AllocateUninitialized(size_t length) { return malloc(length); }
+  virtual void Free(void* data, size_t) { free(data); }
+};
 
 using namespace html_viewer;
 
@@ -24,10 +48,35 @@ int main(int argc, char** argv) {
     printf("HTMLViewer - Blink + GLAPP\n");
     printf("Initializing...\n");
 
+    // 初始化 base 库 (必须在任何其他初始化之前)
+    base::CommandLine::Init(argc, argv);
+    
+    // AtExitManager 管理单例对象的析构
+    base::AtExitManager exit_manager;
+    
+    // 初始化 ICU (国际化支持)
+    base::i18n::InitializeICU();
+    
+    // 初始化 WTF Partitions (内存分区)
+    WTF::Partitions::initialize(nullptr);
+
     // 初始化 WTF (必须在任何 Blink 操作之前)
     WTF::initialize(CurrentTime, nullptr, nullptr, nullptr);
     WTF::initializeMainThread(0);
 
+    // Initialize V8.
+    V8::InitializeICU();
+    V8::InitializeExternalStartupData(argv[0]);
+    v8::Platform* platform = platform::CreateDefaultPlatform();
+    V8::InitializePlatform(platform);
+    V8::Initialize();
+
+    // Create a new Isolate and make it the current one.
+    ArrayBufferAllocator allocator;
+    Isolate::CreateParams create_params;
+    create_params.array_buffer_allocator = &allocator;
+    Isolate* isolate = Isolate::New(create_params);
+    (void)isolate;
     // 创建配置
     BlinkWebConfig config = {0};
     config.width = 1024;

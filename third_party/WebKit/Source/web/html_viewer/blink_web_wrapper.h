@@ -17,6 +17,7 @@ class WebViewImpl;
 class WebFrame;
 class WebInputEvent;
 class WebLayerTreeView;
+class TestingPlatformSupportWithMockScheduler;
 }
 
 namespace html_viewer {
@@ -87,7 +88,7 @@ private:
     bool m_initialized;
 
     // Blink 对象 - 使用前向声明
-    class PlatformImpl* m_platform;
+    class SimplePlatform* m_platform;
     class LayerTreeViewImpl* m_layerTreeView;
     blink::WebViewImpl* m_webView;
 };

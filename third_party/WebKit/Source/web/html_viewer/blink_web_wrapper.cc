@@ -20,6 +20,9 @@
 #include "public/platform/WebRect.h"
 #include "public/platform/WebString.h"
 #include "public/platform/WebLayerTreeView.h"
+#include "public/platform/WebViewScheduler.h"
+#include "public/platform/WebFrameScheduler.h"
+#include "public/platform/WebTaskRunner.h"
 #include "public/web/WebInputEvent.h"
 #include "public/web/WebFrameClient.h"
 #include "public/web/WebViewClient.h"
@@ -48,6 +51,7 @@
 #include "platform/scroll/ScrollbarTheme.h"
 #include "platform/graphics/GraphicsLayer.h"
 #include "platform/testing/URLTestHelpers.h"
+#include "platform/testing/TestingPlatformSupport.h"
 #include "wtf/CurrentTime.h"
 #include "wtf/OwnPtr.h"
 
@@ -62,21 +66,133 @@ using namespace blink;
 namespace html_viewer {
 
 // ============================================================
-// 第一部分: Platform 接口实现 (最小集)
-// 基于 SimTest 测试框架
+// 第一部分: 自定义 Scheduler 实现
+// TestingPlatformMockScheduler 的 createWebViewScheduler 返回 nullptr
+// 我们需要提供自己的实现
 // ============================================================
 
-class PlatformImpl : public Platform {
+// 简单的 WebFrameScheduler 实现
+class SimpleFrameScheduler : public WebFrameScheduler {
 public:
-    PlatformImpl() {}
+    SimpleFrameScheduler() {}
+    ~SimpleFrameScheduler() override {}
+    
+    WebTaskRunner* loadingTaskRunner() override { return nullptr; }
+    WebTaskRunner* timerTaskRunner() override { return nullptr; }
+};
 
-    // 必须返回有效对象
+// 简单的 WebViewScheduler 实现
+class SimpleWebViewScheduler : public WebViewScheduler {
+public:
+    SimpleWebViewScheduler() {}
+    ~SimpleWebViewScheduler() override {}
+    
+    void setPageInBackground(bool) override {}
+    WebPassOwnPtr<WebFrameScheduler> createFrameScheduler() override {
+        return adoptWebPtr(new SimpleFrameScheduler());
+    }
+};
+
+// 自定义 WebScheduler，提供 createWebViewScheduler
+class SimpleWebScheduler : public WebScheduler {
+public:
+    SimpleWebScheduler() : m_mockTaskRunner(adoptPtr(new SimpleTaskRunner())) {}
+    ~SimpleWebScheduler() override {}
+    
+    WebTaskRunner* loadingTaskRunner() override { return m_mockTaskRunner.get(); }
+    WebTaskRunner* timerTaskRunner() override { return m_mockTaskRunner.get(); }
+    
+    void shutdown() override {}
+    bool shouldYieldForHighPriorityWork() override { return false; }
+    bool canExceedIdleDeadlineIfRequired() override { return false; }
+    void postIdleTask(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    void postNonNestableIdleTask(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    void postIdleTaskAfterWakeup(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    
+    WebPassOwnPtr<WebViewScheduler> createWebViewScheduler(blink::WebView*) override {
+        return adoptWebPtr(new SimpleWebViewScheduler());
+    }
+    
+    void suspendTimerQueue() override {}
+    void resumeTimerQueue() override {}
+    void addPendingNavigation() override {}
+    void removePendingNavigation() override {}
+    void onNavigationStarted() override {}
+
+private:
+    // 简单的 TaskRunner 实现
+    class SimpleTaskRunner : public WebTaskRunner {
+    public:
+        SimpleTaskRunner() {}
+        ~SimpleTaskRunner() override {}
+        
+        void postTask(const WebTraceLocation&, Task* task) override {
+            // 同步执行任务
+            if (task) {
+                task->run();
+                delete task;
+            }
+        }
+        
+        void postDelayedTask(const WebTraceLocation&, Task* task, double) override {
+            // 简化：同步执行
+            postTask(WebTraceLocation(), task);
+        }
+        
+        WebTaskRunner* clone() override { return new SimpleTaskRunner(); }
+    };
+    
+    OwnPtr<SimpleTaskRunner> m_mockTaskRunner;
+};
+
+// 自定义 WebThread 实现
+class SimpleWebThread : public WebThread {
+public:
+    SimpleWebThread() : m_scheduler(adoptPtr(new SimpleWebScheduler())) {}
+    ~SimpleWebThread() override {}
+    
+    WebTaskRunner* taskRunner() override { return m_scheduler->timerTaskRunner(); }
+    bool isCurrentThread() const override { return true; }
+    WebScheduler* scheduler() const override { return m_scheduler.get(); }
+
+private:
+    OwnPtr<SimpleWebScheduler> m_scheduler;
+};
+
+// 自定义 Platform 实现
+class SimplePlatform : public Platform {
+public:
+    SimplePlatform() : m_thread(adoptPtr(new SimpleWebThread())) {
+        // 注册为当前 Platform
+        Platform::initialize(this);
+    }
+    
+    ~SimplePlatform() override {
+        Platform::shutdown();
+    }
+    
+    WebThread* currentThread() override { return m_thread.get(); }
+    
+    // 时间函数
+    double currentTimeSeconds() override { 
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        return ts.tv_sec + ts.tv_nsec / 1000000000.0;
+    }
+    
+    double monotonicallyIncreasingTimeSeconds() override {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return ts.tv_sec + ts.tv_nsec / 1000000000.0;
+    }
+    
+    WebString defaultLocale() override { return WebString::fromUTF8("en-US"); }
+    
+    // 其他必需方法返回空实现
     WebBlobRegistry* blobRegistry() override { return nullptr; }
     WebFileSystem* fileSystem() override { return nullptr; }
     WebIDBFactory* idbFactory() override { return nullptr; }
     WebScrollbarBehavior* scrollbarBehavior() override { return nullptr; }
-
-    // 可选返回 nullptr
     WebClipboard* clipboard() override { return nullptr; }
     WebFileUtilities* fileUtilities() override { return nullptr; }
     WebMimeRegistry* mimeRegistry() override { return nullptr; }
@@ -84,16 +200,8 @@ public:
     WebURLLoader* createURLLoader() override { return nullptr; }
     WebCookieJar* cookieJar() override { return nullptr; }
 
-    // 时间函数 (必须返回有效值)
-    double currentTimeSeconds() override { return (double)time(nullptr); }
-    double monotonicallyIncreasingTimeSeconds() override {
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        return ts.tv_sec + ts.tv_nsec / 1000000000.0;
-    }
-
-    // 其他必需方法
-    WebString defaultLocale() override { return WebString("en-US"); }
+private:
+    OwnPtr<SimpleWebThread> m_thread;
 };
 
 // ============================================================
@@ -228,8 +336,9 @@ bool BlinkWebRenderer::Initialize() {
     if (m_initialized)
         return true;
 
-    // 1. 初始化 Platform
-    m_platform = new PlatformImpl();
+    // 1. 初始化 Platform - 使用自定义的 SimplePlatform
+    // 提供完整的 Platform 实现，包括 WebThread 和 WebScheduler
+    m_platform = new SimplePlatform();
 
     // 2. 初始化 WebLayerTreeView
     m_layerTreeView = new LayerTreeViewImpl();

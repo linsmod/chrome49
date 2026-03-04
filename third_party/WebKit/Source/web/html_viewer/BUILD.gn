@@ -40,6 +40,7 @@ source_set("HTMLViewer_source_set") {
     "//third_party/WebKit/Source:config",
     "//third_party/WebKit/Source:inside_blink",
   ]
+  
 
   # 包含目录
   include_dirs = [
@@ -67,6 +68,7 @@ executable("HTMLViewer") {
     "//third_party/WebKit/Source/core",
     "//third_party/WebKit/Source/platform",
     "//third_party/WebKit/Source/wtf",
+    "//v8",
   ]
 
   configs += [
@@ -74,7 +76,12 @@ executable("HTMLViewer") {
     "//third_party/WebKit/Source:inside_blink",
   ]
 
+  # 添加 v8 根目录到 include_dirs，以便 libplatform.h 能找到 "include/v8-platform.h"
+  include_dirs = [ "//v8" ]
+
   sources = [
     "main.cc",
   ]
+
+  configs += [ "//v8:external_startup_data" ]
 }
