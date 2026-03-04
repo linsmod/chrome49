@@ -33,6 +33,8 @@ executable("HTMLViewer") {
     "blink_web_wrapper.h",
     "pak_resource.cc",
     "pak_resource.h",
+    "simple_discardable_memory_allocator.cc",
+    "simple_discardable_memory_allocator.h",
   ]
   deps = [
     "//base",

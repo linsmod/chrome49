@@ -36,6 +36,8 @@
 // SDL2 headers
 #include <SDL.h>  // BUILD.gn 中已添加 /usr/include/SDL2 到 include_dirs
 
+#include "simple_discardable_memory_allocator.h"
+
 using namespace v8;
 using namespace html_viewer;
 
@@ -56,8 +58,8 @@ int main(int argc, char** argv) {
     base::AtExitManager exit_manager;
     
     // 1.5 初始化 DiscardableMemoryAllocator (Skia 需要)
-    // SimpleDiscardableMemoryAllocator discardable_memory_allocator;
-    // base::DiscardableMemoryAllocator::SetInstance(&discardable_memory_allocator);
+    SimpleDiscardableMemoryAllocator discardable_memory_allocator;
+    base::DiscardableMemoryAllocator::SetInstance(&discardable_memory_allocator);
     
     // 2. 创建 MessageLoop (Blink 需要)
     base::MessageLoop message_loop;
