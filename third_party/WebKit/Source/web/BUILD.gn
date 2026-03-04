@@ -76,6 +76,41 @@ component("web") {
   }
 }
 
+component("web_slim") {
+  output_name = "blink_web_slim"
+
+  deps = [
+    "//skia",
+    "//third_party/WebKit/Source/core",
+    "//third_party/WebKit/Source/modules:modules_slim",
+    "//third_party/WebKit/Source/platform",
+    "//third_party/angle:translator",
+    "//third_party/icu",
+    "//ui/gfx/geometry",
+    "//v8",
+  ]
+
+  include_dirs = [ "//third_party/skia/include/utils" ]
+
+  configs += [
+    "//third_party/WebKit/Source:config",
+    "//third_party/WebKit/Source:inside_blink",
+    "//third_party/WebKit/Source:non_test_config",
+  ]
+
+  sources = web_gypi.web_files
+
+  if (!use_default_render_theme) {
+    sources -= [ "default/WebRenderTheme.cpp" ]
+  }
+
+  if (is_android) {
+    set_sources_assignment_filter([])
+    sources += [ "linux/WebFontRendering.cpp" ]
+    set_sources_assignment_filter(sources_assignment_filter)
+  }
+}
+
 # GYP version: WebKit/Source/web/web.gyp:blink_web_test_support
 source_set("test_support") {
   if (!is_component_build) {

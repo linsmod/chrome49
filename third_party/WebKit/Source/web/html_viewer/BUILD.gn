@@ -21,6 +21,7 @@ executable("HTMLViewer") {
   configs += [
     "//third_party/WebKit/Source:config",
     "//third_party/WebKit/Source:inside_blink",
+    "//v8:external_startup_data"
   ]
   # 包含目录
   include_dirs = [
@@ -38,10 +39,11 @@ executable("HTMLViewer") {
   ]
   deps = [
     "//base",
+    "//base:i18n",
     "//skia",
     "//third_party/WebKit/Source/core",
     "//third_party/WebKit/Source/platform",
-    "//third_party/WebKit/Source/web",
+    "//third_party/WebKit/Source/web:web_slim",
     "//third_party/WebKit/Source/wtf",
     "//v8",
     "//v8:v8_libplatform",
@@ -69,6 +71,4 @@ executable("HTMLViewer") {
     # "main.cc",
     "sdl2_main.cc",
   ]
-
-  configs += [ "//v8:external_startup_data" ]
 }

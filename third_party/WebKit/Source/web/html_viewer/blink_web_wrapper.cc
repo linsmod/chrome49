@@ -33,17 +33,15 @@
 #include "public/web/WebSettings.h"
 #include "public/web/WebLocalFrame.h"
 #include "public/web/WebTreeScopeType.h"
-#include "public/web/WebFrame.h"
+#include "public/web/WebLocalFrame.h"
 #include "public/platform/WebDragData.h"
 #include "public/platform/WebImage.h"
+#include "public/web/WebView.h"
+#include "public/web/WebFrame.h"
 #include "public/web/WebNode.h"
 #include "public/web/WebWindowFeatures.h"
 #include "public/web/WebFileChooserParams.h"
 #include "public/web/WebDateTimeChooserParams.h"
-
-// Blink internal headers
-#include "web/WebViewImpl.h"
-#include "web/WebLocalFrameImpl.h"
 
 #include "core/frame/Settings.h"
 #include "core/frame/FrameView.h"
@@ -494,8 +492,8 @@ bool BlinkWebRenderer::Initialize() {
     WebViewClientImpl* viewClient = new WebViewClientImpl(nullptr);
     WebFrameClientImpl* frameClient = new WebFrameClientImpl();
     
-    m_webView = WebViewImpl::create(viewClient);
-    WebLocalFrameImpl* frame = WebLocalFrameImpl::create(
+    m_webView = WebView::create(viewClient);
+    WebLocalFrame* frame = WebLocalFrame::create(
         WebTreeScopeType::Document, frameClient);
     m_webView->setMainFrame(frame);
     
@@ -520,19 +518,16 @@ void BlinkWebRenderer::LoadHTML(const std::string& html) {
     if (!m_webView || !m_initialized)
         return;
 
-    // 使用 Document::setContent 直接设置 HTML 内容
-    // 首先获取 Document
-    WebLocalFrameImpl* frame = m_webView->mainFrameImpl();
-    if (!frame || !frame->frame())
+// 使用 loadHTMLString 加载 HTML 内容
+    WebFrame* frame = m_webView->mainFrame();
+    if (!frame)
         return;
-    
-    Document* doc = frame->frame()->document();
-    if (!doc)
-        return;
-    
-    // 设置内容
-    doc->setContent(String::fromUTF8(html.c_str(), html.size()));
-    
+
+    // 使用 loadHTMLString 加载 HTML
+    WebData data(html.c_str(), html.size());
+    KURL baseURL(ParsedURLString, "about:blank");
+    frame->loadHTMLString(data, baseURL);
+
     // 标记需要渲染
     m_needsRender = true;
 }
@@ -544,7 +539,7 @@ void BlinkWebRenderer::LoadURL(const std::string& url) {
     WebURLRequest request;
     request.initialize();
     request.setURL(KURL(ParsedURLString, url.c_str()));
-    m_webView->mainFrameImpl()->loadRequest(request);
+    m_webView->mainFrame()->loadRequest(request);
 
     m_needsRender = true;
 }

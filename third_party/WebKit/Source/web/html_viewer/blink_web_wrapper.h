@@ -95,7 +95,7 @@ private:
     // Blink 对象 - 使用前向声明
     class SimplePlatform* m_platform;
     class LayerTreeViewImpl* m_layerTreeView;
-    blink::WebViewImpl* m_webView;
+    blink::WebView* m_webView;
 };
 
 // 全局初始化/关闭
