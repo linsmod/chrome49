@@ -12,41 +12,21 @@ import("//third_party/WebKit/Source/config.gni")
 import("//third_party/WebKit/Source/core/core.gni")
 import("//third_party/WebKit/Source/platform/platform.gni")
 
-# HTMLViewer static library - provides HTML rendering capability
-source_set("HTMLViewer_source_set") {
 
-  testonly = true
+# HTMLViewer 可执行程序示例
+executable("HTMLViewer") {
 
-  # 依赖 - 参考 web BUILD.gn 格式
-  deps = [
-    "//skia",
-    "//testing/gmock",
-    "//testing/gtest",
-    "//third_party/WebKit/Source/core",
-    "//third_party/WebKit/Source/modules",
-    "//third_party/WebKit/Source/platform",
-    "//third_party/WebKit/Source/platform:test_support",
-    "//third_party/WebKit/Source/web",
-    "//third_party/WebKit/Source/web:test_support",
-    "//third_party/WebKit/Source/wtf",
-    "//third_party/icu",
-    "//third_party/angle:translator",
-    "//ui/gfx/geometry",
-    "//v8",
-  ]
-
+  output_name = "HTMLViewer"
   # 添加 Blink 配置
   configs += [
     "//third_party/WebKit/Source:config",
     "//third_party/WebKit/Source:inside_blink",
   ]
-  
-
   # 包含目录
   include_dirs = [
+    "//v8",
     "//third_party/skia/include/utils",
   ]
-
   # 源文件 - HTMLViewer 封装实现
   sources = [
     "blink_web_wrapper.cc",
@@ -54,39 +34,38 @@ source_set("HTMLViewer_source_set") {
     "pak_resource.cc",
     "pak_resource.h",
   ]
-}
-
-# HTMLViewer 可执行程序示例
-executable("HTMLViewer") {
-
-  output_name = "HTMLViewer"
-  testonly = true
-
   deps = [
-    ":HTMLViewer_source_set",
     "//base",
     "//skia",
-    "//testing/gmock",
     "//third_party/WebKit/Source/core",
     "//third_party/WebKit/Source/platform",
-    "//third_party/WebKit/Source/platform:test_support",
     "//third_party/WebKit/Source/web",
-    "//third_party/WebKit/Source/web:test_support",
     "//third_party/WebKit/Source/wtf",
     "//v8",
     "//v8:v8_libplatform",
   ]
-
-  configs += [
-    "//third_party/WebKit/Source:config",
-    "//third_party/WebKit/Source:inside_blink",
+  cflags = [
+    "-isystem/usr/include",
+    "-isystem/usr/include/SDL2",
+    "-isystem/usr/include/x86_64-linux-gnu"
   ]
 
-  # 添加 v8 根目录到 include_dirs，以便 libplatform.h 能找到 "include/v8-platform.h"
-  include_dirs = [ "//v8" ]
+  # 2. 链接：移除之前错误的 ldflags
+  # 不要使用 -L/usr/lib... 这会破坏 sysroot
+  # libs = [
+  #   "SDL2",
+  #   "dl",
+  #   "rt",
+  # ]
 
-  sources = [
-    "main.cc",
+  # 3. 终极大招：通过特定的 ldflags 强制链接器定位文件
+  # 我们不给路径，直接给 .so 的全路径，绕过链接器的搜索逻辑
+  ldflags = [
+    "/usr/lib/x86_64-linux-gnu/libSDL2.so",
+  ]
+  sources += [
+    # "main.cc",
+    "sdl2_main.cc",
   ]
 
   configs += [ "//v8:external_startup_data" ]

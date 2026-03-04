@@ -52,6 +52,11 @@ public:
     void Resize(int width, int height);
     void Render();
 
+    
+    // 内部渲染方法 (用于合成器回调)
+    void BeginFrame();
+    void CompositeForReadback();
+
     // 获取像素数据 (调用者负责 free)
     uint8_t* GetPixels() { return m_pixels; }
     int GetWidth() const { return m_width; }
