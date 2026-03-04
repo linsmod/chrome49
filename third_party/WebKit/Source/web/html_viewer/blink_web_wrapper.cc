@@ -63,6 +63,16 @@
 #include "third_party/skia/include/core/SkColor.h"
 #include "third_party/skia/include/core/SkImageInfo.h"
 
+// Resource headers
+#include "blink/public/resources/grit/blink_resources.h"
+#include "web/html_viewer/pak_resource.h"
+
+// Compositor headers
+#include "public/platform/WebCompositorSupport.h"
+#include "public/platform/WebContentLayer.h"
+#include "public/platform/WebLayer.h"
+#include "public/platform/WebContentLayerClient.h"
+
 using namespace blink;
 
 namespace html_viewer {
@@ -199,6 +209,55 @@ public:
     const unsigned char* getTraceCategoryEnabledFlag(const char* categoryName) override {
         static const unsigned char tracingIsDisabled = 0;
         return &tracingIsDisabled;
+    }
+    
+    // 资源加载 - 从 PAK 文件加载 Blink 资源
+    WebData loadResource(const char* name) override {
+        // 资源名称到 IDR 的映射
+        static const struct {
+            const char* name;
+            uint16_t id;
+        } kResources[] = {
+            {"html.css", IDR_UASTYLE_HTML_CSS},
+            {"quirks.css", IDR_UASTYLE_QUIRKS_CSS},
+            {"view-source.css", IDR_UASTYLE_VIEW_SOURCE_CSS},
+            {"svg.css", IDR_UASTYLE_SVG_CSS},
+            {"mathml.css", IDR_UASTYLE_MATHML_CSS},
+            {"mediaControls.css", IDR_UASTYLE_MEDIA_CONTROLS_CSS},
+            {"fullscreen.css", IDR_UASTYLE_FULLSCREEN_CSS},
+            {"xhtmlmp.css", IDR_UASTYLE_XHTMLMP_CSS},
+            {"themeWin.css", IDR_UASTYLE_THEME_WIN_CSS},
+            {"themeWinQuirks.css", IDR_UASTYLE_THEME_WIN_QUIRKS_CSS},
+            {"themeChromiumLinux.css", IDR_UASTYLE_THEME_CHROMIUM_LINUX_CSS},
+            {"themeInputMultipleFields.css", IDR_UASTYLE_THEME_INPUT_MULTIPLE_FIELDS_CSS},
+        };
+        
+        // 懒加载 PAK 资源
+        static PakResource* s_pakResource = nullptr;
+        if (!s_pakResource) {
+            s_pakResource = new PakResource();
+            // 加载 blink_resources.pak
+            const char* pakPath = "/home/wulin/chrome49/src/out/Release/gen/blink/public/resources/blink_resources.pak";
+            if (!s_pakResource->LoadFromFile(pakPath)) {
+                fprintf(stderr, "Failed to load blink_resources.pak\n");
+                return WebData();
+            }
+        }
+        
+        for (size_t i = 0; i < sizeof(kResources) / sizeof(kResources[0]); ++i) {
+            if (!strcmp(name, kResources[i].name)) {
+                const char* data = nullptr;
+                size_t size = 0;
+                if (s_pakResource->GetResource(kResources[i].id, &data, &size)) {
+                    return WebData(data, size);
+                }
+                break;
+            }
+        }
+        
+        // 资源未找到
+        fprintf(stderr, "Warning: Resource not found: %s\n", name);
+        return WebData();
     }
     
     // 其他必需方法返回空实现

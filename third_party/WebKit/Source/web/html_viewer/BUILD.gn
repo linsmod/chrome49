@@ -51,6 +51,8 @@ source_set("HTMLViewer_source_set") {
   sources = [
     "blink_web_wrapper.cc",
     "blink_web_wrapper.h",
+    "pak_resource.cc",
+    "pak_resource.h",
   ]
 }
 
