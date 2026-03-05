@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "web/html_viewer/blink_web_wrapper.h"
+#include "web/simpleblink/blink_web_wrapper.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +42,7 @@
 #include "public/web/WebWindowFeatures.h"
 #include "public/web/WebFileChooserParams.h"
 #include "public/web/WebDateTimeChooserParams.h"
+#include "public/web/WebScriptSource.h"
 
 #include "core/frame/Settings.h"
 #include "core/frame/FrameView.h"
@@ -65,7 +66,7 @@
 
 // Resource headers
 #include "blink/public/resources/grit/blink_resources.h"
-#include "web/html_viewer/pak_resource.h"
+#include "web/simpleblink/pak_resource.h"
 
 // Compositor headers
 #include "public/platform/WebCompositorSupport.h"
@@ -488,8 +489,12 @@ bool BlinkWebRenderer::Initialize() {
     FrameView::setInitialTracksPaintInvalidationsForTesting(true);
     GraphicsLayer::setDrawDebugRedFillForTesting(false);
 
-    // 4. 创建 WebView (软件渲染模式 - 不需要 WebLayerTreeView)
-    WebViewClientImpl* viewClient = new WebViewClientImpl(nullptr);
+    // 4. 创建 LayerTreeView (用于软件渲染)
+    m_layerTreeView = new LayerTreeViewImpl();
+    m_layerTreeView->setRenderer(this);
+    
+    // 5. 创建 WebView (软件渲染模式)
+    WebViewClientImpl* viewClient = new WebViewClientImpl(m_layerTreeView);
     WebFrameClientImpl* frameClient = new WebFrameClientImpl();
     
     m_webView = WebView::create(viewClient);
@@ -497,17 +502,17 @@ bool BlinkWebRenderer::Initialize() {
         WebTreeScopeType::Document, frameClient);
     m_webView->setMainFrame(frame);
     
-    // 5. 关键: 禁用加速合成模式 - 这样就不会创建 GraphicsLayer
-    // 这是软件渲染的关键设置
+    // 6. 关键: 先禁用加速合成模式，再 resize
+    // 这是软件渲染的关键设置，必须在 resize 之前调用
     WebSettings* settings = m_webView->settings();
     settings->setAcceleratedCompositingEnabled(false);  // 禁用合成层
     settings->setJavaScriptEnabled(true);
     settings->setLoadsImagesAutomatically(true);
-
-    // 6. 设置视口大小
+    
+    // 7. 设置视口大小 (在禁用合成之后)
     m_webView->resize(WebSize(m_width, m_height));
 
-    // 7. 分配像素缓冲区
+    // 8. 分配像素缓冲区
     m_pixels = (uint8_t*)malloc(m_width * m_height * 4);  // RGBA
 
     m_initialized = true;
@@ -518,18 +523,38 @@ void BlinkWebRenderer::LoadHTML(const std::string& html) {
     if (!m_webView || !m_initialized)
         return;
 
-// 使用 loadHTMLString 加载 HTML 内容
     WebFrame* frame = m_webView->mainFrame();
     if (!frame)
         return;
 
-    // 使用 loadHTMLString 加载 HTML
-    WebData data(html.c_str(), html.size());
-    KURL baseURL(ParsedURLString, "about:blank");
-    frame->loadHTMLString(data, baseURL);
+    // 方法1: 使用 JavaScript document.write() 直接写入 HTML
+    // 这是一种同步方式，不需要异步加载
+    WebScriptSource source(
+        WebString::fromUTF8("document.open(); document.write('" + 
+            EscapeJSString(html) + "'); document.close();")
+    );
+    frame->executeScript(source);
 
     // 标记需要渲染
     m_needsRender = true;
+}
+
+// 辅助函数: 转义 JavaScript 字符串
+std::string BlinkWebRenderer::EscapeJSString(const std::string& str) {
+    std::string result;
+    result.reserve(str.size() * 2);
+    for (char c : str) {
+        switch (c) {
+            case '\'': result += "\\'"; break;
+            case '"': result += "\\\""; break;
+            case '\\': result += "\\\\"; break;
+            case '\n': result += "\\n"; break;
+            case '\r': result += "\\r"; break;
+            case '\t': result += "\\t"; break;
+            default: result += c; break;
+        }
+    }
+    return result;
 }
 
 void BlinkWebRenderer::LoadURL(const std::string& url) {
@@ -607,13 +632,36 @@ void BlinkWebRenderer::ExtractPixels() {
     // 复制像素到输出缓冲区
     // 注意: Skia 使用 BGRA 格式，可能需要转换为 RGBA
     const uint8_t* srcPixels = static_cast<const uint8_t*>(bitmap.getPixels());
+    
+    // 检查是否有非白色像素
+    bool hasContent = false;
     for (int i = 0; i < m_width * m_height; ++i) {
         // BGRA -> RGBA
         m_pixels[i * 4 + 0] = srcPixels[i * 4 + 2];  // R
         m_pixels[i * 4 + 1] = srcPixels[i * 4 + 1];  // G
         m_pixels[i * 4 + 2] = srcPixels[i * 4 + 0];  // B
         m_pixels[i * 4 + 3] = srcPixels[i * 4 + 3];  // A
+        
+        // 检查是否有非白色像素
+        if (srcPixels[i * 4 + 0] != 0xFF || srcPixels[i * 4 + 1] != 0xFF || 
+            srcPixels[i * 4 + 2] != 0xFF) {
+            hasContent = true;
+        }
     }
+    
+    if (!hasContent) {
+        fprintf(stderr, "Warning: Rendered image is all white - no content rendered\n");
+    } else {
+        fprintf(stderr, "Rendered image has content\n");
+    }
+    
+    // 保存渲染结果到文件用于调试
+    // FILE* f = fopen("/tmp/blink_render.raw", "wb");
+    // if (f) {
+    //     fwrite(m_pixels, 1, m_width * m_height * 4, f);
+    //     fclose(f);
+    //     fprintf(stderr, "Saved raw pixel data to /tmp/blink_render.raw (%dx%d RGBA)\n", m_width, m_height);
+    // }
 }
 
 void BlinkWebRenderer::HandleMouseMove(int x, int y) {

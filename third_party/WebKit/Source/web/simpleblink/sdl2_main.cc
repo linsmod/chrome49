@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "web/html_viewer/blink_web_wrapper.h"
+#include "web/simpleblink/blink_web_wrapper.h"
 
 #include "base/command_line.h"
 #include "base/at_exit.h"

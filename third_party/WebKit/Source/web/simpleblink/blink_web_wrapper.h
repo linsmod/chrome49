@@ -84,6 +84,9 @@ private:
     // 渲染实现
     void DoRender();
     void ExtractPixels();
+    
+    // 辅助方法
+    std::string EscapeJSString(const std::string& str);
 
     // 成员变量
     int m_width;

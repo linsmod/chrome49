@@ -43,7 +43,7 @@ executable("HTMLViewer") {
     "//skia",
     "//third_party/WebKit/Source/core",
     "//third_party/WebKit/Source/platform",
-    "//third_party/WebKit/Source/web:web_slim",
+    "//third_party/WebKit/Source/web",
     "//third_party/WebKit/Source/wtf",
     "//v8",
     "//v8:v8_libplatform",

@@ -5,7 +5,7 @@
 // 简单的 PAK 资源加载器，不依赖 ui 库
 // 参考 ui/base/resource/data_pack.cc
 
-#include "web/html_viewer/pak_resource.h"
+#include "web/simpleblink/pak_resource.h"
 
 #include <fcntl.h>
 #include <stdio.h>
