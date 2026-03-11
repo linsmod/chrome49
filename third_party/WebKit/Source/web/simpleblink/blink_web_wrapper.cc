@@ -748,11 +748,40 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
 
     WebMouseWheelEvent event;
     event.type = WebInputEvent::MouseWheel;
+    
+    // 设置时间戳
+    event.timeStampSeconds = monotonicallyIncreasingTime();
+    
+    // 设置坐标
     event.x = x;
     event.y = y;
     event.windowX = x;
     event.windowY = y;
-    event.deltaY = delta;
+    event.globalX = x;
+    event.globalY = y;
+    
+    // 设置滚轮增量 (SDL 的 delta 是整数刻度，需要转换为像素)
+    // 典型的滚轮每次滚动约 120 像素 (Windows 标准)
+    // SDL 的 event.wheel.y 通常是 1 或 -1
+    event.deltaX = 0;
+    event.deltaY = delta * 120.0f;  // 转换为像素值
+    
+    // 设置滚轮刻度
+    event.wheelTicksX = 0;
+    event.wheelTicksY = delta;
+    
+    // 设置精确滚动标志 (对于触控板/高精度滚动)
+    event.hasPreciseScrollingDeltas = false;
+    
+    // 允许滚动
+    event.canScroll = true;
+    
+    // 设置修饰键
+    event.modifiers = 0;
+    
+    // 设置滚动阶段 (用于触控板惯性滚动)
+    event.phase = WebMouseWheelEvent::PhaseChanged;
+    event.momentumPhase = WebMouseWheelEvent::PhaseNone;
     
     m_webView->handleInputEvent(event);
     m_needsRender = true;

@@ -277,6 +277,12 @@ int main(int argc, char** argv) {
                     break;
                 case SDL_MOUSEWHEEL:
                     blinkRenderer->HandleMouseWheel(event.wheel.x, event.wheel.y, event.wheel.y);
+                    // 重新渲染
+                    blinkRenderer->Render();
+                    SDL_UpdateTexture(texture, NULL, blinkRenderer->GetPixels(), pitch);
+                    SDL_RenderClear(renderer);
+                    SDL_RenderCopy(renderer, texture, NULL, NULL);
+                    SDL_RenderPresent(renderer);
                     break;
             }
         }
