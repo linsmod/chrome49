@@ -101,10 +101,6 @@ private:
     blink::WebView* m_webView;
 };
 
-// 全局初始化/关闭
-void InitializeBlinkWeb(const BlinkWebConfig* config);
-void ShutdownBlinkWeb();
-
 }  // namespace html_viewer
 
 #endif  // BLINK_WEB_WRAPPER_H_

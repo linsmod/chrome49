@@ -116,7 +116,6 @@ int main(int argc, char** argv) {
     // 11. 清理
     renderer->Close();
     delete renderer;
-    ShutdownBlinkWeb();
 
     printf("Done.\n");
     return 0;

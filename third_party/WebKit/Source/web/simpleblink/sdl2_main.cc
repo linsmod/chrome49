@@ -146,7 +146,6 @@ int main(int argc, char** argv) {
     if (!blinkRenderer->Initialize()) {
         printf("Failed to initialize renderer\n");
         delete blinkRenderer;
-        ShutdownBlinkWeb();
         SDL_DestroyTexture(texture);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
