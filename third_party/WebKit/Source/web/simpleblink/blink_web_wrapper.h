@@ -94,6 +94,7 @@ private:
     uint8_t* m_pixels;
     bool m_needsRender;
     bool m_initialized;
+    int m_mouseButton;  // 当前按下的鼠标按钮 (0=无, 1=左, 2=中, 3=右)
 
     // Blink 对象 - 使用前向声明
     class SimplePlatform* m_platform;

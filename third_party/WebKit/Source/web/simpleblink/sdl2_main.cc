@@ -265,27 +265,26 @@ int main(int argc, char** argv) {
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     blinkRenderer->HandleMouseDown(event.button.x, event.button.y, event.button.button);
-                    // 重新渲染
-                    blinkRenderer->Render();
-                    SDL_UpdateTexture(texture, NULL, blinkRenderer->GetPixels(), pitch);
-                    SDL_RenderClear(renderer);
-                    SDL_RenderCopy(renderer, texture, NULL, NULL);
-                    SDL_RenderPresent(renderer);
                     break;
                 case SDL_MOUSEBUTTONUP:
                     blinkRenderer->HandleMouseUp(event.button.x, event.button.y, event.button.button);
                     break;
                 case SDL_MOUSEWHEEL:
-                    blinkRenderer->HandleMouseWheel(event.wheel.x, event.wheel.y, event.wheel.y);
-                    // 重新渲染
-                    blinkRenderer->Render();
-                    SDL_UpdateTexture(texture, NULL, blinkRenderer->GetPixels(), pitch);
-                    SDL_RenderClear(renderer);
-                    SDL_RenderCopy(renderer, texture, NULL, NULL);
-                    SDL_RenderPresent(renderer);
+                    {
+                        int mouseX, mouseY;
+                        SDL_GetMouseState(&mouseX, &mouseY);
+                        blinkRenderer->HandleMouseWheel(mouseX, mouseY, event.wheel.y);
+                    }
                     break;
             }
         }
+        
+        // 始终渲染
+        blinkRenderer->Render();
+        SDL_UpdateTexture(texture, NULL, blinkRenderer->GetPixels(), pitch);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        SDL_RenderPresent(renderer);
         
         // 小延迟避免 CPU 占用过高
         SDL_Delay(16);  // ~60 FPS

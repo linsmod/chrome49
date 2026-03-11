@@ -463,6 +463,7 @@ BlinkWebRenderer::BlinkWebRenderer(int width, int height)
     , m_pixels(nullptr)
     , m_needsRender(true)
     , m_initialized(false)
+    , m_mouseButton(0)
     , m_platform(nullptr)
     , m_layerTreeView(nullptr)
     , m_webView(nullptr)
@@ -593,7 +594,7 @@ void BlinkWebRenderer::Resize(int width, int height) {
 }
 
 void BlinkWebRenderer::Render() {
-    if (!m_webView || !m_initialized || !m_needsRender)
+    if (!m_webView || !m_initialized)
         return;
 
     DoRender();
@@ -655,11 +656,11 @@ void BlinkWebRenderer::ExtractPixels() {
         }
     }
     
-    if (!hasContent) {
-        fprintf(stderr, "Warning: Rendered image is all white - no content rendered\n");
-    } else {
-        fprintf(stderr, "Rendered image has content\n");
-    }
+    // if (!hasContent) {
+    //     fprintf(stderr, "Warning: Rendered image is all white - no content rendered\n");
+    // } else {
+    //     fprintf(stderr, "Rendered image has content\n");
+    // }
     
     // 保存渲染结果到文件用于调试
     // FILE* f = fopen("/tmp/blink_render.raw", "wb");
@@ -680,9 +681,32 @@ void BlinkWebRenderer::HandleMouseMove(int x, int y) {
     event.y = y;
     event.windowX = x;
     event.windowY = y;
+    event.globalX = x;
+    event.globalY = y;
     event.clickCount = 0;
     
+    // 设置当前按下的按钮 (用于拖动)
+    switch (m_mouseButton) {
+        case 1:
+            event.button = WebMouseEvent::ButtonLeft;
+            event.modifiers = WebInputEvent::LeftButtonDown;
+            break;
+        case 2:
+            event.button = WebMouseEvent::ButtonMiddle;
+            event.modifiers = WebInputEvent::MiddleButtonDown;
+            break;
+        case 3:
+            event.button = WebMouseEvent::ButtonRight;
+            event.modifiers = WebInputEvent::RightButtonDown;
+            break;
+        default:
+            event.button = WebMouseEvent::ButtonLeft;
+            event.modifiers = 0;
+            break;
+    }
+    
     m_webView->handleInputEvent(event);
+    m_needsRender = true;
 }
 
 void BlinkWebRenderer::HandleMouseDown(int x, int y, int button) {
@@ -723,6 +747,7 @@ void BlinkWebRenderer::HandleMouseDown(int x, int y, int button) {
     }
     
     m_webView->handleInputEvent(event);
+    m_mouseButton = button;  // 记录按下的按钮
     m_needsRender = true;
 }
 
@@ -736,10 +761,29 @@ void BlinkWebRenderer::HandleMouseUp(int x, int y, int button) {
     event.y = y;
     event.windowX = x;
     event.windowY = y;
-    event.button = static_cast<WebMouseEvent::Button>(button);
+    event.globalX = x;
+    event.globalY = y;
     event.clickCount = 1;
     
+    // 转换 SDL 按钮值到 Blink 按钮值
+    switch (button) {
+        case 1:
+            event.button = WebMouseEvent::ButtonLeft;
+            break;
+        case 2:
+            event.button = WebMouseEvent::ButtonMiddle;
+            break;
+        case 3:
+            event.button = WebMouseEvent::ButtonRight;
+            break;
+        default:
+            event.button = WebMouseEvent::ButtonLeft;
+            break;
+    }
+    
     m_webView->handleInputEvent(event);
+    m_mouseButton = 0;  // 清除按钮状态
+    m_needsRender = true;
 }
 
 void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
@@ -760,11 +804,9 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
     event.globalX = x;
     event.globalY = y;
     
-    // 设置滚轮增量 (SDL 的 delta 是整数刻度，需要转换为像素)
-    // 典型的滚轮每次滚动约 120 像素 (Windows 标准)
-    // SDL 的 event.wheel.y 通常是 1 或 -1
+    // 设置滚轮增量
     event.deltaX = 0;
-    event.deltaY = delta * 120.0f;  // 转换为像素值
+    event.deltaY = delta * 120.0f;
     
     // 设置滚轮刻度
     event.wheelTicksX = 0;
@@ -776,8 +818,17 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
     // 允许滚动
     event.canScroll = true;
     
-    // 设置修饰键
+    // 设置按钮状态 (鼠标滚轮事件不应该有任何按钮按下)
+    event.button = WebMouseEvent::ButtonNone;
+    
+    // 设置修饰键，包含当前鼠标按钮状态
     event.modifiers = 0;
+    if (m_mouseButton == 1)
+        event.modifiers |= WebInputEvent::LeftButtonDown;
+    else if (m_mouseButton == 2)
+        event.modifiers |= WebInputEvent::MiddleButtonDown;
+    else if (m_mouseButton == 3)
+        event.modifiers |= WebInputEvent::RightButtonDown;
     
     // 设置滚动阶段 (用于触控板惯性滚动)
     event.phase = WebMouseWheelEvent::PhaseChanged;
@@ -824,13 +875,6 @@ void BlinkWebRenderer::HandleKeyPress(int keyCode) {
 void BlinkWebRenderer::Close() {
     if (!m_initialized)
         return;
-
-    // 清理测试环境
-    Document::setThreadedParsingEnabledForTesting(true);
-    LayoutTestSupport::setMockThemeEnabledForTest(false);
-    ScrollbarTheme::setMockScrollbarsEnabled(false);
-    FrameView::setInitialTracksPaintInvalidationsForTesting(false);
-    GraphicsLayer::setDrawDebugRedFillForTesting(true);
 
     // 关闭 WebView
     if (m_webView) {
