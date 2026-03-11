@@ -43,6 +43,9 @@ namespace blink {
 DataObject* DataObject::createFromPasteboard(PasteMode pasteMode)
 {
     DataObject* dataObject = create();
+    if(!Platform::current()->clipboard()){
+        return dataObject;
+    }
     WebClipboard::Buffer buffer = Pasteboard::generalPasteboard()->buffer();
     uint64_t sequenceNumber = Platform::current()->clipboard()->sequenceNumber(buffer);
     bool ignored;

@@ -195,16 +195,53 @@ void ScrollbarTheme::paintScrollCorner(GraphicsContext& context, const DisplayIt
 #endif
 }
 
+static bool defaultShouldCenterOnThumb(WebScrollbarBehavior::Button button, bool shiftKey, bool altKey) {
+    // Linux/Windows 默认行为：左键 + Shift
+    return button == WebScrollbarBehavior::Button::ButtonLeft && shiftKey;
+}
+
+static bool defaultShouldSnapBackToDragOrigin(const IntPoint& mousePosition, 
+                                              const IntRect& trackRect, 
+                                              bool isHorizontal) {
+    // 默认行为：点击轨道区域时 snap back
+    if (isHorizontal) {
+        return mousePosition.x() < trackRect.x() || 
+               mousePosition.x() > trackRect.x() + trackRect.width();
+    } else {
+        return mousePosition.y() < trackRect.y() || 
+               mousePosition.y() > trackRect.y() + trackRect.height();
+    }
+}
+
 bool ScrollbarTheme::shouldCenterOnThumb(const ScrollbarThemeClient& scrollbar, const PlatformMouseEvent& evt)
 {
-    return Platform::current()->scrollbarBehavior()->shouldCenterOnThumb(static_cast<WebScrollbarBehavior::Button>(evt.button()), evt.shiftKey(), evt.altKey());
+    auto button = static_cast<WebScrollbarBehavior::Button>(evt.button());
+    bool shiftKey = evt.shiftKey();
+    bool altKey = evt.altKey();
+    
+    // 如果 Platform 提供了 scrollbarBehavior，就用它的实现
+    if (Platform::current() && Platform::current()->scrollbarBehavior()) {
+        return Platform::current()->scrollbarBehavior()->shouldCenterOnThumb(button, shiftKey, altKey);
+    }
+    
+    // 否则用默认行为
+    return defaultShouldCenterOnThumb(button, shiftKey, altKey);
 }
 
 bool ScrollbarTheme::shouldSnapBackToDragOrigin(const ScrollbarThemeClient& scrollbar, const PlatformMouseEvent& evt)
 {
     IntPoint mousePosition = scrollbar.convertFromRootFrame(evt.position());
     mousePosition.move(scrollbar.x(), scrollbar.y());
-    return Platform::current()->scrollbarBehavior()->shouldSnapBackToDragOrigin(mousePosition, trackRect(scrollbar), scrollbar.orientation() == HorizontalScrollbar);
+    bool isHorizontal = scrollbar.orientation() == HorizontalScrollbar;
+    
+    // 如果 Platform 提供了 scrollbarBehavior，就用它的实现
+    if (Platform::current() && Platform::current()->scrollbarBehavior()) {
+        return Platform::current()->scrollbarBehavior()->shouldSnapBackToDragOrigin(
+            mousePosition, trackRect(scrollbar), isHorizontal);
+    }
+    
+    // 否则用默认行为
+    return defaultShouldSnapBackToDragOrigin(mousePosition, trackRect(scrollbar), isHorizontal);
 }
 
 int ScrollbarTheme::thumbPosition(const ScrollbarThemeClient& scrollbar, float scrollPosition)

@@ -140,18 +140,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // 9. 创建配置
-    BlinkWebConfig config = {0};
-    config.width = windowWidth;
-    config.height = windowHeight;
-    config.enable_js = true;
-    config.enable_gpu = false;
-
-    // 10. 初始化 Blink Web (创建 Platform)
-    InitializeBlinkWeb(&config);
-
     // 11. 创建渲染器 (会调用 blink::initialize)
-    BlinkWebRenderer* blinkRenderer = new BlinkWebRenderer(config.width, config.height);
+    BlinkWebRenderer* blinkRenderer = new BlinkWebRenderer(800, 600);
     
     if (!blinkRenderer->Initialize()) {
         printf("Failed to initialize renderer\n");
@@ -299,7 +289,6 @@ int main(int argc, char** argv) {
     // 16. 清理
     blinkRenderer->Close();
     delete blinkRenderer;
-    ShutdownBlinkWeb();
 
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);

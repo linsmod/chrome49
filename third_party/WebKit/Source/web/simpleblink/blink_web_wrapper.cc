@@ -73,7 +73,8 @@
 #include "public/platform/WebContentLayer.h"
 #include "public/platform/WebLayer.h"
 #include "public/platform/WebContentLayerClient.h"
-
+// CC Blink 
+#include "cc/blink/web_compositor_support_impl.h"
 using namespace blink;
 
 namespace html_viewer {
@@ -227,7 +228,8 @@ private:
 class SimplePlatform : public Platform {
 public:
     SimplePlatform() 
-        : m_thread(adoptPtr(new SimpleWebThread())) {
+        : m_thread(adoptPtr(new SimpleWebThread())) 
+        , m_compositorSupport(adoptPtr(new cc_blink::WebCompositorSupportImpl())) {
         // 不在这里初始化 Platform，由 blink::initialize 完成
     }
 
@@ -238,7 +240,7 @@ public:
     WebThread* currentThread() override { return m_thread.get(); }
     
     WebCompositorSupport* compositorSupport() override {
-        return nullptr;
+        return m_compositorSupport.get();
     }
     
     // 时间函数
@@ -334,6 +336,7 @@ public:
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
+    OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
 };
 
 // ============================================================
@@ -683,14 +686,38 @@ void BlinkWebRenderer::HandleMouseDown(int x, int y, int button) {
     if (!m_webView)
         return;
 
-    WebMouseEvent event;
-    event.type = WebInputEvent::MouseDown;
+    blink::WebMouseEvent event;
+    event.type = blink::WebInputEvent::MouseDown;
     event.x = x;
     event.y = y;
     event.windowX = x;
     event.windowY = y;
-    event.button = static_cast<WebMouseEvent::Button>(button);
+    event.globalX = x;
+    event.globalY = y;
+    event.modifiers = 0;
     event.clickCount = 1;
+    
+    // 转换 SDL 按钮值到 Blink 按钮值
+    switch (button) {
+        case 1:  // SDL_BUTTON_LEFT
+            event.button = blink::WebMouseEvent::ButtonLeft;
+            break;
+        case 2:  // SDL_BUTTON_MIDDLE
+            event.button = blink::WebMouseEvent::ButtonMiddle;
+            break;
+        case 3:  // SDL_BUTTON_RIGHT
+            event.button = blink::WebMouseEvent::ButtonRight;
+            break;
+        // SDL_BUTTON_X1 (4) 和 SDL_BUTTON_X2 (5) 是额外按钮
+        case 4:
+        case 5:
+            // 映射到 ButtonLeft 或忽略
+            event.button = blink::WebMouseEvent::ButtonLeft;
+            break;
+        default:
+            event.button = blink::WebMouseEvent::ButtonLeft;
+            break;
+    }
     
     m_webView->handleInputEvent(event);
     m_needsRender = true;
@@ -789,24 +816,6 @@ void BlinkWebRenderer::Close() {
     delete m_platform;
 
     m_initialized = false;
-}
-
-// ============================================================
-// 全局初始化/关闭
-// ============================================================
-
-static BlinkWebConfig* g_config = nullptr;
-
-void InitializeBlinkWeb(const BlinkWebConfig* config) {
-    g_config = new BlinkWebConfig();
-    if (config) {
-        *g_config = *config;
-    }
-}
-
-void ShutdownBlinkWeb() {
-    delete g_config;
-    g_config = nullptr;
 }
 
 }  // namespace html_viewer
