@@ -36,6 +36,8 @@ executable("HTMLViewer") {
     "pak_resource.h",
     "simple_discardable_memory_allocator.cc",
     "simple_discardable_memory_allocator.h",
+    "simple_web_task_runner.cc",
+    "simple_web_task_runner.h",
     "web_theme_engine_impl.cc",
     "web_theme_engine_impl.h", 
   ]

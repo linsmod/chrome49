@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "web/simpleblink/blink_web_wrapper.h"
+#include <cstdio>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -77,6 +78,8 @@
 #include "public/platform/WebContentLayerClient.h"
 // CC Blink 
 #include "cc/blink/web_compositor_support_impl.h"
+#include "web/simpleblink/simple_web_task_runner.h"
+#include "base/thread_task_runner_handle.h"
 using namespace blink;
 
 namespace html_viewer {
@@ -118,11 +121,13 @@ private:
 // 自定义 WebScheduler，提供 createWebViewScheduler
 class SimpleWebScheduler : public WebScheduler {
 public:
-    SimpleWebScheduler() : m_mockTaskRunner(adoptPtr(new SimpleTaskRunner())) {}
+    SimpleWebScheduler() 
+        : m_taskRunner(adoptPtr(new SimpleWebTaskRunner(
+              base::ThreadTaskRunnerHandle::Get()))) {}
     ~SimpleWebScheduler() override {}
     
-    WebTaskRunner* loadingTaskRunner() override { return m_mockTaskRunner.get(); }
-    WebTaskRunner* timerTaskRunner() override { return m_mockTaskRunner.get(); }
+    WebTaskRunner* loadingTaskRunner() override { return m_taskRunner.get(); }
+    WebTaskRunner* timerTaskRunner() override { return m_taskRunner.get(); }
     
     void shutdown() override {}
     bool shouldYieldForHighPriorityWork() override { return false; }
@@ -132,7 +137,7 @@ public:
     void postIdleTaskAfterWakeup(const WebTraceLocation&, WebThread::IdleTask*) override {}
     
     WebPassOwnPtr<WebViewScheduler> createWebViewScheduler(blink::WebView*) override {
-        return adoptWebPtr(new SimpleWebViewScheduler(m_mockTaskRunner.get()));
+        return adoptWebPtr(new SimpleWebViewScheduler(m_taskRunner.get()));
     }
     
     void suspendTimerQueue() override {}
@@ -142,29 +147,7 @@ public:
     void onNavigationStarted() override {}
 
 private:
-    // 简单的 TaskRunner 实现
-    class SimpleTaskRunner : public WebTaskRunner {
-    public:
-        SimpleTaskRunner() {}
-        ~SimpleTaskRunner() override {}
-        
-        void postTask(const WebTraceLocation&, Task* task) override {
-            // 同步执行任务
-            if (task) {
-                task->run();
-                delete task;
-            }
-        }
-        
-        void postDelayedTask(const WebTraceLocation&, Task* task, double) override {
-            // 简化：同步执行
-            postTask(WebTraceLocation(), task);
-        }
-        
-        WebTaskRunner* clone() override { return new SimpleTaskRunner(); }
-    };
-    
-    OwnPtr<SimpleTaskRunner> m_mockTaskRunner;
+    OwnPtr<SimpleWebTaskRunner> m_taskRunner;
 };
 
 // 自定义 WebThread 实现
