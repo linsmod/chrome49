@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
     }
 
     // 11. 创建渲染器 (会调用 blink::initialize)
-    BlinkWebRenderer* blinkRenderer = new BlinkWebRenderer(800, 600);
+    BlinkWebRenderer* blinkRenderer = new BlinkWebRenderer(windowWidth, windowHeight);
     
     if (!blinkRenderer->Initialize()) {
         printf("Failed to initialize renderer\n");

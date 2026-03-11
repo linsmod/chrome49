@@ -65,6 +65,8 @@ int ScrollbarThemeAura::scrollbarThickness(ScrollbarControlSize controlSize)
     // In unit tests we don't have the mock theme engine (because of layering violations), so we hard code the size (see bug 327470).
     if (useMockTheme())
         return 15;
+    if(!Platform::current()->themeEngine())
+        return 15;
     IntSize scrollbarSize = Platform::current()->themeEngine()->getSize(WebThemeEngine::PartScrollbarVerticalTrack);
     return scrollbarSize.width();
 }

@@ -36,6 +36,8 @@ executable("HTMLViewer") {
     "pak_resource.h",
     "simple_discardable_memory_allocator.cc",
     "simple_discardable_memory_allocator.h",
+    "web_theme_engine_impl.cc",
+    "web_theme_engine_impl.h", 
   ]
   deps = [
     "//base",
@@ -47,7 +49,10 @@ executable("HTMLViewer") {
     "//third_party/WebKit/Source/wtf",
     "//v8",
     "//v8:v8_libplatform",
-    "//cc/blink"
+    "//cc/blink",
+    "//ui/gfx",
+    "//ui/gfx/geometry",
+    "//ui/native_theme",
   ]
   cflags = [
     "-isystem/usr/include",

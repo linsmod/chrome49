@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include "web/simpleblink/blink_web_wrapper.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -55,6 +54,9 @@
 #include "platform/testing/URLTestHelpers.h"
 #include "platform/testing/TestingPlatformSupport.h"
 #include "platform/EventTracer.h"
+#include "ui/gfx/geometry/rect.h"
+#include "ui/gfx/geometry/size.h"
+#include "web_theme_engine_impl.h"
 #include "wtf/CurrentTime.h"
 #include "wtf/OwnPtr.h"
 
@@ -229,7 +231,7 @@ class SimplePlatform : public Platform {
 public:
     SimplePlatform() 
         : m_thread(adoptPtr(new SimpleWebThread())) 
-        , m_compositorSupport(adoptPtr(new cc_blink::WebCompositorSupportImpl())) {
+        , m_compositorSupport(adoptPtr(new cc_blink::WebCompositorSupportImpl())){
         // 不在这里初始化 Platform，由 blink::initialize 完成
     }
 
@@ -331,12 +333,13 @@ public:
     WebClipboard* clipboard() override { return nullptr; }
     WebFileUtilities* fileUtilities() override { return nullptr; }
     WebMimeRegistry* mimeRegistry() override { return nullptr; }
-    WebThemeEngine* themeEngine() override { return nullptr; }
+    WebThemeEngine* themeEngine() override { return &theme_engine_; }
     WebCookieJar* cookieJar() override { return nullptr; }
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
     OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
+    WebThemeEngineImpl theme_engine_;
 };
 
 // ============================================================
@@ -485,11 +488,11 @@ bool BlinkWebRenderer::Initialize() {
     blink::EventTracer::initialize();
 
     // 3. 设置测试环境 (参考 SimTest)
-    LayoutTestSupport::setIsRunningLayoutTest(true);
+    // LayoutTestSupport::setIsRunningLayoutTest(true);
     Document::setThreadedParsingEnabledForTesting(false);
-    LayoutTestSupport::setMockThemeEnabledForTest(true);
-    ScrollbarTheme::setMockScrollbarsEnabled(true);
-    FrameView::setInitialTracksPaintInvalidationsForTesting(true);
+    // LayoutTestSupport::setMockThemeEnabledForTest(true);
+    // ScrollbarTheme::setMockScrollbarsEnabled(true);
+    // FrameView::setInitialTracksPaintInvalidationsForTesting(true);
     GraphicsLayer::setDrawDebugRedFillForTesting(false);
 
     // 4. 创建 LayerTreeView (用于软件渲染)
