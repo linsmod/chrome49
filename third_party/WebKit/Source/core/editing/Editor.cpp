@@ -542,9 +542,11 @@ void Editor::notifyComponentsOnChangedSelection(const VisibleSelection& oldSelec
 void Editor::respondToChangedContents(const VisibleSelection& endingSelection)
 {
     if (frame().settings() && frame().settings()->accessibilityEnabled()) {
+#if ENABLE(ACCESSIBILITY)
         Node* node = endingSelection.start().anchorNode();
         if (AXObjectCache* cache = frame().document()->existingAXObjectCache())
             cache->handleEditableTextContentChanged(node);
+#endif
     }
 
     spellChecker().updateMarkersForWordsAffectedByEditing(true);

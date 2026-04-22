@@ -682,9 +682,11 @@ bool FocusController::setInitialFocus(WebFocusType type)
     // into the web area again, even if focus did not change within WebCore. PostNotification is called instead
     // of handleFocusedUIElementChanged, because this will send the notification even if the element is the same.
     if (focusedOrMainFrame()->isLocalFrame()) {
+#if ENABLE(ACCESSIBILITY)
         Document* document = toLocalFrame(focusedOrMainFrame())->document();
         if (AXObjectCache* cache = document->existingAXObjectCache())
             cache->handleInitialFocus();
+#endif
     }
 
     return didAdvanceFocus;

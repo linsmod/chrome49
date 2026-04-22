@@ -90,8 +90,10 @@
 #include "core/paint/PaintLayer.h"
 #include "core/timing/DOMWindowPerformance.h"
 #include "core/timing/Performance.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/AXObject.h"
 #include "modules/accessibility/AXObjectCacheImpl.h"
+#endif
 #include "modules/credentialmanager/CredentialManagerClient.h"
 #include "modules/encryptedmedia/MediaKeysController.h"
 #include "modules/storage/StorageNamespaceController.h"
@@ -2178,9 +2180,11 @@ WebInputEventResult WebViewImpl::handleInputEvent(const WebInputEvent& inputEven
             LocalFrame* targetLocalFrame = toLocalFrame(targetFrame);
             Document* document = targetLocalFrame->document();
             if (document) {
+#if ENABLE(ACCESSIBILITY)
                 AXObjectCache* cache = document->existingAXObjectCache();
                 if (cache)
                     cache->onTouchAccessibilityHover(pme.position());
+#endif
             }
         }
     }
@@ -3838,6 +3842,7 @@ void WebViewImpl::disableDeviceEmulation()
     m_devToolsEmulator->disableDeviceEmulation();
 }
 
+#if ENABLE(ACCESSIBILITY)
 WebAXObject WebViewImpl::accessibilityObject()
 {
     if (!mainFrameImpl())
@@ -3846,6 +3851,7 @@ WebAXObject WebViewImpl::accessibilityObject()
     Document* document = mainFrameImpl()->frame()->document();
     return WebAXObject(toAXObjectCacheImpl(document->axObjectCache())->root());
 }
+#endif
 
 void WebViewImpl::performCustomContextMenuAction(unsigned action)
 {

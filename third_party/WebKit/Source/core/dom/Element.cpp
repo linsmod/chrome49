@@ -1095,16 +1095,25 @@ IntRect Element::screenRect() const
 
 const AtomicString& Element::computedRole()
 {
+#if ENABLE(ACCESSIBILITY)
     document().updateLayoutIgnorePendingStylesheets();
     OwnPtr<ScopedAXObjectCache> cache = ScopedAXObjectCache::create(document());
     return cache->get()->computedRoleForNode(this);
+#else
+    DEFINE_STATIC_LOCAL(const AtomicString, nullString, (nullAtom));
+    return nullString;
+#endif
 }
 
 String Element::computedName()
 {
+#if ENABLE(ACCESSIBILITY)
     document().updateLayoutIgnorePendingStylesheets();
     OwnPtr<ScopedAXObjectCache> cache = ScopedAXObjectCache::create(document());
     return cache->get()->computedNameForNode(this);
+#else
+    return String();
+#endif
 }
 
 const AtomicString& Element::getAttribute(const AtomicString& localName) const
@@ -1228,8 +1237,10 @@ void Element::attributeChanged(const QualifiedName& name, const AtomicString& ol
         setNeedsStyleRecalc(SubtreeStyleChange, StyleChangeReasonForTracing::fromAttribute(name));
 
     if (inDocument()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = document().existingAXObjectCache())
             cache->handleAttributeChanged(name, this);
+#endif
     }
 }
 

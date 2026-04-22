@@ -641,8 +641,10 @@ void HTMLTextFormControlElement::setInnerEditorValue(const String& value)
         innerEditor->appendChild(HTMLBRElement::create(document()));
 
     if (textIsChanged && layoutObject()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = document().existingAXObjectCache())
             cache->handleTextFormControlChanged(this);
+#endif
     }
 }
 

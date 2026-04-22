@@ -509,7 +509,9 @@ Document::~Document()
     ASSERT(!parentTreeScope());
     // If a top document with a cache, verify that it was comprehensively
     // cleared during detach.
+#if ENABLE(ACCESSIBILITY)
     ASSERT(!m_axObjectCache);
+#endif
 #if !ENABLE(OILPAN)
     ASSERT(m_ranges.isEmpty());
     ASSERT(!hasGuardRefCount());
@@ -2164,7 +2166,9 @@ StyleResolver& Document::ensureStyleResolver() const
 void Document::attach(const AttachContext& context)
 {
     ASSERT(m_lifecycle.state() == DocumentLifecycle::Inactive);
+#if ENABLE(ACCESSIBILITY)
     ASSERT(!m_axObjectCache || this != &axObjectCacheOwner());
+#endif
 
     m_layoutView = new LayoutView(this);
     setLayoutObject(m_layoutView);
@@ -2248,12 +2252,15 @@ void Document::detach(const AttachContext& context)
             frameHost()->chromeClient().focusedNodeChanged(oldFocusedElement.get(), nullptr);
     }
 
+#if ENABLE(ACCESSIBILITY)
     if (this == &axObjectCacheOwner())
         clearAXObjectCache();
+#endif
 
     m_layoutView = nullptr;
     ContainerNode::detach(context);
 
+#if ENABLE(ACCESSIBILITY)
     if (this != &axObjectCacheOwner()) {
         if (AXObjectCache* cache = existingAXObjectCache()) {
             // Documents that are not a root document use the AXObjectCache in
@@ -2265,6 +2272,7 @@ void Document::detach(const AttachContext& context)
             }
         }
     }
+#endif
 
     styleEngine().didDetach();
 
@@ -2319,6 +2327,7 @@ void Document::removeAllEventListeners()
         domWindow->removeAllEventListeners();
 }
 
+#if ENABLE(ACCESSIBILITY)
 Document& Document::axObjectCacheOwner() const
 {
     // FIXME(dmazzoni): Currently there's one AXObjectCache per page, owned
@@ -2389,6 +2398,7 @@ AXObjectCache* Document::axObjectCache() const
         cacheOwner.m_axObjectCache = AXObjectCache::create(cacheOwner);
     return cacheOwner.m_axObjectCache.get();
 }
+#endif
 
 CanvasFontCache* Document::canvasFontCache()
 {
@@ -2706,6 +2716,7 @@ void Document::implicitClose()
 
     m_loadEventProgress = LoadEventCompleted;
 
+#if ENABLE(ACCESSIBILITY)
     if (frame() && layoutView() && settings()->accessibilityEnabled()) {
         if (AXObjectCache* cache = axObjectCache()) {
             if (this == &axObjectCacheOwner())
@@ -2714,6 +2725,7 @@ void Document::implicitClose()
                 cache->handleLayoutComplete(this);
         }
     }
+#endif
 
     if (svgExtensions())
         accessSVGExtensions().startAnimations();
@@ -3691,8 +3703,10 @@ bool Document::setFocusedElement(PassRefPtrWillBeRawPtr<Element> prpNewFocusedEl
 
     if (!focusChangeBlocked && m_focusedElement) {
         // Create the AXObject cache in a focus change because Chromium relies on it.
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = axObjectCache())
             cache->handleFocusedUIElementChanged(oldFocusedElement.get(), newFocusedElement.get());
+#endif
     }
 
     if (!focusChangeBlocked && frameHost())
@@ -5866,7 +5880,9 @@ DEFINE_TRACE(Document)
     visitor->trace(m_activeHoverElement);
     visitor->trace(m_documentElement);
     visitor->trace(m_titleElement);
+#if ENABLE(ACCESSIBILITY)
     visitor->trace(m_axObjectCache);
+#endif
     visitor->trace(m_markers);
     visitor->trace(m_cssTarget);
     visitor->trace(m_currentScriptStack);

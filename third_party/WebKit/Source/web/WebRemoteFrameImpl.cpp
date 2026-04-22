@@ -8,6 +8,7 @@
 #include "core/frame/Settings.h"
 #include "core/html/HTMLFrameOwnerElement.h"
 #include "core/page/Page.h"
+#include "core/dom/AXObjectCache.h"
 #include "platform/heap/Handle.h"
 #include "public/platform/WebFloatRect.h"
 #include "public/platform/WebRect.h"
@@ -767,6 +768,7 @@ void WebRemoteFrameImpl::setReplicatedOrigin(const WebSecurityOrigin& origin) co
     // TODO(dmazzoni, dcheng): there's probably a better way to solve this.
     // Run SitePerProcessAccessibilityBrowserTest.TwoCrossSiteNavigations to
     // ensure an alternate fix works.  http://crbug.com/566222
+#if ENABLE(ACCESSIBILITY)
     FrameOwner* owner = frame()->owner();
     if (owner && owner->isLocal()) {
         HTMLElement* ownerElement = toHTMLFrameOwnerElement(owner);
@@ -774,6 +776,7 @@ void WebRemoteFrameImpl::setReplicatedOrigin(const WebSecurityOrigin& origin) co
         if (cache)
             cache->childrenChanged(ownerElement);
     }
+#endif
 }
 
 void WebRemoteFrameImpl::setReplicatedSandboxFlags(WebSandboxFlags flags) const

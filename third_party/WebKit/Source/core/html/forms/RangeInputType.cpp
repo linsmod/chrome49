@@ -230,8 +230,10 @@ void RangeInputType::handleKeydownEvent(KeyboardEvent* event)
         TextFieldEventBehavior eventBehavior = DispatchInputAndChangeEvent;
         setValueAsDecimal(newValue, eventBehavior, IGNORE_EXCEPTION);
 
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = element().document().existingAXObjectCache())
             cache->handleValueChanged(&element());
+#endif
     }
 
     event->setDefaultHandled();

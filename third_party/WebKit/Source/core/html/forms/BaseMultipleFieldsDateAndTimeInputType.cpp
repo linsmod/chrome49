@@ -624,12 +624,14 @@ TextDirection BaseMultipleFieldsDateAndTimeInputType::computedTextDirection()
     return element().locale().isRTL() ? RTL : LTR;
 }
 
+#if ENABLE(ACCESSIBILITY)
 AXObject* BaseMultipleFieldsDateAndTimeInputType::popupRootAXObject()
 {
     if (PickerIndicatorElement* picker = pickerIndicatorElement())
         return picker->popupRootAXObject();
     return nullptr;
 }
+#endif
 
 } // namespace blink
 

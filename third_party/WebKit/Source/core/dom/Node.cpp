@@ -566,8 +566,10 @@ bool Node::isEditableToAccessibility(EditableLevel editableLevel) const
         return false;
 
     // FIXME(dmazzoni): support ScopedAXObjectCache (crbug/489851).
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         return cache->rootAXEditableElement(this);
+#endif
 
     return false;
 }
@@ -895,8 +897,10 @@ void Node::attach(const AttachContext&)
 
     clearNeedsStyleRecalc();
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().axObjectCache())
         cache->updateCacheAfterNodeIsAttached(this);
+#endif
 }
 
 void Node::detach(const AttachContext& context)
@@ -1062,8 +1066,10 @@ bool Node::isRootEditableElement() const
 Element* Node::rootEditableElement(EditableType editableType) const
 {
     if (editableType == HasEditableAXRole) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = document().existingAXObjectCache())
             return const_cast<Element*>(cache->rootAXEditableElement(this));
+#endif
     }
 
     return rootEditableElement();

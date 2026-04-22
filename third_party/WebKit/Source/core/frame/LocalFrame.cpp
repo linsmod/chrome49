@@ -371,8 +371,10 @@ WindowProxyManager* LocalFrame::windowProxyManager() const
 void LocalFrame::disconnectOwnerElement()
 {
     if (owner()) {
+#if ENABLE(ACCESSIBILITY)
         if (Document* document = this->document())
             document->topDocument().clearAXObjectCache();
+#endif
     }
     Frame::disconnectOwnerElement();
 }

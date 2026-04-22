@@ -880,8 +880,10 @@ bool FrameSelection::isInPasswordField() const
 void FrameSelection::notifyAccessibilityForSelectionChange()
 {
     if (selection().start().isNotNull() && selection().end().isNotNull()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = m_frame->document()->existingAXObjectCache())
             cache->selectionChanged(selection().start().computeContainerNode());
+#endif
     }
 }
 

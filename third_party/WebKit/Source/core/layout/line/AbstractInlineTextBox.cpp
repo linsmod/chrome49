@@ -75,11 +75,14 @@ AbstractInlineTextBox::~AbstractInlineTextBox()
 
 void AbstractInlineTextBox::detach()
 {
+    #if ENABLE(ACCESSIBILITY)
     if (Node* node = m_lineLayoutItem.node()) {
+
         if (AXObjectCache* cache = node->document().existingAXObjectCache())
             cache->remove(this);
-    }
 
+    }
+#endif
     m_lineLayoutItem = LineLayoutText(nullptr);
     m_inlineTextBox = nullptr;
 }

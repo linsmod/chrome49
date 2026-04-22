@@ -53,7 +53,9 @@
 #include "core/loader/appcache/ApplicationCacheHost.h"
 #include "core/page/PageVisibilityState.h"
 #include "core/style/ComputedStyleConstants.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/AXObject.h"
+#endif
 #include "modules/geolocation/GeolocationError.h"
 #include "modules/geolocation/GeolocationPosition.h"
 #include "modules/indexeddb/IDBKey.h"
@@ -145,6 +147,8 @@ namespace blink {
 
 #define STATIC_ASSERT_MATCHING_UINT64(public_name, core_name) \
     static_assert(public_name == core_name, "mismatching enum values")
+
+#if ENABLE(ACCESSIBILITY)
 
 STATIC_ASSERT_MATCHING_ENUM(WebAXEventActiveDescendantChanged, AXObjectCache::AXActiveDescendantChanged);
 STATIC_ASSERT_MATCHING_ENUM(WebAXEventAlert, AXObjectCache::AXAlert);
@@ -320,6 +324,9 @@ STATIC_ASSERT_MATCHING_ENUM(WebAXStateSelected, AXSelectedState);
 STATIC_ASSERT_MATCHING_ENUM(WebAXStateVertical, AXVerticalState);
 STATIC_ASSERT_MATCHING_ENUM(WebAXStateVisited, AXVisitedState);
 
+#endif // ENABLE(ACCESSIBILITY)
+
+#if ENABLE(ACCESSIBILITY)
 STATIC_ASSERT_MATCHING_ENUM(WebAXTextDirectionLR, AccessibilityTextDirectionLTR);
 STATIC_ASSERT_MATCHING_ENUM(WebAXTextDirectionRL, AccessibilityTextDirectionRTL);
 STATIC_ASSERT_MATCHING_ENUM(WebAXTextDirectionTB, AccessibilityTextDirectionTTB);
@@ -366,6 +373,7 @@ STATIC_ASSERT_MATCHING_ENUM(WebAXDescriptionFromAttribute, AXDescriptionFromAttr
 STATIC_ASSERT_MATCHING_ENUM(WebAXDescriptionFromContents, AXDescriptionFromContents);
 STATIC_ASSERT_MATCHING_ENUM(WebAXDescriptionFromPlaceholder, AXDescriptionFromPlaceholder);
 STATIC_ASSERT_MATCHING_ENUM(WebAXDescriptionFromRelatedElement, AXDescriptionFromRelatedElement);
+#endif // ENABLE(ACCESSIBILITY)
 
 STATIC_ASSERT_MATCHING_ENUM(WebApplicationCacheHost::Uncached, ApplicationCacheHost::UNCACHED);
 STATIC_ASSERT_MATCHING_ENUM(WebApplicationCacheHost::Idle, ApplicationCacheHost::IDLE);

@@ -90,10 +90,12 @@ void ColorChooserPopupUIController::endChooser()
     closePopup();
 }
 
+#if ENABLE(ACCESSIBILITY)
 AXObject* ColorChooserPopupUIController::rootAXObject()
 {
     return m_popup ? m_popup->rootAXObject() : nullptr;
 }
+#endif
 
 void ColorChooserPopupUIController::writeDocument(SharedBuffer* data)
 {

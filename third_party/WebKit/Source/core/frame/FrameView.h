@@ -54,7 +54,9 @@
 
 namespace blink {
 
+#if ENABLE(ACCESSIBILITY)
 class AXObjectCache;
+#endif
 class CancellableTaskFactory;
 class ComputedStyle;
 class DocumentLifecycle;
@@ -716,8 +718,10 @@ private:
 
     void updateScrollCorner();
 
+#if ENABLE(ACCESSIBILITY)
     AXObjectCache* axObjectCache() const;
     void removeFromAXObjectCache();
+#endif
 
     void setLayoutSizeInternal(const IntSize&);
 

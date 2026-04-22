@@ -1414,8 +1414,10 @@ void LayoutText::setText(PassRefPtr<StringImpl> text, bool force)
         setNeedsLayoutAndPrefWidthsRecalcAndFullPaintInvalidation(LayoutInvalidationReason::TextChanged);
     m_knownToHaveNoOverflowAndNoFallbackFonts = false;
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->textChanged(this);
+#endif
 }
 
 void LayoutText::dirtyOrDeleteLineBoxesIfNeeded(bool fullLayout)

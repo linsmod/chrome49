@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "wtf/build_config.h"
+
+#if ENABLE(ACCESSIBILITY)
+
 #include "public/web/WebAXObject.h"
 
 #include "core/HTMLNames.h"
@@ -1515,3 +1519,5 @@ WebAXObject::operator AXObject*() const
 }
 
 } // namespace blink
+
+#endif // ENABLE(ACCESSIBILITY)

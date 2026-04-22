@@ -43,6 +43,10 @@ class PagePopup;
 class PagePopupClient;
 class WebViewImpl;
 struct WebCursorInfo;
+#if ENABLE(ACCESSIBILITY)
+class AXObject;
+class AXObjectCache;
+#endif
 
 // Handles window-level notifications from core on behalf of a WebView.
 class ChromeClientImpl final : public ChromeClient {
@@ -130,7 +134,9 @@ public:
     void updateCompositedSelection(const CompositedSelection&) override;
 
     // ChromeClient methods:
+#if ENABLE(ACCESSIBILITY)
     void postAccessibilityNotification(AXObject*, AXObjectCache::AXNotification) override;
+#endif
     String acceptLanguages() override;
 
     // ChromeClientImpl:

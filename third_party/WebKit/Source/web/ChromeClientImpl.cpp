@@ -53,7 +53,9 @@
 #include "core/loader/FrameLoadRequest.h"
 #include "core/page/Page.h"
 #include "core/page/PopupOpeningObserver.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/AXObject.h"
+#endif
 #include "platform/Cursor.h"
 #include "platform/FileChooser.h"
 #include "platform/KeyboardCodes.h"
@@ -68,7 +70,9 @@
 #include "public/platform/WebRect.h"
 #include "public/platform/WebURLRequest.h"
 #include "public/platform/WebViewScheduler.h"
+#if ENABLE(ACCESSIBILITY)
 #include "public/web/WebAXObject.h"
+#endif
 #include "public/web/WebAutofillClient.h"
 #include "public/web/WebColorChooser.h"
 #include "public/web/WebColorSuggestion.h"
@@ -111,12 +115,14 @@ namespace blink {
 
 class WebCompositorAnimationTimeline;
 
+#if ENABLE(ACCESSIBILITY)
 // Converts a AXObjectCache::AXNotification to a WebAXEvent
 static WebAXEvent toWebAXEvent(AXObjectCache::AXNotification notification)
 {
     // These enums have the same values; enforced in AssertMatchingEnums.cpp.
     return static_cast<WebAXEvent>(notification);
 }
+#endif
 
 ChromeClientImpl::ChromeClientImpl(WebViewImpl* webView)
     : m_webView(webView)
@@ -709,6 +715,7 @@ void ChromeClientImpl::setCursorOverridden(bool overridden)
     m_cursorOverridden = overridden;
 }
 
+#if ENABLE(ACCESSIBILITY)
 void ChromeClientImpl::postAccessibilityNotification(AXObject* obj, AXObjectCache::AXNotification notification)
 {
     // Alert assistive technology about the accessibility object notification.
@@ -719,6 +726,7 @@ void ChromeClientImpl::postAccessibilityNotification(AXObject* obj, AXObjectCach
     if (webframe && webframe->client())
         webframe->client()->postAccessibilityEvent(WebAXObject(obj), toWebAXEvent(notification));
 }
+#endif
 
 String ChromeClientImpl::acceptLanguages()
 {

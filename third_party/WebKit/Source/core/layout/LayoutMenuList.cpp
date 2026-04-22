@@ -133,8 +133,10 @@ void LayoutMenuList::addChild(LayoutObject* newChild, LayoutObject* beforeChild)
     m_innerBlock->addChild(newChild, beforeChild);
     ASSERT(m_innerBlock == firstChild());
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->childrenChanged(this);
+#endif
 }
 
 void LayoutMenuList::removeChild(LayoutObject* oldChild)
@@ -320,6 +322,7 @@ void LayoutMenuList::didSetSelectedIndex(int listIndex)
 
 void LayoutMenuList::didUpdateActiveOption(int optionIndex)
 {
+#if ENABLE(ACCESSIBILITY)
     if (!document().existingAXObjectCache())
         return;
 
@@ -340,6 +343,7 @@ void LayoutMenuList::didUpdateActiveOption(int optionIndex)
     }
 
     document().existingAXObjectCache()->handleUpdateActiveMenuOption(this, optionIndex);
+#endif
 }
 
 LayoutUnit LayoutMenuList::clientPaddingLeft() const

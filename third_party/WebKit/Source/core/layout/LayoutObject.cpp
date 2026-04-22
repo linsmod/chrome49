@@ -1984,8 +1984,10 @@ void LayoutObject::styleWillChange(StyleDifference diff, const ComputedStyle& ne
             || m_style->hasAutoZIndex() != newStyle.hasAutoZIndex();
         if (visibilityChanged) {
             document().setAnnotatedRegionsDirty(true);
+#if ENABLE(ACCESSIBILITY)
             if (AXObjectCache* cache = document().existingAXObjectCache())
                 cache->childrenChanged(parent());
+#endif
         }
 
         // Keep layer hierarchy visibility bits up to date if visibility changes.
@@ -2529,15 +2531,19 @@ void LayoutObject::willBeDestroyed()
 
     // For accessibility management, notify the parent of the imminent change to its child set.
     // We do it now, before remove(), while the parent pointer is still available.
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->childrenChanged(this->parent());
+#endif
 
     remove();
 
     // The remove() call above may invoke axObjectCache()->childrenChanged() on the parent, which may require the AX layout
     // object for this layoutObject. So we remove the AX layout object now, after the layoutObject is removed.
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->remove(this);
+#endif    
 
     // If this layoutObject had a parent, remove should have destroyed any counters
     // attached to this layoutObject and marked the affected other counters for

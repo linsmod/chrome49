@@ -94,7 +94,9 @@ private:
     bool isViewportPointInWindow(int x, int y);
 
     // PagePopup function
+#if ENABLE(ACCESSIBILITY)
     AXObject* rootAXObject() override;
+#endif
     void setWindowRect(const IntRect&) override;
 
     explicit WebPagePopupImpl(WebWidgetClient*);

@@ -31,6 +31,7 @@
 #ifndef DateTimeChooser_h
 #define DateTimeChooser_h
 
+#include "wtf/build_config.h"
 #include "core/CoreExport.h"
 #include "platform/geometry/IntRect.h"
 #include "platform/heap/Handle.h"
@@ -77,7 +78,9 @@ public:
 
     virtual void endChooser() = 0;
     // Returns a root AXObject in the DateTimeChooser if it's available.
+#if ENABLE(ACCESSIBILITY)
     virtual AXObject* rootAXObject() = 0;
+#endif
 
     DEFINE_INLINE_VIRTUAL_TRACE() { }
 };

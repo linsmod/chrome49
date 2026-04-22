@@ -118,7 +118,9 @@ private:
     void listAttributeTargetChanged() final;
     void updateClearButtonVisibility() final;
     TextDirection computedTextDirection() final;
+#if ENABLE(ACCESSIBILITY)
     AXObject* popupRootAXObject() final;
+#endif
 
     DateTimeEditElement* dateTimeEditElement() const;
     SpinButtonElement* spinButtonElement() const;

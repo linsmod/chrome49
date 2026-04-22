@@ -108,8 +108,10 @@ LayoutObject* LayoutObjectChildList::removeChildNode(LayoutObject* owner, Layout
 
     oldChild->registerSubtreeChangeListenerOnDescendants(oldChild->consumesSubtreeChangeNotification());
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = owner->document().existingAXObjectCache())
         cache->childrenChanged(owner);
+#endif
 
     return oldChild;
 }
@@ -173,8 +175,10 @@ void LayoutObjectChildList::insertChildNode(LayoutObject* owner, LayoutObject* n
     if (!owner->documentBeingDestroyed())
         owner->notifyOfSubtreeChange();
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = owner->document().axObjectCache())
         cache->childrenChanged(owner);
+#endif
 }
 
 void LayoutObjectChildList::invalidatePaintOnRemoval(LayoutObject& oldChild)

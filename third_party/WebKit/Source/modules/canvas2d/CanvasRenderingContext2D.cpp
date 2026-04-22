@@ -39,7 +39,9 @@
 #include "core/css/StylePropertySet.h"
 #include "core/css/parser/CSSParser.h"
 #include "core/css/resolver/StyleResolver.h"
+#if ENABLE(ACCESSIBILITY)
 #include "core/dom/AXObjectCache.h"
+#endif
 #include "core/dom/StyleEngine.h"
 #include "core/events/Event.h"
 #include "core/frame/ImageBitmap.h"
@@ -2182,6 +2184,7 @@ void CanvasRenderingContext2D::drawFocusRing(const Path& path)
 
 void CanvasRenderingContext2D::updateElementAccessibility(const Path& path, Element* element)
 {
+#if ENABLE(ACCESSIBILITY)
     element->document().updateLayoutIgnorePendingStylesheets();
     AXObjectCache* axObjectCache = element->document().existingAXObjectCache();
     LayoutBoxModelObject* lbmo = canvas()->layoutBoxModelObject();
@@ -2199,6 +2202,7 @@ void CanvasRenderingContext2D::updateElementAccessibility(const Path& path, Elem
     LayoutRect elementRect = enclosingLayoutRect(transformedPath.boundingRect());
     elementRect.moveBy(canvasRect.location());
     axObjectCache->setCanvasObjectBounds(element, elementRect);
+#endif
 }
 
 void CanvasRenderingContext2D::addHitRegion(const HitRegionOptions& options, ExceptionState& exceptionState)

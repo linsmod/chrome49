@@ -66,7 +66,9 @@ public:
     void closePopup();
     bool willRespondToMouseClickEvents() override;
     void removePickerIndicatorOwner() { m_pickerIndicatorOwner = nullptr; }
+#if ENABLE(ACCESSIBILITY)
     AXObject* popupRootAXObject() const;
+#endif
 
     // DateTimeChooserClient implementation.
     Element& ownerElement() const override;

@@ -60,10 +60,12 @@ void LayoutPart::willBeDestroyed()
 {
     frameView()->removePart(this);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache()) {
         cache->childrenChanged(this->parent());
         cache->remove(this);
     }
+#endif
 
     Element* element = toElement(node());
     if (element && element->isFrameOwnerElement())

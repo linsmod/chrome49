@@ -291,6 +291,7 @@ void HTMLOptionElement::setSelectedState(bool selected)
     if (HTMLSelectElement* select = ownerSelectElement()) {
         select->invalidateSelectedItems();
 
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = document().existingAXObjectCache()) {
             // If there is a layoutObject (most common), fire accessibility notifications
             // only when it's a listbox (and not a menu list). If there's no layoutObject,
@@ -300,6 +301,7 @@ void HTMLOptionElement::setSelectedState(bool selected)
                 cache->listboxSelectedChildrenChanged(select);
             }
         }
+#endif
     }
 }
 

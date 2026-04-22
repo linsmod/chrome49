@@ -398,8 +398,10 @@ void PaintLayerScrollableArea::setScrollOffset(const DoublePoint& newScrollOffse
     if (box().node())
         box().node()->document().enqueueScrollEventForNode(box().node());
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = box().document().existingAXObjectCache())
         cache->handleScrollPositionChanged(&box());
+#endif
     box().view()->clearHitTestCache();
 
     // Inform the FrameLoader of the new scroll position, so it can be restored when navigating back.

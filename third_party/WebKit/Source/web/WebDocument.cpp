@@ -53,8 +53,10 @@
 #include "core/layout/LayoutObject.h"
 #include "core/layout/LayoutView.h"
 #include "core/loader/DocumentLoader.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/AXObject.h"
 #include "modules/accessibility/AXObjectCacheImpl.h"
+#endif
 #include "platform/weborigin/SecurityOrigin.h"
 #include "public/platform/WebDistillability.h"
 #include "public/platform/WebURL.h"
@@ -252,6 +254,7 @@ WebString WebDocument::outgoingReferrer()
     return WebString(unwrap<Document>()->outgoingReferrer());
 }
 
+#if ENABLE(ACCESSIBILITY)
 WebAXObject WebDocument::accessibilityObject() const
 {
     const Document* document = constUnwrap<Document>();
@@ -265,6 +268,7 @@ WebAXObject WebDocument::accessibilityObjectFromID(int axID) const
     AXObjectCacheImpl* cache = toAXObjectCacheImpl(document->axObjectCache());
     return cache ? WebAXObject(cache->objectFromAXID(axID)) : WebAXObject();
 }
+#endif
 
 WebVector<WebDraggableRegion> WebDocument::draggableRegions() const
 {

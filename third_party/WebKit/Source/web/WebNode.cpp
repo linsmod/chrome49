@@ -43,8 +43,10 @@
 #include "core/html/HTMLElement.h"
 #include "core/layout/LayoutObject.h"
 #include "core/layout/LayoutPart.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/AXObject.h"
 #include "modules/accessibility/AXObjectCacheImpl.h"
+#endif
 #include "platform/Task.h"
 #include "platform/Widget.h"
 #include "public/platform/WebString.h"
@@ -197,10 +199,12 @@ bool WebNode::isContentEditable() const
     return m_private->isContentEditable();
 }
 
+#if ENABLE(ACCESSIBILITY)
 bool WebNode::isInsideFocusableElementOrARIAWidget() const
 {
     return AXObject::isInsideFocusableElementOrARIAWidget(*this->constUnwrap<Node>());
 }
+#endif
 
 bool WebNode::isElementNode() const
 {
@@ -297,6 +301,7 @@ WebPluginContainer* WebNode::pluginContainer() const
     return 0;
 }
 
+#if ENABLE(ACCESSIBILITY)
 WebAXObject WebNode::accessibilityObject()
 {
     WebDocument webDocument = document();
@@ -305,6 +310,7 @@ WebAXObject WebNode::accessibilityObject()
     Node* node = unwrap<Node>();
     return cache ? WebAXObject(cache->get(node)) : WebAXObject();
 }
+#endif
 
 WebNode::WebNode(const PassRefPtrWillBeRawPtr<Node>& node)
     : m_private(node)

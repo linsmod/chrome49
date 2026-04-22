@@ -920,8 +920,10 @@ void HTMLInputElement::setChecked(bool nowChecked, TextFieldEventBehavior eventB
     // LayoutTextView), but it's not possible to do it at the moment
     // because of the way the code is structured.
     if (layoutObject()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = layoutObject()->document().existingAXObjectCache())
             cache->checkedStateChanged(this);
+#endif
     }
 
     // Only send a change event for items in the document (avoid firing during

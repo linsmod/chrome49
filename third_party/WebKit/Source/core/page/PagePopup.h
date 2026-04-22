@@ -31,6 +31,7 @@
 #ifndef PagePopup_h
 #define PagePopup_h
 
+#include "wtf/build_config.h"
 #include "wtf/Forward.h"
 
 namespace blink {
@@ -42,7 +43,9 @@ class IntRect;
 // by ChromeClient::closePagePopup().
 class PagePopup {
 public:
+#if ENABLE(ACCESSIBILITY)
     virtual AXObject* rootAXObject() = 0;
+#endif
     virtual void setWindowRect(const IntRect&) = 0;
     virtual void postMessage(const String& message) = 0;
 

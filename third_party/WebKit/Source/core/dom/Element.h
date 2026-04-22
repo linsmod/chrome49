@@ -861,8 +861,10 @@ inline void Node::removedFrom(ContainerNode* insertionPoint)
     }
     if (isInShadowTree() && !treeScope().rootNode().isShadowRoot())
         clearFlag(IsInShadowTreeFlag);
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->remove(this);
+#endif
 }
 
 inline void Element::invalidateStyleAttribute()

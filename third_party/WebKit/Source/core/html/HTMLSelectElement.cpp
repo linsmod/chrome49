@@ -434,8 +434,10 @@ void HTMLSelectElement::optionElementChildrenChanged()
     setNeedsValidityCheck();
 
     if (layoutObject()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = layoutObject()->document().existingAXObjectCache())
             cache->childrenChanged(this);
+#endif
     }
 }
 
@@ -756,8 +758,10 @@ void HTMLSelectElement::scrollToSelection()
     if (usesMenuList())
         return;
     scrollToIndex(activeSelectionEndListIndex());
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->listboxActiveIndexChanged(this);
+#endif
 }
 
 void HTMLSelectElement::setOptionsChangedOnLayoutObject()
@@ -807,8 +811,10 @@ void HTMLSelectElement::setRecalcListItems()
     }
 
     if (layoutObject()) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = layoutObject()->document().existingAXObjectCache())
             cache->childrenChanged(this);
+#endif
     }
 }
 
@@ -1802,8 +1808,10 @@ void HTMLSelectElement::finishParsingChildren()
     if (usesMenuList())
         return;
     scrollToIndex(optionToListIndex(selectedIndex()));
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->listboxActiveIndexChanged(this);
+#endif
 }
 
 bool HTMLSelectElement::anonymousIndexedSetter(unsigned index, PassRefPtrWillBeRawPtr<HTMLOptionElement> value, ExceptionState& exceptionState)
@@ -1925,10 +1933,12 @@ LayoutUnit HTMLSelectElement::clientPaddingRight() const
 void HTMLSelectElement::popupDidHide()
 {
     m_popupIsVisible = false;
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache()) {
         if (layoutObject() && layoutObject()->isMenuList())
             cache->didHideMenuListPopup(toLayoutMenuList(layoutObject()));
     }
+#endif
 }
 
 void HTMLSelectElement::setIndexToSelectOnCancel(int listIndex)
@@ -1987,8 +1997,10 @@ void HTMLSelectElement::showPopup()
     FloatQuad quad(menuList->localToAbsoluteQuad(FloatQuad(menuList->borderBoundingBox())));
     IntSize size = pixelSnappedIntRect(menuList->frameRect()).size();
     m_popup->show(quad, size, optionToListIndex(selectedIndex()));
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->didShowMenuListPopup(menuList);
+#endif
 }
 
 void HTMLSelectElement::hidePopup()

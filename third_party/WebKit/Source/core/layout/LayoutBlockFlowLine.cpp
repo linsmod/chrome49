@@ -20,6 +20,7 @@
  *
  */
 
+#include "wtf/build_config.h"
 #include "core/dom/AXObjectCache.h"
 #include "core/layout/BidiRunForLine.h"
 #include "core/layout/LayoutCounter.h"
@@ -299,8 +300,10 @@ RootInlineBox* LayoutBlockFlow::constructLine(BidiRunList<BidiRun>& bidiRuns, co
         box->setBidiLevel(r->level());
 
         if (box->isInlineTextBox()) {
+#if ENABLE(ACCESSIBILITY)
             if (AXObjectCache* cache = document().existingAXObjectCache())
                 cache->inlineTextBoxesUpdated(r->m_object);
+#endif
         }
     }
 

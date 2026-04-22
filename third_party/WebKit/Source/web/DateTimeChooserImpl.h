@@ -50,7 +50,9 @@ public:
 
     // DateTimeChooser functions:
     void endChooser() override;
+#if ENABLE(ACCESSIBILITY)
     AXObject* rootAXObject() override;
+#endif
 
     DECLARE_VIRTUAL_TRACE();
 

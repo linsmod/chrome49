@@ -151,10 +151,12 @@ void PickerIndicatorElement::detach(const AttachContext& context)
     HTMLDivElement::detach(context);
 }
 
+#if ENABLE(ACCESSIBILITY)
 AXObject* PickerIndicatorElement::popupRootAXObject() const
 {
     return m_chooser ? m_chooser->rootAXObject() : 0;
 }
+#endif
 
 bool PickerIndicatorElement::isPickerIndicatorElement() const
 {

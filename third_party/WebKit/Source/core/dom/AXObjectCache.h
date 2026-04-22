@@ -23,11 +23,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef AXObjectCache_h
-#define AXObjectCache_h
-
+#include "wtf/build_config.h"
 #include "core/CoreExport.h"
 #include "core/dom/Document.h"
+
+#if ENABLE(ACCESSIBILITY)
+
+#ifndef AXObjectCache_h
+#define AXObjectCache_h
 
 typedef unsigned AXID;
 
@@ -167,4 +170,6 @@ private:
 
 }
 
-#endif
+#endif // AXObjectCache_h
+
+#endif // ENABLE(ACCESSIBILITY)

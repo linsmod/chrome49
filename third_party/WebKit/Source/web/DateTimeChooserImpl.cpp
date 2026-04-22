@@ -80,10 +80,12 @@ void DateTimeChooserImpl::endChooser()
     m_chromeClient->closePagePopup(m_popup);
 }
 
+#if ENABLE(ACCESSIBILITY)
 AXObject* DateTimeChooserImpl::rootAXObject()
 {
     return m_popup ? m_popup->rootAXObject() : 0;
 }
+#endif
 
 static String valueToDateTimeString(double value, AtomicString type)
 {

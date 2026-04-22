@@ -69,7 +69,9 @@
 namespace blink {
 
 class AnimationTimeline;
+#if ENABLE(ACCESSIBILITY)
 class AXObjectCache;
+#endif
 class Attr;
 class CDATASection;
 class CSSStyleDeclaration;
@@ -466,10 +468,12 @@ public:
 
     LayoutView* layoutView() const { return m_layoutView; }
 
+#if ENABLE(ACCESSIBILITY)
     Document& axObjectCacheOwner() const;
     AXObjectCache* existingAXObjectCache() const;
     AXObjectCache* axObjectCache() const;
     void clearAXObjectCache();
+#endif
 
     // to get visually ordered hebrew and arabic pages right
     bool visuallyOrdered() const { return m_visuallyOrdered; }
@@ -1271,7 +1275,9 @@ private:
     String m_rawTitle;
     RefPtrWillBeMember<Element> m_titleElement;
 
+#if ENABLE(ACCESSIBILITY)
     PersistentWillBeMember<AXObjectCache> m_axObjectCache;
+#endif
     OwnPtrWillBeMember<DocumentMarkerController> m_markers;
 
     Timer<Document> m_updateFocusAppearanceTimer;

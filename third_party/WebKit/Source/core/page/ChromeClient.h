@@ -42,7 +42,9 @@
 
 namespace blink {
 
+#if ENABLE(ACCESSIBILITY)
 class AXObject;
+#endif
 class ColorChooser;
 class ColorChooserClient;
 class DateTimeChooser;
@@ -207,7 +209,9 @@ public:
     virtual PassRefPtrWillBeRawPtr<PopupMenu> openPopupMenu(LocalFrame&, HTMLSelectElement&) = 0;
     virtual DOMWindow* pagePopupWindowForTesting() const = 0;
 
+#if ENABLE(ACCESSIBILITY)
     virtual void postAccessibilityNotification(AXObject*, AXObjectCache::AXNotification) { }
+#endif
     virtual String acceptLanguages() = 0;
 
     enum DialogType {

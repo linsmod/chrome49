@@ -72,7 +72,9 @@
 #include "core/layout/LayoutView.h"
 #include "core/page/FocusController.h"
 #include "core/page/Page.h"
+#if ENABLE(ACCESSIBILITY)
 #include "modules/accessibility/InspectorAccessibilityAgent.h"
+#endif
 #include "modules/cachestorage/InspectorCacheStorageAgent.h"
 #include "modules/device_orientation/DeviceOrientationInspectorAgent.h"
 #include "modules/filesystem/InspectorFileSystemAgent.h"
@@ -299,7 +301,9 @@ PassOwnPtrWillBeRawPtr<WebDevToolsAgentImpl> WebDevToolsAgentImpl::create(WebLoc
     // TODO(dgozman): migrate each of the following agents to frame once module is ready.
     agent->registerAgent(InspectorDatabaseAgent::create(view->page()));
     agent->registerAgent(DeviceOrientationInspectorAgent::create(view->page()));
+#if ENABLE(ACCESSIBILITY)
     agent->registerAgent(InspectorAccessibilityAgent::create(view->page()));
+#endif
     agent->registerAgent(InspectorDOMStorageAgent::create(view->page()));
     agent->registerAgent(InspectorCacheStorageAgent::create());
     agent->layerTreeViewChanged(view->layerTreeView());

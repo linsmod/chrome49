@@ -385,8 +385,10 @@ public:
 
     // Accessibility -------------------------------------------------------
 
+#if ENABLE(ACCESSIBILITY)
     // Returns the accessibility object for this view.
     virtual WebAXObject accessibilityObject() = 0;
+#endif
 
 
     // Context menu --------------------------------------------------------

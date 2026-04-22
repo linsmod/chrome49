@@ -52,7 +52,9 @@ public:
 
     // ColorChooser functions
     void endChooser() override;
+#if ENABLE(ACCESSIBILITY)
     AXObject* rootAXObject() override;
+#endif
 
     // PagePopupClient functions:
     void writeDocument(SharedBuffer*) override;

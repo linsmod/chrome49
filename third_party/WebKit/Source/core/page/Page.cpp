@@ -451,7 +451,9 @@ void Page::settingsChanged(SettingsDelegate::ChangeType changeType)
     case SettingsDelegate::AccessibilityStateChange:
         if (!mainFrame() || !mainFrame()->isLocalFrame())
             break;
+#if ENABLE(ACCESSIBILITY)
         deprecatedLocalMainFrame()->document()->axObjectCacheOwner().clearAXObjectCache();
+#endif
         break;
     case SettingsDelegate::ViewportRuleChange:
         {

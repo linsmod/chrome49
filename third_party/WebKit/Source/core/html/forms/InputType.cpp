@@ -836,8 +836,10 @@ void InputType::applyStep(const Decimal& current, int count, AnyStepHandling any
     // 10. Set the value of the element to value as string.
     setValueAsDecimal(newValue, eventBehavior, exceptionState);
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = element().document().existingAXObjectCache())
         cache->handleValueChanged(&element());
+#endif
 }
 
 bool InputType::getAllowedValueStep(Decimal* step) const

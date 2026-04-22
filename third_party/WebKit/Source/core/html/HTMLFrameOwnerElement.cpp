@@ -251,8 +251,10 @@ void HTMLFrameOwnerElement::setWidget(PassRefPtrWillBeRawPtr<Widget> widget)
         moveWidgetToParentSoon(m_widget.get(), layoutPart->frameView());
     }
 
+#if ENABLE(ACCESSIBILITY)
     if (AXObjectCache* cache = document().existingAXObjectCache())
         cache->childrenChanged(layoutPart);
+#endif
 }
 
 PassRefPtrWillBeRawPtr<Widget> HTMLFrameOwnerElement::releaseWidget()
@@ -263,8 +265,10 @@ PassRefPtrWillBeRawPtr<Widget> HTMLFrameOwnerElement::releaseWidget()
         temporarilyRemoveWidgetFromParentSoon(m_widget.get());
     LayoutPart* layoutPart = toLayoutPart(layoutObject());
     if (layoutPart) {
+#if ENABLE(ACCESSIBILITY)
         if (AXObjectCache* cache = document().existingAXObjectCache())
             cache->childrenChanged(layoutPart);
+#endif
     }
     return m_widget.release();
 }
