@@ -344,3 +344,158 @@ ninja -C out/Release simpleblink
 经过深入分析，确定采用**方案E（手动条件编译 + 编译标志）**来移除ARIA模块依赖。该方案通过条件编译web层和core层的accessibility代码，结合gcc自动的链接器优化移除未使用的modules代码，在保证编译通过的同时有效减少依赖和编译体积。修改范围较大（约22个文件），但能彻底移除accessibility依赖，风险可控，是当前最彻底的可行方案。
 
 不论哪个基类有相关纯虚函数，guard it。 No stub in our goals.
+
+## 实施经验总结
+
+### 1. AXObjectCache.h的特殊处理策略
+**问题**: AXObjectCache.h是core层的抽象基类，被大量其他文件引用。如果整个文件被guard，会导致这些文件编译错误。
+
+**解决方案**: 保留`#include`部分（第26-29行），只将类定义用`#if ENABLE(ACCESSIBILITY)`包裹（第30-175行）。这样其他文件仍然可以直接include该头文件，但类定义只在ENABLE_ACCESSIBILITY启用时才存在。
+
+**关键代码**:
+```cpp
+// AXObjectCache.h
+#include "wtf/build_config.h"
+#include "core/CoreExport.h"
+#include "core/dom/Document.h"
+
+#if ENABLE(ACCESSIBILITY)
+
+#ifndef AXObjectCache_h
+#define AXObjectCache_h
+
+// 类定义...
+
+#endif // AXObjectCache_h
+
+#endif // ENABLE(ACCESSIBILITY)
+```
+
+### 2. ENABLE宏的正确使用方式
+**问题**: 最初尝试在simpleblink BUILD.gn中定义`ENABLE_ACCESSIBILITY=0`，但导致预处理器错误。
+
+**原因**: ENABLE宏定义为`#define ENABLE(WTF_FEATURE) (defined ENABLE_##WTF_FEATURE && ENABLE_##WTF_FEATURE)`。当定义`ENABLE_ACCESSIBILITY=0`时，表达式变成`(defined 0 && 0)`，这是无效的。
+
+**解决方案**: 不定义`ENABLE_ACCESSIBILITY=0`，而是让它完全未定义。ENABLE宏会正确评估为false。
+
+**修改**:
+```gn
+# 错误的做法
+defines = [ "ENABLE_ACCESSIBILITY=0" ]
+
+# 正确的做法
+# 不定义任何值，让ENABLE_ACCESSIBILITY保持未定义状态
+```
+
+### 3. 继承链上的纯虚函数必须guard
+**问题**: 当基类的纯虚函数被guard后，子类如果不guard对应的override声明，会导致"only virtual member functions can be marked 'override'"错误。
+
+**原因**: 当ENABLE_ACCESSIBILITY未定义时，基类的纯虚函数不存在，子类试图override一个不存在的函数。
+
+**解决方案**: 在继承链的每一层都guard相关声明：
+- 基类（如WebView.h、PagePopup.h、DateTimeChooser.h）guard纯虚函数声明
+- 子类（如WebViewImpl.h、WebPagePopupImpl.h、DateTimeChooserImpl.h）guard override声明
+- 实现文件（如WebViewImpl.cpp、WebPagePopupImpl.cpp）guard实现
+
+**示例**:
+```cpp
+// WebView.h (基类)
+#if ENABLE(ACCESSIBILITY)
+    virtual WebAXObject accessibilityObject() = 0;
+#endif
+
+// WebViewImpl.h (子类)
+#if ENABLE(ACCESSIBILITY)
+    WebAXObject accessibilityObject() override;
+#endif
+
+// WebViewImpl.cpp (实现)
+#if ENABLE(ACCESSIBILITY)
+WebAXObject WebViewImpl::accessibilityObject()
+{
+    // 实现
+}
+#endif
+```
+
+### 4. 不使用stub实现
+**原则**: 用户明确要求不使用stub实现，只在基类中guard纯虚函数。
+
+**好处**:
+- 确保accessibility代码完全被排除
+- 避免stub代码可能引入的维护负担
+- 保证二进制体积最小化
+
+### 5. modules/BUILD.gn需要排除accessibility文件
+**问题**: 即使core层的AXObjectCache被guard，modules/accessibility代码仍会被编译，导致链接错误（override specifier错误）。
+
+**原因**: modules/accessibility/AXObjectCacheImpl继承自core/dom/AXObjectCache，当基类不存在时，override specifier无效。
+
+**解决方案**: 在modules/BUILD.gn中显式排除所有accessibility文件：
+```gn
+source_set("modules") {
+    sources = rebase_path(modules_files, ".", "//")
+    # ... 其他sources ...
+
+    # Exclude accessibility files when ENABLE_ACCESSIBILITY is disabled
+    sources -= [
+        "accessibility/AXARIAGrid.cpp",
+        "accessibility/AXARIAGrid.h",
+        # ... 所有accessibility文件 ...
+    ]
+}
+```
+
+### 6. 需要添加build_config.h到使用ENABLE宏的文件
+**问题**: 在某些头文件中使用`#if ENABLE(ACCESSIBILITY)`时，预处理器报错"token is not a valid binary operator"。
+
+**原因**: ENABLE宏定义在wtf/build_config.h中，如果文件没有include该头文件，ENABLE宏未定义。
+
+**解决方案**: 在使用ENABLE宏的文件顶部添加：
+```cpp
+#include "wtf/build_config.h"
+```
+
+受影响的文件：
+- WebAXObject.cpp
+- PagePopup.h
+- DateTimeChooser.h
+
+### 7. 实际修改范围超出预期
+**预期修改**: 约22个文件（web层9个 + core层12个 + modules层1个）
+
+**实际修改**: 发现了更多需要guard的文件：
+- **web层**: ChromeClientImpl.cpp, WebViewImpl.cpp, WebPagePopupImpl.cpp, WebAXObject.cpp, WebDevToolsAgentImpl.cpp, TextFinder.cpp, AssertMatchingEnums.cpp, DateTimeChooserImpl.cpp/.h, ColorChooserPopupUIController.cpp/.h
+- **core层**: AXObjectCache.h, LayoutListBox.cpp, CanvasRenderingContext2D.cpp
+- **core/html/shadow**: PickerIndicatorElement.cpp/.h
+- **core/html/forms**: BaseMultipleFieldsDateAndTimeInputType.cpp/.h, DateTimeChooser.h
+- **core/page**: PagePopup.h
+- **public/web**: WebView.h
+- **modules**: BUILD.gn
+
+**总计**: 约30个文件
+
+### 8. 关键修改文件清单
+
+**基类纯虚函数guards**:
+- `/home/wulin/chrome49/src/third_party/WebKit/public/web/WebView.h` - accessibilityObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/core/page/PagePopup.h` - rootAXObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/core/html/forms/DateTimeChooser.h` - rootAXObject
+
+**子类guards**:
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/WebViewImpl.h` - accessibilityObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/WebPagePopupImpl.h` - rootAXObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/DateTimeChooserImpl.h` - rootAXObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/ColorChooserPopupUIController.h` - rootAXObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/core/html/shadow/PickerIndicatorElement.h` - popupRootAXObject
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/core/html/forms/BaseMultipleFieldsDateAndTimeInputType.h` - popupRootAXObject
+
+**实现guards**:
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/WebAXObject.cpp` - 整个文件
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/WebDevToolsAgentImpl.cpp` - include和usage
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/WebViewImpl.cpp` - accessibility代码
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/web/TextFinder.cpp` - reportFindInPageResultToAccessibility调用
+- 其他相关实现文件
+
+**构建配置**:
+- `/home/wulin/chrome49/src/third_party/WebKit/Source/modules/BUILD.gn` - 排除accessibility文件
