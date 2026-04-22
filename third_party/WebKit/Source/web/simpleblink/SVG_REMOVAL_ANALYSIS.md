@@ -118,7 +118,7 @@ modules/accessibility/AXSVGRoot.cpp
 core/bindings/tests/results/core/V8SVGTestInterface.cpp/h
 ```
 
-#### B类：需要guard的混合文件（约40个文件）
+#### B类：需要guard的混合文件（约43个文件）
 这些文件既包含SVG代码又包含非SVG代码，需要guard SVG相关部分：
 
 **Paint层混合文件（6个）**:
@@ -155,19 +155,18 @@ core/css/CSSStyleSheet.cpp - 待检查
 core/css/parser/CSSPropertyParser.cpp - 待检查
 ```
 
-**DOM层混合文件（13个）**:
+**DOM层混合文件（16个）**:
 ```
 core/dom/Element.cpp/h - 包含SVG相关include（第36, 121-122行）
 core/dom/Document.cpp - 包含SVG相关include（第42-43, 193-195行）
-core/dom/Node.cpp/h - 无SVG相关include（已从B类移除）
-core/dom/Range.cpp - 待检查
-core/dom/Text.cpp - 待检查
+core/dom/QualifiedName.cpp - 包含SVGNames.h（第24行）
+core/dom/Range.cpp - 包含SVGSVGElement.h（第47行）
+core/dom/Text.cpp - 包含SVGNames.h（第26行），LayoutSVGInlineText.h（第37行），SVGForeignObjectElement.h（第38行）
 core/dom/ElementData.h - 待检查
 core/dom/VisitedLinkState.cpp - 待检查
 core/dom/LayoutTreeBuilder.cpp - 待检查
 core/dom/PresentationAttributeStyle.cpp - 待检查
 core/dom/custom/CustomElementRegistrationContext.cpp - 待检查
-core/dom/QualifiedName.cpp - 待检查
 core/events/Event.cpp - 待检查
 core/events/TreeScopeEventContext.h - 待检查
 ```
@@ -178,7 +177,7 @@ core/layout/LayoutObject.h - 待检查
 core/layout/LayoutTreeAsText.cpp - 包含SVG相关include（第48-55行）
 core/layout/LayoutPart.cpp - 包含SVG相关include（第34行）
 core/layout/HitTestResult.cpp - 包含SVGElement.h（第44行），SVG相关代码（第348行）
-core/layout/PaintInvalidationState.cpp/h - 待检查
+core/layout/PaintInvalidationState.cpp - 包含LayoutSVGModelObject.h（第9行），LayoutSVGRoot.h（第10行）
 core/layout/line/BreakingContextInlineHeaders.h - 待检查
 core/layout/LayoutBlockFlowLine.cpp - 待检查
 core/layout/LayoutView.cpp - 待检查
@@ -448,8 +447,8 @@ paint, animation, css, layout等子系统
 
 ### 工作量估算
 - BUILD.gn修改: 2个文件
-- 混合文件guard: 预计20-30个文件
-- **总计: 约22-32个文件**
+- 混合文件guard: 预计25-35个文件
+- **总计: 约27-37个文件**
 
 ### 优势
 - 工作量最小（相比纯条件编译方案减少94%）
@@ -527,22 +526,48 @@ source_set("svg") {
 2. 基本功能测试
 3. 启用SVG对比测试
 
-## 风险评估（进一步优化后）
+## 风险评估
 
-### 中等风险
-- SVG深度集成到core，影响面广
-- 修改文件数量约22-32个文件（相比原方案极大减少）
-- 需要在BUILD.gn中添加A类SVG专用文件的过滤逻辑
-- 可能影响其他依赖core的组件
-- 需要仔细分析编译错误
+### 高风险项
 
-### 低风险
-- BUILD.gn过滤是最干净的方案，完全排除SVG代码
-- 所有SVG专用文件直接排除，不需要guard
-- 按需guard混合文件，避免不必要的修改
-- 类似ARIA方案，有成功经验可循
-- 可以通过enable_svg标志轻松回退
-- core/svg、layout/svg和A类SVG专用文件不需要guard，减少出错可能
+1. **循环依赖导致编译错误**
+   - core/dom ↔ core/svg ↔ core/layout/svg形成循环依赖
+   - 简单排除SVG会导致DOM层编译失败
+   - **缓解措施**: 必须同时guard DOM层SVG引用（QualifiedName.cpp, Range.cpp, Text.cpp）
+
+2. **纯虚函数基类无法stub**
+   - SVGElement继承自Element，包含纯虚函数
+   - LayoutSVGResourceContainer等类有纯虚函数
+   - **缓解措施**: 必须完全移除这些类，不能提供stub实现
+
+3. **生成文件依赖SVG**
+   - core_generated中包含SVGElementFactory.cpp, SVGNames.cpp等生成文件
+   - **缓解措施**: 需要修改make_core_generated_svg_names等构建规则
+
+### 中等风险项
+
+1. **B类混合文件数量可能超出预期**
+   - 原估计40个，实际可能需要guard 43个或更多
+   - DOM层发现额外3个文件，Layout层发现额外1个文件
+   - 实际可能需要guard 35-40个文件
+
+2. **运行时类型检查**
+   - isSVGElement(), isSVGImageElement()等类型检查散布在代码中
+   - 需要guard这些检查点
+
+3. **CSS层SVG样式**
+   - CSSDefaultStyleSheets.cpp包含m_svgStyleSheet
+   - 需要条件加载SVG样式表
+
+### 低风险项
+
+1. **BUILD.gn过滤机制成熟**
+   - 已有ARIA模块成功经验
+   - webcore_svg_files变量设计合理
+
+2. **Class A文件排除安全**
+   - SVG专用文件无外部依赖
+   - 可直接通过BUILD.gn排除
 
 ### 需要注意
 - SVG是Web标准的重要组成部分
@@ -554,14 +579,14 @@ source_set("svg") {
 
 ## 源码核对总结
 
-### 已核对文件（18个）
+### 已核对文件（19个）
 
 **A类SVG专用文件（已确认3个）**:
 - SVGContainerPainter.cpp - 确认：只包含SVG相关代码
 - SVGPathSegInterpolationFunctions.cpp - 确认：只处理SVG路径段
 - （其他A类文件待核对）
 
-**B类混合文件（已确认15个）**:
+**B类混合文件（已确认19个）**:
 - PaintLayer.cpp - 确认：第70-72行SVG相关include
 - ReplacedPainter.cpp - 确认：第9行SVG相关include
 - KeyframeEffect.cpp - 确认：第47行SVGElement.h
@@ -570,9 +595,13 @@ source_set("svg") {
 - CSSDefaultStyleSheets.cpp - 确认：第86行SVGImage.h
 - Element.cpp - 确认：第36, 121-122行SVG相关include
 - Document.cpp - 确认：第42-43, 193-195行SVG相关include
+- QualifiedName.cpp - 确认：第24行SVGNames.h
+- Range.cpp - 确认：第47行SVGSVGElement.h
+- Text.cpp - 确认：第26行SVGNames.h，第37行LayoutSVGInlineText.h，第38行SVGForeignObjectElement.h
 - LayoutTreeAsText.cpp - 确认：第48-55行SVG相关include
 - LayoutPart.cpp - 确认：第34行SVG相关include
 - HitTestResult.cpp - 确认：第44行SVGElement.h，第348行SVG代码
+- PaintInvalidationState.cpp - 确认：第9行LayoutSVGModelObject.h，第10行LayoutSVGRoot.h
 - ImageLoader.cpp - 确认：第45-46行SVG相关include，第493-494, 538-539行SVG代码
 - FrameLoader.cpp - 确认：第82行SVGImage.h
 - HTMLImageElement.cpp - 确认：第50行SVG相关include
@@ -581,12 +610,12 @@ source_set("svg") {
 - LayoutBoxModelObject.h - 无SVG相关include
 - Node.cpp - 无SVG相关include
 
-### 待核对文件（约25个）
+### 待核对文件（约24个）
 - Paint层：PaintLayerPainter.cpp, PaintLayerFilterInfo.cpp, FilterEffectBuilder.cpp, PaintPropertyTreeBuilderTest.cpp
 - Animation层：AnimationInputHelpers.cpp, StringKeyframe.cpp, InterpolationEnvironment.h, PropertyHandleTest.cpp
 - CSS层：FilterOperationResolver.cpp, ElementStyleResources.cpp, SharedStyleFinder.cpp等
-- DOM层：Range.cpp, Text.cpp, ElementData.h等
-- Layout层：LayoutObject.h, PaintInvalidationState.cpp/h等
+- DOM层：ElementData.h, VisitedLinkState.cpp, LayoutTreeBuilder.cpp, PresentationAttributeStyle.cpp, CustomElementRegistrationContext.cpp
+- Layout层：LayoutObject.h, BreakingContextInlineHeaders.h, LayoutBlockFlowLine.cpp, LayoutView.cpp
 - Inspector层：3个文件
 - Accessibility层：3个文件
 - 其他：FrameFetchContext.cpp, EventHandler.cpp等
@@ -595,12 +624,8 @@ source_set("svg") {
 1. A类SVG专用文件分类基本正确，可以安全通过BUILD.gn排除
 2. B类混合文件分类正确，确实包含SVG相关代码，需要条件编译
 3. LayoutBoxModelObject.h和Node.cpp确实无SVG相关代码，已正确移除
-4. 方案可行，BUILD.gn过滤 + 条件编译的混合方案是正确的
-
-### 下一步建议
-1. 继续核对剩余的"待检查"文件
-2. 根据核对结果更新A类和B类文件清单
-3. 开始实施BUILD.gn过滤配置
+4. 新发现DOM层3个文件（QualifiedName.cpp, Range.cpp, Text.cpp）和Layout层1个文件（PaintInvalidationState.cpp）需要guard
+5. 方案可行，BUILD.gn过滤 + 条件编译的混合方案是正确的
 
 ## 预期结果
 
@@ -622,13 +647,13 @@ SVG模块移除比ARIA模块移除复杂得多：
 - **依赖更广**: 影响paint, animation, css等 vs ARIA的有限影响
 - **风险更高**: 可能影响core层整体 vs ARIA的局部影响
 
-**推荐方案**: 采用方案C（分阶段条件编译）或方案D（仅禁用SVG图像），根据实际需求选择：
-- 如果需要完全移除SVG，采用分阶段方案
-- 如果只需要减少部分依赖，采用禁用SVG图像方案
+**最终方案**: 采用BUILD.gn过滤为主、条件编译为辅的混合方案
 
-无论采用哪种方案，都需要基于ARIA移除的成功经验，特别注意：
-1. 基类纯虚函数的guard
-2. 头文件的特殊处理
-3. ENABLE宏的正确使用
-4. BUILD.gn文件的动态过滤
-5. 分阶段实施降低风险
+实施要点：
+1. 修改core/core.gni，添加enable_svg条件判断
+2. 修改core/BUILD.gn，过滤webcore_svg_files和A类SVG专用文件
+3. 条件化make_core_generated_svg_names等生成规则
+4. 对B类混合文件（约43个）进行条件编译，使用`#if ENABLE(SVG)`保护SVG相关代码
+5. 特别注意DOM层文件（QualifiedName.cpp, Range.cpp, Text.cpp）和Layout层文件（PaintInvalidationState.cpp）的guard
+6. 分阶段实施，先过滤SVG文件，再guard混合文件，最后处理生成文件
+7. 基于ARIA移除的成功经验，特别注意纯虚函数基类和循环依赖的处理
