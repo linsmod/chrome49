@@ -627,10 +627,110 @@ source_set("svg") {
 4. 新发现DOM层3个文件（QualifiedName.cpp, Range.cpp, Text.cpp）和Layout层1个文件（PaintInvalidationState.cpp）需要guard
 5. 方案可行，BUILD.gn过滤 + 条件编译的混合方案是正确的
 
+## IDL文件处理分析
+
+### SVG相关IDL文件
+
+#### A类：SVG专用IDL文件（约100个）
+这些IDL文件专门为SVG服务，通过core.gni中的enable_svg标志完全排除：
+
+**core_svg_idl_files列表**（core.gypi第7-100行）：
+- 包含约100个SVG相关的IDL文件
+- 包括所有SVG元素（SVGAElement, SVGCircleElement, SVGRectElement等）
+- 包括SVG类型（SVGAngle, SVGLength, SVGMatrix等）
+- 包括SVG滤镜元素（SVGFEBlendElement, SVGFEColorMatrixElement等）
+- 包括SVG动画元素（SVGAnimateElement, SVGSetElement等）
+
+**处理方式**：
+- 在core.gni中通过enable_svg标志条件化（第24-30行）
+- 当enable_svg=false时，_core_svg_idl_files为空
+- 这些IDL文件不会被编译，也不会生成对应的JS绑定
+
+#### B类：包含SVG相关字段/函数的IDL文件（3个）
+这些IDL文件包含与SVG相关的属性或方法，使用Conditional属性进行条件化：
+
+**1. core/svg/SVGMatrix.idl**
+- SVGMatrix接口定义
+- 添加[Conditional=SVG]属性（第27行）
+- 处理方式：整个接口条件化
+
+**2. core/svg/SVGZoomEvent.idl**
+- SVGZoomEvent接口定义
+- 添加[Conditional=SVG]属性（第29行）
+- 处理方式：整个接口条件化
+
+**3. modules/canvas2d/CanvasPattern.idl**
+- CanvasPattern接口
+- setTransform方法参数使用SVGMatrix类型
+- 添加[Conditional=SVG, RuntimeEnabled=ExperimentalCanvasFeatures]属性（第29行）
+- 处理方式：条件化setTransform方法
+
+**4. modules/canvas2d/CanvasRenderingContext2D.idl**
+- CanvasRenderingContext2D接口
+- currentTransform属性使用SVGMatrix类型
+- 添加[Conditional=SVG, RuntimeEnabled=ExperimentalCanvasFeatures]属性（第49行）
+- 处理方式：条件化currentTransform属性
+
+### IDL扩展属性
+
+**IDLExtendedAttributes.txt修改**（第40行）：
+- 添加了Conditional=*扩展属性
+- 允许在IDL中使用[Conditional=SVG]等条件编译属性
+- 这是条件编译IDL的基础设施
+
+### 测试文件
+
+**TestInterface.idl修改**（第62, 104行）：
+- 添加[Conditional=SVG] attribute long conditionalAttribute测试属性
+- 添加[Conditional=SVG] void conditionalMethod()测试方法
+- 用于验证Conditional属性的正确性
+
+### 生成文件处理
+
+**SVG相关生成文件**：
+- SVGElementFactory.cpp/h - SVG元素工厂
+- SVGNames.cpp/h - SVG名称定义
+- V8SVG*.cpp/h - SVG的JS绑定（约100个文件）
+
+**处理方式**：
+- 条件化make_core_generated_svg_names等构建规则
+- 当enable_svg=false时，不生成这些文件
+
+### IDL处理方案总结
+
+**方案**：采用文件排除 + Conditional属性的双重策略
+
+1. **文件排除**（主要手段）：
+   - 通过core.gni的enable_svg标志排除core_svg_idl_files列表
+   - 完全排除约100个SVG专用IDL文件
+   - 不生成对应的JS绑定
+
+2. **Conditional属性**（辅助手段）：
+   - 对SVGMatrix和SVGZoomEvent等接口使用[Conditional=SVG]
+   - 对CanvasPattern.setTransform等跨模块的SVG相关方法使用[Conditional=SVG]
+   - 对CanvasRenderingContext2D.currentTransform等属性使用[Conditional=SVG]
+
+3. **IDL扩展属性**：
+   - 在IDLExtendedAttributes.txt中添加Conditional=*
+   - 支持条件编译IDL接口、属性和方法
+
+### core.gni修改
+
+```gn
+# Conditionally include SVG IDL files based on enable_svg flag
+if (enable_svg) {
+  _core_svg_idl_files = get_path_info(_gypi.core_svg_idl_files, "abspath")
+} else {
+  _core_svg_idl_files = []
+}
+core_idl_files = _all_core_idl_files + _core_svg_idl_files
+```
+
 ## 预期结果
 
 ### 编译体积减少
 - SVG代码约300个文件
+- SVG IDL文件约100个
 - 预计减少约500KB-1MB编译体积
 - 比ARIA移除效果更显著
 
@@ -638,6 +738,7 @@ source_set("svg") {
 - 完全移除SVG渲染依赖
 - 简化core层复杂度
 - 提高编译速度
+- 移除约100个SVG JS绑定
 
 ## 总结
 
@@ -662,3 +763,6 @@ USER CONFIRM：实施范围确认，all。循环依赖：guard。纯虚函数：
 py2 #必须执行以切换到python2以让chrome构建系统正确运行
 ninja -C out/Release simpleblink
 ``生成文件处理：也条件化。
+
+
+UPDATE: 2026-04-23 All done, changes commited
