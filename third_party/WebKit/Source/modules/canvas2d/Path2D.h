@@ -76,7 +76,9 @@ private:
     Path2D(const String& pathData)
         : CanvasPathMethods()
     {
+#if ENABLE(SVG)
         buildPathFromString(pathData, m_path);
+#endif
     }
 };
 

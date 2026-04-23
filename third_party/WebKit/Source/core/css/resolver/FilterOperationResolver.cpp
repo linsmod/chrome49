@@ -133,6 +133,7 @@ FilterOperations FilterOperationResolver::createFilterOperations(StyleResolverSt
         countFilterUse(operationType, state.document());
         ASSERT(filterValue->length() <= 1);
 
+#if ENABLE(SVG)
         if (operationType == FilterOperation::REFERENCE) {
             CSSSVGDocumentValue* svgDocumentValue = toCSSSVGDocumentValue(filterValue->item(0));
             KURL url = state.document().completeURL(svgDocumentValue->url());
@@ -147,6 +148,7 @@ FilterOperations FilterOperationResolver::createFilterOperations(StyleResolverSt
             operations.operations().append(operation);
             continue;
         }
+#endif
 
         CSSPrimitiveValue* firstValue = filterValue->length() && filterValue->item(0)->isPrimitiveValue() ? toCSSPrimitiveValue(filterValue->item(0)) : nullptr;
         switch (filterValue->functionType()) {

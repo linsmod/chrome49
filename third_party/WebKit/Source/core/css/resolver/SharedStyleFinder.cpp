@@ -216,8 +216,10 @@ bool SharedStyleFinder::canShareStyleWithElement(Element& candidate) const
         return false;
     if (candidate.needsStyleRecalc())
         return false;
+#if ENABLE(SVG)
     if (candidate.isSVGElement() && toSVGElement(candidate).animatedSMILStyleProperties())
         return false;
+#endif
     if (candidate.isLink() != element().isLink())
         return false;
     if (candidate.shadowPseudoId() != element().shadowPseudoId())
@@ -260,8 +262,10 @@ bool SharedStyleFinder::canShareStyleWithElement(Element& candidate) const
             return false;
         if (parent->inlineStyle())
             return false;
+#if ENABLE(SVG)
         if (parent->isSVGElement() && toSVGElement(parent)->animatedSMILStyleProperties())
             return false;
+#endif
         if (parent->hasID() && m_features.hasSelectorForId(parent->idForStyleResolution()))
             return false;
         if (!parent->childrenSupportStyleSharing())

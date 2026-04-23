@@ -101,7 +101,9 @@ bool DeferredLegacyStyleInterpolation::interpolationRequiresStyleResolve(const C
 
     CSSValueID id = primitiveValue.getValueID();
     bool isColor = ((id >= CSSValueAqua && id <= CSSValueTransparent)
+#if ENABLE(SVG)
         || (id >= CSSValueAliceblue && id <= CSSValueYellowgreen)
+#endif
         || id == CSSValueGrey);
     return (id != CSSValueNone) && !isColor;
 }

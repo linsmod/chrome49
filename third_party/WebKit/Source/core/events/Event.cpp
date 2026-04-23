@@ -269,11 +269,13 @@ EventTarget* Event::currentTarget() const
 {
     if (!m_currentTarget)
         return nullptr;
+#if ENABLE(SVG)
     Node* node = m_currentTarget->toNode();
     if (node && node->isSVGElement()) {
         if (SVGElement* svgElement = toSVGElement(node)->correspondingElement())
             return svgElement;
     }
+#endif
     return m_currentTarget.get();
 }
 

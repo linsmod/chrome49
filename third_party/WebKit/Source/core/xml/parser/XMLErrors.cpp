@@ -29,7 +29,9 @@
 #include "core/xml/parser/XMLErrors.h"
 
 #include "core/HTMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/dom/Document.h"
 #include "core/dom/Element.h"
 #include "core/dom/Text.h"
@@ -129,7 +131,11 @@ void XMLErrors::insertErrorMessageBlock()
         rootElement->parserAppendChild(body);
         m_document->parserAppendChild(rootElement);
         documentElement = body.get();
+#if ENABLE(SVG)
     } else if (documentElement->namespaceURI() == SVGNames::svgNamespaceURI) {
+#else
+    } else if (false) {
+#endif
         RefPtrWillBeRawPtr<Element> rootElement = m_document->createElement(htmlTag, true);
         RefPtrWillBeRawPtr<Element> head = m_document->createElement(headTag, true);
         RefPtrWillBeRawPtr<Element> style = m_document->createElement(styleTag, true);

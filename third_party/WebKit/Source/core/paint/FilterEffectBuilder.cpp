@@ -139,6 +139,7 @@ bool FilterEffectBuilder::build(Element* element, const FilterOperations& operat
         RefPtrWillBeRawPtr<FilterEffect> effect = nullptr;
         FilterOperation* filterOperation = operations.operations().at(i).get();
         switch (filterOperation->type()) {
+#if ENABLE(SVG)
         case FilterOperation::REFERENCE: {
             RefPtrWillBeRawPtr<Filter> referenceFilter = ReferenceFilterBuilder::build(zoom, element, previousEffect.get(), toReferenceFilterOperation(*filterOperation), fillPaint, strokePaint);
             if (referenceFilter) {
@@ -147,6 +148,7 @@ bool FilterEffectBuilder::build(Element* element, const FilterOperations& operat
             }
             break;
         }
+#endif
         case FilterOperation::GRAYSCALE: {
             Vector<float> inputParameters = grayscaleMatrix(toBasicColorMatrixFilterOperation(filterOperation)->amount());
             effect = FEColorMatrix::create(parentFilter.get(), FECOLORMATRIX_TYPE_MATRIX, inputParameters);

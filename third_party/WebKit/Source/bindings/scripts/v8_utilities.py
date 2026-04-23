@@ -411,6 +411,19 @@ def runtime_enabled_function_name(definition_or_member):
     return 'RuntimeEnabledFeatures::%sEnabled' % uncapitalize(feature_name)
 
 
+# [Conditional]
+def conditional_string(definition_or_member):
+    """Returns the conditional string for a method/attribute.
+
+    Given extended attribute Conditional=FeatureName, return:
+        ENABLE(FeatureName)
+    """
+    extended_attributes = definition_or_member.extended_attributes
+    if 'Conditional' not in extended_attributes:
+        return None
+    return 'ENABLE(%s)' % extended_attributes['Conditional']
+
+
 # [Unforgeable]
 def is_unforgeable(interface, member):
     return (('Unforgeable' in interface.extended_attributes or

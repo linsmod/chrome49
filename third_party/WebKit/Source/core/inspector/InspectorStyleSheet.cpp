@@ -50,7 +50,9 @@
 #include "core/inspector/IdentifiersFactory.h"
 #include "core/inspector/InspectorCSSAgent.h"
 #include "core/inspector/InspectorResourceAgent.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGStyleElement.h"
+#endif
 #include "wtf/OwnPtr.h"
 #include "wtf/PassOwnPtr.h"
 #include "wtf/text/StringBuilder.h"
@@ -1624,7 +1626,11 @@ Element* InspectorStyleSheet::ownerStyleElement()
         return nullptr;
     Element* ownerElement = toElement(ownerNode);
 
-    if (!isHTMLStyleElement(ownerElement) && !isSVGStyleElement(ownerElement))
+    if (!isHTMLStyleElement(ownerElement)
+#if ENABLE(SVG)
+        && !isSVGStyleElement(ownerElement)
+#endif
+    )
         return nullptr;
     return ownerElement;
 }

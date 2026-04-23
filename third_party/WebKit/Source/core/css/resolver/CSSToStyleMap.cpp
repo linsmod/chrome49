@@ -262,12 +262,14 @@ void CSSToStyleMap::mapFillMaskSourceType(StyleResolverState&, FillLayer* layer,
         return;
 
     switch (toCSSPrimitiveValue(value).getValueID()) {
+#if ENABLE(SVG)
     case CSSValueAlpha:
         type = MaskAlpha;
         break;
     case CSSValueLuminance:
         type = MaskLuminance;
         break;
+#endif
     case CSSValueAuto:
         break;
     default:

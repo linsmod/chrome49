@@ -13,6 +13,7 @@
 
 namespace blink {
 
+#if ENABLE(SVG)
 class LengthListPropertyFunctions {
     STATIC_ONLY(LengthListPropertyFunctions);
 public:
@@ -41,6 +42,7 @@ public:
     }
 
 };
+#endif
 
 } // namespace blink
 

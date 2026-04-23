@@ -214,6 +214,7 @@ StyleRareNonInheritedData::StyleRareNonInheritedData(const StyleRareNonInherited
 StyleRareNonInheritedData::~StyleRareNonInheritedData()
 {
 #if !ENABLE(OILPAN)
+#if ENABLE(SVG)
     const FilterOperations& filterOperations = m_filter->m_operations;
     for (unsigned i = 0; i < filterOperations.size(); ++i)
         ReferenceFilterBuilder::clearDocumentResourceReference(filterOperations.at(i));
@@ -221,6 +222,7 @@ StyleRareNonInheritedData::~StyleRareNonInheritedData()
     const FilterOperations& backdropFilterOperations = m_backdropFilter->m_operations;
     for (unsigned i = 0; i < backdropFilterOperations.size(); ++i)
         ReferenceFilterBuilder::clearDocumentResourceReference(backdropFilterOperations.at(i));
+#endif
 #endif
 }
 

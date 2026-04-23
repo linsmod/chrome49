@@ -195,7 +195,11 @@ source_set("html") {
 
 # GYP version: //third_party/WebKit/Source/core/core.gyp:webcore_svg
 source_set("svg") {
-  sources = rebase_path(webcore_svg_files, ".", "//")
+  if (enable_svg) {
+    sources = rebase_path(webcore_svg_files, ".", "//")
+  } else {
+    sources = []
+  }
 
   configs -= core_config_remove
   configs += core_config_add
@@ -363,7 +367,6 @@ source_set("core_generated") {
     "$blink_core_output_dir/HTMLTokenizerNames.cpp",
     "$blink_core_output_dir/InputTypeNames.cpp",
     "$blink_core_output_dir/MathMLNames.cpp",
-    "$blink_core_output_dir/SVGNames.cpp",
     "$blink_core_output_dir/XLinkNames.cpp",
     "$blink_core_output_dir/XMLNSNames.cpp",
     "$blink_core_output_dir/XMLNames.cpp",
@@ -397,10 +400,17 @@ source_set("core_generated") {
     "$blink_core_output_dir/InspectorInstrumentationInl.h",
     "$blink_core_output_dir/InspectorOverridesInl.h",
     "$blink_core_output_dir/InstrumentingAgentsInl.h",
+  ]
 
-    # Additional .cpp files for SVG.
-    "$blink_core_output_dir/SVGElementFactory.cpp",
+  if (enable_svg) {
+    sources += [
+      # Additional .cpp files for SVG.
+      "$blink_core_output_dir/SVGNames.cpp",
+      "$blink_core_output_dir/SVGElementFactory.cpp",
+    ]
+  }
 
+  sources += [
     # Generated from make_style_shorthands.py
     "$blink_core_output_dir/StylePropertyShorthand.cpp",
 
@@ -595,12 +605,17 @@ group("make_core_generated") {
     ":make_core_generated_private_script_for_testing",
     ":make_core_generated_style_builder",
     ":make_core_generated_style_property_shorthand",
-    ":make_core_generated_svg_element_type_helpers",
-    ":make_core_generated_svg_names",
     ":make_core_generated_xlink_names",
     ":make_core_generated_xml_names",
     ":make_core_generated_xml_ns_names",
   ]
+
+  if (enable_svg) {
+    public_deps += [
+      ":make_core_generated_svg_element_type_helpers",
+      ":make_core_generated_svg_names",
+    ]
+  }
 }
 
 # "CSSPropertyNames" in make_core_generated from GYP.
@@ -668,8 +683,10 @@ process_in_files("make_core_generated_css_value_keywords") {
 
   in_files = [
     "css/CSSValueKeywords.in",
-    "css/SVGCSSValueKeywords.in",
   ]
+  if (enable_svg) {
+    in_files += [ "css/SVGCSSValueKeywords.in" ]
+  }
   outputs = [
     "$blink_core_output_dir/CSSValueKeywords.cpp",
     "$blink_core_output_dir/CSSValueKeywords.h",
@@ -750,6 +767,10 @@ process_in_files("make_core_generated_event_factory") {
   outputs = [
     "$blink_core_output_dir/Event.cpp",
     "$blink_core_output_dir/EventHeaders.h",
+  ]
+  other_args = [
+    "--feature_defines",
+    feature_defines_string,
   ]
 }
 

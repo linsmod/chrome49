@@ -474,7 +474,10 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
         // central | after-edge | text-after-edge | ideographic | alphabetic |
         // hanging | mathematical
         return valueID == CSSValueAuto || valueID == CSSValueBaseline || valueID == CSSValueMiddle
-            || (valueID >= CSSValueBeforeEdge && valueID <= CSSValueMathematical);
+#if ENABLE(SVG)
+            || (valueID >= CSSValueBeforeEdge && valueID <= CSSValueMathematical)
+#endif
+            ;
     case CSSPropertyAll:
         return false; // Only accepts css-wide keywords
     case CSSPropertyBackgroundRepeatX: // repeat | no-repeat
@@ -495,7 +498,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
     case CSSPropertyBoxSizing:
         return valueID == CSSValueBorderBox || valueID == CSSValueContentBox;
     case CSSPropertyBufferedRendering:
+#if ENABLE(SVG)
         return valueID == CSSValueAuto || valueID == CSSValueDynamic || valueID == CSSValueStatic;
+#else
+        return valueID == CSSValueAuto || valueID == CSSValueStatic;
+#endif
     case CSSPropertyCaptionSide: // top | bottom | left | right
         return valueID == CSSValueLeft || valueID == CSSValueRight || valueID == CSSValueTop || valueID == CSSValueBottom;
     case CSSPropertyClear: // none | left | right | both
@@ -505,7 +512,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
         return valueID == CSSValueNonzero || valueID == CSSValueEvenodd;
     case CSSPropertyColorInterpolation:
     case CSSPropertyColorInterpolationFilters:
+#if ENABLE(SVG)
         return valueID == CSSValueAuto || valueID == CSSValueSRGB || valueID == CSSValueLinearRGB;
+#else
+        return valueID == CSSValueAuto;
+#endif
     case CSSPropertyColorRendering:
         return valueID == CSSValueAuto || valueID == CSSValueOptimizeSpeed || valueID == CSSValueOptimizeQuality;
     case CSSPropertyDirection: // ltr | rtl
@@ -522,8 +533,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
         // alphabetic | hanging | mathematical | central | middle |
         // text-after-edge | text-before-edge
         return valueID == CSSValueAuto || valueID == CSSValueMiddle
+#if ENABLE(SVG)
             || (valueID >= CSSValueUseScript && valueID <= CSSValueResetSize)
-            || (valueID >= CSSValueCentral && valueID <= CSSValueMathematical);
+            || (valueID >= CSSValueCentral && valueID <= CSSValueMathematical)
+#endif
+            ;
     case CSSPropertyEmptyCells: // show | hide
         return valueID == CSSValueShow || valueID == CSSValueHide;
     case CSSPropertyFloat: // left | right | none
@@ -546,7 +560,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
         // for the list of supported list-style-types.
         return (valueID >= CSSValueDisc && valueID <= CSSValueKatakanaIroha) || valueID == CSSValueNone;
     case CSSPropertyMaskType:
+#if ENABLE(SVG)
         return valueID == CSSValueLuminance || valueID == CSSValueAlpha;
+#else
+        return false;
+#endif
     case CSSPropertyObjectFit:
         return valueID == CSSValueFill || valueID == CSSValueContain || valueID == CSSValueCover || valueID == CSSValueNone || valueID == CSSValueScaleDown;
     case CSSPropertyOutlineStyle: // (<border-style> except hidden) | auto
@@ -578,13 +596,25 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
         ASSERT(RuntimeEnabledFeatures::cssomSmoothScrollEnabled());
         return valueID == CSSValueAuto || valueID == CSSValueSmooth;
     case CSSPropertyShapeRendering:
+#if ENABLE(SVG)
         return valueID == CSSValueAuto || valueID == CSSValueOptimizeSpeed || valueID == CSSValueCrispEdges || valueID == CSSValueGeometricPrecision;
+#else
+        return valueID == CSSValueAuto || valueID == CSSValueOptimizeSpeed;
+#endif
     case CSSPropertySpeak: // none | normal | spell-out | digits | literal-punctuation | no-punctuation
         return valueID == CSSValueNone || valueID == CSSValueNormal || valueID == CSSValueSpellOut || valueID == CSSValueDigits || valueID == CSSValueLiteralPunctuation || valueID == CSSValueNoPunctuation;
     case CSSPropertyStrokeLinejoin:
+#if ENABLE(SVG)
         return valueID == CSSValueMiter || valueID == CSSValueRound || valueID == CSSValueBevel;
+#else
+        return valueID == CSSValueRound;
+#endif
     case CSSPropertyStrokeLinecap:
+#if ENABLE(SVG)
         return valueID == CSSValueButt || valueID == CSSValueRound || valueID == CSSValueSquare;
+#else
+        return valueID == CSSValueRound || valueID == CSSValueSquare;
+#endif
     case CSSPropertyTableLayout: // auto | fixed
         return valueID == CSSValueAuto || valueID == CSSValueFixed;
     case CSSPropertyTextAlign:
@@ -611,7 +641,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
     case CSSPropertyTextOverflow: // clip | ellipsis
         return valueID == CSSValueClip || valueID == CSSValueEllipsis;
     case CSSPropertyTextRendering: // auto | optimizeSpeed | optimizeLegibility | geometricPrecision
+#if ENABLE(SVG)
         return valueID == CSSValueAuto || valueID == CSSValueOptimizeSpeed || valueID == CSSValueOptimizeLegibility || valueID == CSSValueGeometricPrecision;
+#else
+        return valueID == CSSValueAuto || valueID == CSSValueOptimizeSpeed || valueID == CSSValueOptimizeLegibility;
+#endif
     case CSSPropertyTextTransform: // capitalize | uppercase | lowercase | none
         return (valueID >= CSSValueCapitalize && valueID <= CSSValueLowercase) || valueID == CSSValueNone;
     case CSSPropertyUnicodeBidi:
@@ -620,7 +654,11 @@ bool CSSParserFastPaths::isValidKeywordPropertyAndValue(CSSPropertyID propertyId
             || valueID == CSSValueWebkitIsolateOverride || valueID == CSSValueWebkitPlaintext
             || valueID == CSSValueIsolate || valueID == CSSValueIsolateOverride || valueID == CSSValuePlaintext;
     case CSSPropertyVectorEffect:
+#if ENABLE(SVG)
         return valueID == CSSValueNone || valueID == CSSValueNonScalingStroke;
+#else
+        return valueID == CSSValueNone;
+#endif
     case CSSPropertyVisibility: // visible | hidden | collapse
         return valueID == CSSValueVisible || valueID == CSSValueHidden || valueID == CSSValueCollapse;
     case CSSPropertyWebkitAppRegion:

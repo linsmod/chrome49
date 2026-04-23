@@ -30,11 +30,13 @@ ValueRange LengthPropertyFunctions::valueRange(CSSPropertyID property)
     case CSSPropertyPaddingRight:
     case CSSPropertyPaddingTop:
     case CSSPropertyPerspective:
+#if ENABLE(SVG)
     case CSSPropertyR:
     case CSSPropertyRx:
     case CSSPropertyRy:
-    case CSSPropertyShapeMargin:
     case CSSPropertyStrokeWidth:
+#endif
+    case CSSPropertyShapeMargin:
     case CSSPropertyWebkitBorderHorizontalSpacing:
     case CSSPropertyWebkitBorderVerticalSpacing:
     case CSSPropertyWebkitColumnGap:
@@ -48,7 +50,11 @@ ValueRange LengthPropertyFunctions::valueRange(CSSPropertyID property)
 
 bool LengthPropertyFunctions::isZoomedLength(CSSPropertyID property)
 {
+#if ENABLE(SVG)
     return property != CSSPropertyStrokeWidth;
+#else
+    return true;
+#endif
 }
 
 bool LengthPropertyFunctions::getPixelsForKeyword(CSSPropertyID property, CSSValueID valueID, double& result)
@@ -130,12 +136,14 @@ bool LengthPropertyFunctions::getLength(CSSPropertyID property, const ComputedSt
     case CSSPropertyBottom:
         result = style.bottom();
         return true;
+#if ENABLE(SVG)
     case CSSPropertyCx:
         result = style.svgStyle().cx();
         return true;
     case CSSPropertyCy:
         result = style.svgStyle().cy();
         return true;
+#endif
     case CSSPropertyFlexBasis:
         result = style.flexBasis();
         return true;
@@ -184,24 +192,30 @@ bool LengthPropertyFunctions::getLength(CSSPropertyID property, const ComputedSt
     case CSSPropertyPaddingTop:
         result = style.paddingTop();
         return true;
+#if ENABLE(SVG)
     case CSSPropertyR:
         result = style.svgStyle().r();
         return true;
+#endif
     case CSSPropertyRight:
         result = style.right();
         return true;
+#if ENABLE(SVG)
     case CSSPropertyRx:
         result = style.svgStyle().rx();
         return true;
     case CSSPropertyRy:
         result = style.svgStyle().ry();
         return true;
+#endif
     case CSSPropertyShapeMargin:
         result = style.shapeMargin();
         return true;
+#if ENABLE(SVG)
     case CSSPropertyStrokeDashoffset:
         result = style.strokeDashOffset();
         return true;
+#endif
     case CSSPropertyTextIndent:
         result = style.textIndent();
         return true;
@@ -223,12 +237,14 @@ bool LengthPropertyFunctions::getLength(CSSPropertyID property, const ComputedSt
     case CSSPropertyWidth:
         result = style.width();
         return true;
+#if ENABLE(SVG)
     case CSSPropertyX:
         result = style.svgStyle().x();
         return true;
     case CSSPropertyY:
         result = style.svgStyle().y();
         return true;
+#endif
 
     case CSSPropertyBorderBottomWidth:
         result = Length(style.borderBottomWidth(), Fixed);
@@ -270,11 +286,13 @@ bool LengthPropertyFunctions::getLength(CSSPropertyID property, const ComputedSt
         result = Length(style.wordSpacing(), Fixed);
         return true;
 
+#if ENABLE(SVG)
     case CSSPropertyBaselineShift:
         if (style.baselineShift() != BS_LENGTH)
             return false;
         result = style.baselineShiftValue();
         return true;
+#endif
     case CSSPropertyLineHeight:
         // Percent Lengths are used to represent numbers on line-height.
         if (style.specifiedLineHeight().hasPercent())
@@ -286,10 +304,12 @@ bool LengthPropertyFunctions::getLength(CSSPropertyID property, const ComputedSt
             return false;
         result = Length(style.perspective(), Fixed);
         return true;
+#if ENABLE(SVG)
     case CSSPropertyStrokeWidth:
         ASSERT(!isZoomedLength(CSSPropertyStrokeWidth));
         result = style.strokeWidth().length();
         return true;
+#endif
     case CSSPropertyVerticalAlign:
         if (style.verticalAlign() != LENGTH)
             return false;
@@ -309,17 +329,19 @@ bool LengthPropertyFunctions::setLength(CSSPropertyID property, ComputedStyle& s
 {
     switch (property) {
     // Setters that take a Length value.
+#if ENABLE(SVG)
     case CSSPropertyBaselineShift:
         style.setBaselineShiftValue(value);
-        return true;
-    case CSSPropertyBottom:
-        style.setBottom(value);
         return true;
     case CSSPropertyCx:
         style.setCx(value);
         return true;
     case CSSPropertyCy:
         style.setCy(value);
+        return true;
+#endif
+    case CSSPropertyBottom:
+        style.setBottom(value);
         return true;
     case CSSPropertyFlexBasis:
         style.setFlexBasis(value);
@@ -369,6 +391,7 @@ bool LengthPropertyFunctions::setLength(CSSPropertyID property, ComputedStyle& s
     case CSSPropertyPaddingTop:
         style.setPaddingTop(value);
         return true;
+#if ENABLE(SVG)
     case CSSPropertyR:
         style.setR(value);
         return true;
@@ -378,15 +401,18 @@ bool LengthPropertyFunctions::setLength(CSSPropertyID property, ComputedStyle& s
     case CSSPropertyRy:
         style.setRy(value);
         return true;
+#endif
     case CSSPropertyRight:
         style.setRight(value);
         return true;
     case CSSPropertyShapeMargin:
         style.setShapeMargin(value);
         return true;
+#if ENABLE(SVG)
     case CSSPropertyStrokeDashoffset:
         style.setStrokeDashOffset(value);
         return true;
+#endif
     case CSSPropertyTop:
         style.setTop(value);
         return true;
@@ -405,12 +431,14 @@ bool LengthPropertyFunctions::setLength(CSSPropertyID property, ComputedStyle& s
     case CSSPropertyWebkitTransformOriginY:
         style.setTransformOriginY(value);
         return true;
+#if ENABLE(SVG)
     case CSSPropertyX:
         style.setX(value);
         return true;
     case CSSPropertyY:
         style.setY(value);
         return true;
+#endif
 
     case CSSPropertyLineHeight:
         // Percent Lengths are used to represent numbers on line-height.
@@ -428,7 +456,9 @@ bool LengthPropertyFunctions::setLength(CSSPropertyID property, ComputedStyle& s
     case CSSPropertyOutlineOffset:
     case CSSPropertyOutlineWidth:
     case CSSPropertyPerspective:
+#if ENABLE(SVG)
     case CSSPropertyStrokeWidth:
+#endif
     case CSSPropertyVerticalAlign:
     case CSSPropertyWebkitBorderHorizontalSpacing:
     case CSSPropertyWebkitBorderVerticalSpacing:

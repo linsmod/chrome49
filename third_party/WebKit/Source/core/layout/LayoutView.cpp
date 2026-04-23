@@ -267,8 +267,10 @@ void LayoutView::layout()
                 layoutScope.setChildNeedsLayout(child);
         }
 
+#if ENABLE(SVG)
         if (document().svgExtensions())
             document().accessSVGExtensions().invalidateSVGRootsWithRelativeLengthDescendents(&layoutScope);
+#endif
     }
 
     ASSERT(!m_layoutState);

@@ -47,6 +47,9 @@ namespace blink {
 
 {% for property_id, property in properties.items() if property.should_declare_functions %}
 {% set apply_type = property.apply_type %}
+{% if property.svg %}
+#if ENABLE(SVG)
+{% endif %}
 {% if not property.custom_initial %}
 {{declare_initial_function(property_id)}}
 {
@@ -79,6 +82,9 @@ namespace blink {
     {{convert_and_set_value(property)}}
 }
 
+{% endif %}
+{% if property.svg %}
+#endif // ENABLE(SVG)
 {% endif %}
 {% endfor %}
 
@@ -476,6 +482,7 @@ static bool borderImageLengthMatchesAllSides(const BorderImageLengthBox& borderI
 {{apply_grid_template('CSSPropertyGridTemplateColumns', 'Column')}}
 {{apply_grid_template('CSSPropertyGridTemplateRows', 'Row')}}
 
+#if ENABLE(SVG)
 {% macro apply_svg_paint(property_id, paint_type) %}
 {% set property = properties[property_id] %}
 {{declare_initial_function(property_id)}}
@@ -530,4 +537,5 @@ static bool borderImageLengthMatchesAllSides(const BorderImageLengthBox& borderI
 {% endmacro %}
 {{apply_svg_paint('CSSPropertyFill', 'FillPaint')}}
 {{apply_svg_paint('CSSPropertyStroke', 'StrokePaint')}}
+#endif // ENABLE(SVG)
 } // namespace blink

@@ -97,8 +97,13 @@ Color StyleBuilderConverter::convertColor(StyleResolverState& state, const CSSVa
 
 AtomicString StyleBuilderConverter::convertFragmentIdentifier(StyleResolverState& state, const CSSValue& value)
 {
-    if (value.isURIValue())
+    if (value.isURIValue()) {
+#if ENABLE(SVG)
         return SVGURIReference::fragmentIdentifierFromIRIString(toCSSURIValue(value).value(), state.element()->treeScope());
+#else
+        return nullAtom;
+#endif
+    }
     return nullAtom;
 }
 
@@ -538,10 +543,12 @@ Length StyleBuilderConverter::convertLength(const StyleResolverState& state, con
     return toCSSPrimitiveValue(value).convertToLength(state.cssToLengthConversionData());
 }
 
+#if ENABLE(SVG)
 UnzoomedLength StyleBuilderConverter::convertUnzoomedLength(const StyleResolverState& state, const CSSValue& value)
 {
     return UnzoomedLength(toCSSPrimitiveValue(value).convertToLength(state.cssToLengthConversionData().copyWithAdjustedZoom(1.0f)));
 }
+#endif
 
 Length StyleBuilderConverter::convertLengthOrAuto(const StyleResolverState& state, const CSSValue& value)
 {
@@ -699,6 +706,7 @@ static Length convertOriginLength(StyleResolverState& state, const CSSPrimitiveV
     return StyleBuilderConverter::convertLength(state, primitiveValue);
 }
 
+#if ENABLE(SVG)
 EPaintOrder StyleBuilderConverter::convertPaintOrder(StyleResolverState&, const CSSValue& cssPaintOrder)
 {
     if (cssPaintOrder.isValueList()) {
@@ -718,6 +726,7 @@ EPaintOrder StyleBuilderConverter::convertPaintOrder(StyleResolverState&, const 
 
     return PaintOrderNormal;
 }
+#endif
 
 Length StyleBuilderConverter::convertQuirkyLength(StyleResolverState& state, const CSSValue& value)
 {
@@ -818,10 +827,12 @@ float StyleBuilderConverter::convertSpacing(StyleResolverState& state, const CSS
     return primitiveValue.computeLength<float>(state.cssToLengthConversionData());
 }
 
+#if ENABLE(SVG)
 PassRefPtr<SVGDashArray> StyleBuilderConverter::convertStrokeDasharray(StyleResolverState& state, const CSSValue& value)
 {
-    if (!value.isValueList())
+    if (!value.isValueList()) {
         return SVGComputedStyle::initialStrokeDashArray();
+    }
 
     const CSSValueList& dashes = toCSSValueList(value);
 
@@ -833,6 +844,7 @@ PassRefPtr<SVGDashArray> StyleBuilderConverter::convertStrokeDasharray(StyleReso
 
     return array.release();
 }
+#endif
 
 StyleColor StyleBuilderConverter::convertStyleColor(StyleResolverState& state, const CSSValue& value, bool forVisitedLink)
 {

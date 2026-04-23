@@ -93,10 +93,12 @@ static PassRefPtr<AnimatableValue> createFromLength(const Length& length, const 
     return createFromLengthWithZoom(length, style.effectiveZoom());
 }
 
+#if ENABLE(SVG)
 static PassRefPtr<AnimatableValue> createFromUnzoomedLength(const UnzoomedLength& unzoomedLength)
 {
     return createFromLengthWithZoom(unzoomedLength.length(), 1);
 }
+#endif
 
 static PassRefPtr<AnimatableValue> createFromLineHeight(const Length& length, const ComputedStyle& style)
 {
@@ -247,10 +249,12 @@ inline static PassRefPtr<AnimatableValue> createFromShapeValue(ShapeValue* value
     return AnimatableUnknown::create(CSSValueNone);
 }
 
+#if ENABLE(SVG)
 static PassRefPtr<AnimatableValue> createFromPath(StylePath* path)
 {
     return AnimatablePath::create(path);
 }
+#endif
 
 static double fontStretchToDouble(FontStretch fontStretch)
 {
@@ -301,12 +305,14 @@ static PassRefPtr<AnimatableValue> createFromFontWeight(FontWeight fontWeight)
     return createFromDouble(fontWeightToDouble(fontWeight));
 }
 
+#if ENABLE(SVG)
 static SVGPaintType normalizeSVGPaintType(SVGPaintType paintType)
 {
     // If the <paint> is 'currentColor', then create an AnimatableSVGPaint with
     // a <rgbcolor> type. This is similar in vein to the handling of colors.
     return paintType == SVG_PAINTTYPE_CURRENTCOLOR ? SVG_PAINTTYPE_RGBCOLOR : paintType;
 }
+#endif
 
 // FIXME: Generate this function.
 PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID property, const ComputedStyle& style)
@@ -323,6 +329,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         return createFromFillLayers<CSSPropertyBackgroundPositionY>(style.backgroundLayers(), style);
     case CSSPropertyBackgroundSize:
         return createFromFillLayers<CSSPropertyBackgroundSize>(style.backgroundLayers(), style);
+#if ENABLE(SVG)
     case CSSPropertyBaselineShift:
         switch (style.svgStyle().baselineShift()) {
         case BS_SUPER:
@@ -332,6 +339,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         default:
             return createFromLength(style.baselineShiftValue(), style);
         }
+#endif
     case CSSPropertyBorderBottomColor:
         return createFromColor(property, style);
     case CSSPropertyBorderBottomLeftRadius:
@@ -374,6 +382,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         return createFromLengthBox(style.clip(), style);
     case CSSPropertyColor:
         return createFromColor(property, style);
+#if ENABLE(SVG)
     case CSSPropertyFillOpacity:
         return createFromDouble(style.fillOpacity());
     case CSSPropertyFill:
@@ -381,16 +390,19 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
             normalizeSVGPaintType(style.svgStyle().fillPaintType()), normalizeSVGPaintType(style.svgStyle().visitedLinkFillPaintType()),
             style.svgStyle().fillPaintColor(), style.svgStyle().visitedLinkFillPaintColor(),
             style.svgStyle().fillPaintUri(), style.svgStyle().visitedLinkFillPaintUri());
+#endif
     case CSSPropertyFlexGrow:
         return createFromDouble(style.flexGrow());
     case CSSPropertyFlexShrink:
         return createFromDouble(style.flexShrink());
     case CSSPropertyFlexBasis:
         return createFromLength(style.flexBasis(), style);
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         return createFromColor(property, style);
     case CSSPropertyFloodOpacity:
         return createFromDouble(style.floodOpacity());
+#endif
     case CSSPropertyFontSize:
         // Must pass a specified size to setFontSize if Text Autosizing is enabled, but a computed size
         // if text zoom is enabled (if neither is enabled it's irrelevant as they're probably the same).
@@ -453,6 +465,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         return createFromLength(style.paddingTop(), style);
     case CSSPropertyRight:
         return createFromLength(style.right(), style);
+#if ENABLE(SVG)
     case CSSPropertyStrokeWidth:
         return createFromUnzoomedLength(style.strokeWidth());
     case CSSPropertyStopColor:
@@ -472,6 +485,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
             normalizeSVGPaintType(style.svgStyle().strokePaintType()), normalizeSVGPaintType(style.svgStyle().visitedLinkStrokePaintType()),
             style.svgStyle().strokePaintColor(), style.svgStyle().visitedLinkStrokePaintColor(),
             style.svgStyle().strokePaintUri(), style.svgStyle().visitedLinkStrokePaintUri());
+#endif
     case CSSPropertyTextDecorationColor:
         return createFromColor(property, style);
     case CSSPropertyTextIndent:
@@ -578,6 +592,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         return AnimatableUnknown::create(CSSPrimitiveValue::create(style.verticalAlign()));
     case CSSPropertyVisibility:
         return AnimatableVisibility::create(style.visibility());
+#if ENABLE(SVG)
     case CSSPropertyD:
         return createFromPath(style.svgStyle().d());
     case CSSPropertyCx:
@@ -594,6 +609,7 @@ PassRefPtr<AnimatableValue> CSSAnimatableValueFactory::create(CSSPropertyID prop
         return createFromLength(style.svgStyle().rx(), style);
     case CSSPropertyRy:
         return createFromLength(style.svgStyle().ry(), style);
+#endif
     case CSSPropertyZIndex:
         if (style.hasAutoZIndex())
             return AnimatableUnknown::create(CSSValueAuto);

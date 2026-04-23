@@ -43,6 +43,7 @@ bool SVGClipPainter::prepareEffect(const LayoutObject& target, const FloatRect& 
 
     SVGClipExpansionCycleHelper inClipExpansionChange(m_clip);
 
+#if ENABLE(SVG)
     AffineTransform animatedLocalTransform = toSVGClipPathElement(m_clip.element())->calculateAnimatedLocalTransform();
     // When drawing a clip for non-SVG elements, the CTM does not include the zoom factor.
     // In this case, we need to apply the zoom scale explicitly - but only for clips with
@@ -59,13 +60,24 @@ bool SVGClipPainter::prepareEffect(const LayoutObject& target, const FloatRect& 
         context.paintController().createAndAppend<BeginClipPathDisplayItem>(target, clipPath);
         return true;
     }
+#endif
 
     // Fall back to masking.
     clipperState = ClipperAppliedMask;
 
     // Begin compositing the clip mask.
     CompositingRecorder::beginCompositing(context, target, SkXfermode::kSrcOver_Mode, 1, &paintInvalidationRect);
+#if ENABLE(SVG)
     {
+        AffineTransform animatedLocalTransform = toSVGClipPathElement(m_clip.element())->calculateAnimatedLocalTransform();
+        // When drawing a clip for non-SVG elements, the CTM does not include the zoom factor.
+        // In this case, we need to apply the zoom scale explicitly - but only for clips with
+        // userSpaceOnUse units (the zoom is accounted for objectBoundingBox-resolved lengths).
+        if (!target.isSVG() && m_clip.clipPathUnits() == SVGUnitTypes::SVG_UNIT_TYPE_USERSPACEONUSE) {
+            ASSERT(m_clip.style());
+            animatedLocalTransform.scale(m_clip.style()->effectiveZoom());
+        }
+
         TransformRecorder recorder(context, target, animatedLocalTransform);
 
         // clipPath can also be clipped by another clipPath.
@@ -83,6 +95,7 @@ bool SVGClipPainter::prepareEffect(const LayoutObject& target, const FloatRect& 
         if (clipPathClipper)
             SVGClipPainter(*clipPathClipper).finishEffect(m_clip, context, clipPathClipperState);
     }
+#endif
 
     // Masked content layer start.
     CompositingRecorder::beginCompositing(context, target, SkXfermode::kSrcIn_Mode, 1, &paintInvalidationRect);
@@ -111,6 +124,7 @@ void SVGClipPainter::finishEffect(const LayoutObject& target, GraphicsContext& c
 
 void SVGClipPainter::drawClipMaskContent(GraphicsContext& context, const LayoutObject& layoutObject, const FloatRect& targetBoundingBox, const FloatRect& targetPaintInvalidationRect)
 {
+#if ENABLE(SVG)
     AffineTransform contentTransformation;
     RefPtr<const SkPicture> clipContentPicture = m_clip.createContentPicture(contentTransformation, targetBoundingBox, context);
 
@@ -122,6 +136,7 @@ void SVGClipPainter::drawClipMaskContent(GraphicsContext& context, const LayoutO
     context.concatCTM(contentTransformation);
     context.drawPicture(clipContentPicture.get());
     context.restore();
+#endif
 }
 
 }

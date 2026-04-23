@@ -490,8 +490,10 @@ void ImageLoader::notifyFinished(Resource* resource)
 
     updateLayoutObject();
 
+#if ENABLE(SVG)
     if (m_image && m_image->image() && m_image->image()->isSVGImage())
         toSVGImage(m_image->image())->updateUseCounters(element()->document());
+#endif
 
     if (!m_hasPendingLoadEvent)
         return;

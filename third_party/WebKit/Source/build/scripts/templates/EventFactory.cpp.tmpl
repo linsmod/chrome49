@@ -15,12 +15,18 @@ namespace blink {
 PassRefPtrWillBeRawPtr<{{namespace}}> {{namespace}}{{suffix}}Factory::create(const String& type)
 {
     {% for event in events %}
+    {% if event.Conditional %}
+#if ENABLE({{event.Conditional}})
+    {% endif %}
     {% if event|script_name|case_insensitive_matching %}
     if (equalIgnoringCase(type, "{{event|script_name}}"){% if event.RuntimeEnabled %} && RuntimeEnabledFeatures::{{event.RuntimeEnabled|lower_first}}(){% endif %})
     {% else %}
     if (type == "{{event|script_name}}"{% if event.RuntimeEnabled %} && RuntimeEnabledFeatures::{{event.RuntimeEnabled|lower_first}}(){% endif %})
     {% endif %}
         return {{event|cpp_name}}::create();
+    {% if event.Conditional %}
+#endif // ENABLE({{event.Conditional}})
+    {% endif %}
     {% endfor %}
     return nullptr;
 }

@@ -27,7 +27,6 @@
  */
 
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path2d
-
 [
     Constructor,
     Constructor(Path2D path),
@@ -35,7 +34,7 @@
     GarbageCollected,
 ] interface Path2D {
 
-    [RuntimeEnabled=ExperimentalCanvasFeatures] void addPath(Path2D path, optional SVGMatrix? transform);
+    [Conditional=SVG, RuntimeEnabled=ExperimentalCanvasFeatures] void addPath(Path2D path, optional SVGMatrix? transform);
 };
 
 Path2D implements CanvasPathMethods;

@@ -24,6 +24,7 @@
 
 // TODO(philipj): SVGMatrix is gone from SVG 2, replaced by DOMMatrix.
 [
+    Conditional=SVG,
     ImplementedAs=SVGMatrixTearOff,
     SetWrapperReferenceTo(SVGTransform contextTransform),
     WillBeGarbageCollected,

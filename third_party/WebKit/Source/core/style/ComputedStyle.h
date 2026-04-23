@@ -37,7 +37,9 @@
 #include "core/style/LineClampValue.h"
 #include "core/style/NinePieceImage.h"
 #include "core/style/OutlineValue.h"
+#if ENABLE(SVG)
 #include "core/style/SVGComputedStyle.h"
+#endif
 #include "core/style/ShapeValue.h"
 #include "core/style/StyleBackgroundData.h"
 #include "core/style/StyleBoxData.h"
@@ -159,8 +161,9 @@ protected:
 
     // list of associated pseudo styles
     OwnPtr<PseudoStyleCache> m_cachedPseudoStyles;
-
+#if ENABLE(SVG)
     DataRef<SVGComputedStyle> m_svgStyle;
+#endif    
 
 // !START SYNC!: Keep this in sync with the copy constructor in ComputedStyle.cpp and implicitlyInherited() in StyleResolver.cpp
 
@@ -1479,6 +1482,7 @@ public:
     bool requiresAcceleratedCompositingForExternalReasons(bool b) { return rareNonInheritedData->m_requiresAcceleratedCompositingForExternalReasons; }
     void setRequiresAcceleratedCompositingForExternalReasons(bool b) { SET_VAR(rareNonInheritedData, m_requiresAcceleratedCompositingForExternalReasons, b); }
 
+#if ENABLE(SVG)
     const SVGComputedStyle& svgStyle() const { return *m_svgStyle.get(); }
     SVGComputedStyle& accessSVGStyle() { return *m_svgStyle.access(); }
 
@@ -1527,6 +1531,7 @@ public:
         svgStyle.setBaselineShift(BS_LENGTH);
         svgStyle.setBaselineShiftValue(value);
     }
+#endif
 
     void setShapeOutside(PassRefPtrWillBeRawPtr<ShapeValue> value)
     {
@@ -1886,9 +1891,11 @@ private:
     StyleColor decorationColorIncludingFallback(bool visitedLink) const;
     Color colorIncludingFallback(int colorProperty, bool visitedLink) const;
 
+#if ENABLE(SVG)
     Color stopColor() const { return svgStyle().stopColor(); }
     Color floodColor() const { return svgStyle().floodColor(); }
     Color lightingColor() const { return svgStyle().lightingColor(); }
+#endif
 
     void appendContent(PassOwnPtrWillBeRawPtr<ContentData>);
     void addAppliedTextDecoration(const AppliedTextDecoration&);

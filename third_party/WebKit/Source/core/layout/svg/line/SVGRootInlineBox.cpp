@@ -56,11 +56,13 @@ void SVGRootInlineBox::computePerCharacterLayoutInformation()
         reorderValueLists(layoutAttributes);
 
     // Perform SVG text layout phase two (see SVGTextLayoutEngine for details).
+#if ENABLE(SVG)
     SVGTextLayoutEngine characterLayout(layoutAttributes);
     characterLayout.layoutCharactersInTextBoxes(this);
 
     // Perform SVG text layout phase three (see SVGTextChunkBuilder for details).
     characterLayout.finishLayout();
+#endif
 
     // Perform SVG text layout phase four
     // Position & resize all SVGInlineText/FlowBoxes in the inline box tree, resize the root box as well as the LayoutSVGText parent block.

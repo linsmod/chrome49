@@ -26,7 +26,9 @@
 #include "core/dom/LayoutTreeBuilder.h"
 
 #include "core/HTMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/css/resolver/StyleResolver.h"
 #include "core/dom/FirstLetterPseudoElement.h"
 #include "core/dom/Fullscreen.h"
@@ -38,7 +40,9 @@
 #include "core/layout/LayoutObject.h"
 #include "core/layout/LayoutText.h"
 #include "core/layout/LayoutView.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/RuntimeEnabledFeatures.h"
 
 namespace blink {
@@ -88,6 +92,7 @@ bool LayoutTreeBuilderForElement::shouldCreateLayoutObject() const
         return false;
 
     // FIXME: Should the following be in SVGElement::layoutObjectIsNeeded()?
+#if ENABLE(SVG)
     if (m_node->isSVGElement()) {
         // SVG elements only render when inside <svg>, or if the element is an <svg> itself.
         if (!isSVGSVGElement(*m_node) && (!m_layoutObjectParent->node() || !m_layoutObjectParent->node()->isSVGElement()))
@@ -95,6 +100,7 @@ bool LayoutTreeBuilderForElement::shouldCreateLayoutObject() const
         if (!toSVGElement(m_node)->isValid())
             return false;
     }
+#endif
 
     LayoutObject* parentLayoutObject = this->parentLayoutObject();
     if (!parentLayoutObject)

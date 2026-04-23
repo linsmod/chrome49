@@ -83,6 +83,7 @@ static PassRefPtrWillBeRawPtr<CSSPrimitiveValue> zoomAdjustedPixelValueForLength
     return cssValuePool().createValue(length, style);
 }
 
+#if ENABLE(SVG)
 static PassRefPtrWillBeRawPtr<CSSPrimitiveValue> pixelValueForUnzoomedLength(const UnzoomedLength& unzoomedLength, const ComputedStyle& style)
 {
     const Length& length = unzoomedLength.length();
@@ -90,6 +91,7 @@ static PassRefPtrWillBeRawPtr<CSSPrimitiveValue> pixelValueForUnzoomedLength(con
         return cssValuePool().createValue(length.value(), CSSPrimitiveValue::UnitType::Pixels);
     return cssValuePool().createValue(length, style);
 }
+#endif
 
 static PassRefPtrWillBeRawPtr<CSSValueList> createPositionListForLayer(CSSPropertyID propertyID, const FillLayer& layer, const ComputedStyle& style)
 {
@@ -149,12 +151,14 @@ static PassRefPtrWillBeRawPtr<CSSValue> valueForFillRepeat(EFillRepeat xRepeat, 
 
 static PassRefPtrWillBeRawPtr<CSSValue> valueForFillSourceType(EMaskSourceType type)
 {
+#if ENABLE(SVG)
     switch (type) {
     case MaskAlpha:
         return cssValuePool().createIdentifierValue(CSSValueAlpha);
     case MaskLuminance:
         return cssValuePool().createIdentifierValue(CSSValueLuminance);
     }
+#endif
 
     ASSERT_NOT_REACHED();
 
@@ -1148,6 +1152,7 @@ static PassRefPtrWillBeRawPtr<CSSValueList> valueForBorderRadiusShorthand(const 
     return list.release();
 }
 
+#if ENABLE(SVG)
 static PassRefPtrWillBeRawPtr<CSSValue> strokeDashArrayToCSSValueList(const SVGDashArray& dashes, const ComputedStyle& style)
 {
     if (dashes.isEmpty())
@@ -1174,10 +1179,8 @@ static PassRefPtrWillBeRawPtr<CSSValue> paintOrderToCSSValueList(const SVGComput
         case PT_NONE:
         default:
             ASSERT_NOT_REACHED();
-            break;
         }
     }
-
     return list.release();
 }
 
@@ -1206,6 +1209,7 @@ static inline String serializeAsFragmentIdentifier(const AtomicString& resource)
 {
     return "#" + resource;
 }
+#endif
 
 PassRefPtrWillBeRawPtr<CSSValue> ComputedStyleCSSValueMapping::valueForShadowData(const ShadowData& shadow, const ComputedStyle& style, bool useSpread)
 {
@@ -1377,7 +1381,9 @@ const HashMap<AtomicString, RefPtr<CSSVariableData>>* ComputedStyleCSSValueMappi
 
 PassRefPtrWillBeRawPtr<CSSValue> ComputedStyleCSSValueMapping::get(CSSPropertyID propertyID, const ComputedStyle& style, const LayoutObject* layoutObject, Node* styledNode, bool allowVisitedStyle)
 {
+#if ENABLE(SVG)
     const SVGComputedStyle& svgStyle = style.svgStyle();
+#endif
     propertyID = CSSProperty::resolveDirectionAwareProperty(propertyID, style.direction(), style.writingMode());
     switch (propertyID) {
     case CSSPropertyInvalid:
@@ -2002,8 +2008,10 @@ PassRefPtrWillBeRawPtr<CSSValue> ComputedStyleCSSValueMapping::get(CSSPropertyID
         if (RuntimeEnabledFeatures::css3TextEnabled() && (style.textIndentLine() == TextIndentEachLine || style.textIndentType() == TextIndentHanging)) {
             if (style.textIndentLine() == TextIndentEachLine)
                 list->append(cssValuePool().createIdentifierValue(CSSValueEachLine));
+#if ENABLE(SVG)
             if (style.textIndentType() == TextIndentHanging)
                 list->append(cssValuePool().createIdentifierValue(CSSValueHanging));
+#endif
         }
         return list.release();
     }
@@ -2544,6 +2552,7 @@ PassRefPtrWillBeRawPtr<CSSValue> ComputedStyleCSSValueMapping::get(CSSPropertyID
     case CSSPropertyUserZoom:
         return nullptr;
 
+#if ENABLE(SVG)
     // SVG properties.
     case CSSPropertyClipRule:
         return CSSPrimitiveValue::create(svgStyle.clipRule());
@@ -2656,6 +2665,7 @@ PassRefPtrWillBeRawPtr<CSSValue> ComputedStyleCSSValueMapping::get(CSSPropertyID
         return zoomAdjustedPixelValueForLength(svgStyle.rx(), style);
     case CSSPropertyRy:
         return zoomAdjustedPixelValueForLength(svgStyle.ry(), style);
+#endif
     case CSSPropertyScrollSnapType:
         return cssValuePool().createValue(style.scrollSnapType());
     case CSSPropertyScrollSnapPointsX:

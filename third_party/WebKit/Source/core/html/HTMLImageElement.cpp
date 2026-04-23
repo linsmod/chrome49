@@ -47,7 +47,9 @@
 #include "core/layout/LayoutImage.h"
 #include "core/page/Page.h"
 #include "core/style/ContentData.h"
+#if ENABLE(SVG)
 #include "core/svg/graphics/SVGImageForContainer.h"
+#endif
 #include "platform/ContentType.h"
 #include "platform/EventDispatchForbiddenScope.h"
 #include "platform/MIMETypeRegistry.h"
@@ -605,12 +607,16 @@ PassRefPtr<Image> HTMLImageElement::getSourceImageForCanvas(SourceImageStatus* s
     }
 
     RefPtr<Image> sourceImage;
+#if ENABLE(SVG)
     if (cachedImage()->image()->isSVGImage()) {
         sourceImage = SVGImageForContainer::create(toSVGImage(cachedImage()->image()),
             cachedImage()->image()->size(), 1, document().completeURL(imageSourceURL()));
     } else {
+#endif
         sourceImage = cachedImage()->image();
+#if ENABLE(SVG)
     }
+#endif
 
     *status = NormalSourceImageStatus;
     return sourceImage->imageForDefaultFrame();
@@ -618,7 +624,11 @@ PassRefPtr<Image> HTMLImageElement::getSourceImageForCanvas(SourceImageStatus* s
 
 bool HTMLImageElement::isSVGSource() const
 {
+#if ENABLE(SVG)
     return cachedImage() && cachedImage()->image()->isSVGImage();
+#else
+    return false;
+#endif
 }
 
 bool HTMLImageElement::wouldTaintOrigin(SecurityOrigin* destinationSecurityOrigin) const
@@ -691,10 +701,12 @@ ScriptPromise HTMLImageElement::createImageBitmap(ScriptState* scriptState, Even
         exceptionState.throwDOMException(InvalidStateError, "No image can be retrieved from the provided element.");
         return ScriptPromise();
     }
+#if ENABLE(SVG)
     if (cachedImage()->image()->isSVGImage()) {
         exceptionState.throwDOMException(InvalidStateError, "The image element contains an SVG image, which is unsupported.");
         return ScriptPromise();
     }
+#endif
     if (!sw || !sh) {
         exceptionState.throwDOMException(IndexSizeError, String::format("The source %s provided is 0.", sw ? "height" : "width"));
         return ScriptPromise();

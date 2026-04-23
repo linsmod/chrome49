@@ -1764,7 +1764,11 @@ bool CSSPropertyParser::parseFillProperty(CSSPropertyID propId, CSSPropertyID& p
         }
         case CSSPropertyMaskSourceType: {
             ASSERT(RuntimeEnabledFeatures::cssMaskSourceTypeEnabled());
+#if ENABLE(SVG)
             if (val->id == CSSValueAuto || val->id == CSSValueAlpha || val->id == CSSValueLuminance) {
+#else
+            if (val->id == CSSValueAuto) {
+#endif
                 currValue = cssValuePool().createIdentifierValue(val->id);
                 m_valueList->next();
             } else {

@@ -91,8 +91,10 @@ bool CustomElementConstructorBuilder::validateOptions(const AtomicString& type, 
     }
 
     AtomicString namespaceURI = HTMLNames::xhtmlNamespaceURI;
+#if ENABLE(SVG)
     if (hasValidPrototypeChainFor(&V8SVGElement::wrapperTypeInfo))
         namespaceURI = SVGNames::svgNamespaceURI;
+#endif
 
     ASSERT(!tryCatch.HasCaught());
 
@@ -112,7 +114,11 @@ bool CustomElementConstructorBuilder::validateOptions(const AtomicString& type, 
             return false;
         }
     } else {
+#if ENABLE(SVG)
         if (namespaceURI == SVGNames::svgNamespaceURI) {
+#else
+        if (false) {
+#endif
             CustomElementException::throwException(CustomElementException::ExtendsIsInvalidName, type, exceptionState);
             tryCatch.ReThrow();
             return false;

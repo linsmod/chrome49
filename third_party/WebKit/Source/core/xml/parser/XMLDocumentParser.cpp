@@ -114,8 +114,10 @@ static inline bool hasNoStyleInformation(Document* document)
     if (document->frame()->tree().parent())
         return false; // This document is not in a top frame
 
+#if ENABLE(SVG)
     if (SVGImage::isInSVGImage(document))
         return false;
+#endif
 
     return true;
 }

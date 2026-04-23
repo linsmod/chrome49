@@ -83,7 +83,9 @@
 #include "core/layout/LayoutBox.h"
 #include "core/page/ContextMenuController.h"
 #include "core/page/Page.h"
+#if ENABLE(SVG)
 #include "core/svg/graphics/SVGImage.h"
+#endif
 #include "platform/EventDispatchForbiddenScope.h"
 #include "platform/TraceEvent.h"
 #include "platform/TracedValue.h"
@@ -661,7 +663,11 @@ void Node::recalcDistribution()
 
 void Node::setIsLink(bool isLink)
 {
+#if ENABLE(SVG)
     setFlag(isLink && !SVGImage::isInSVGImage(toElement(this)), IsLinkFlag);
+#else
+    setFlag(isLink, IsLinkFlag);
+#endif
 }
 
 void Node::setNeedsStyleInvalidation()

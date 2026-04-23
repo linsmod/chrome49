@@ -309,18 +309,23 @@ bool LayoutImage::needsPreferredWidthsRecalculation() const
 {
     if (LayoutReplaced::needsPreferredWidthsRecalculation())
         return true;
+#if ENABLE(SVG)
     return embeddedContentBox();
+#else
+    return false;
+#endif
 }
 
 LayoutBox* LayoutImage::embeddedContentBox() const
 {
+#if ENABLE(SVG)
     if (!m_imageResource)
         return nullptr;
 
     ImageResource* cachedImage = m_imageResource->cachedImage();
     if (cachedImage && cachedImage->image() && cachedImage->image()->isSVGImage())
         return toSVGImage(cachedImage->image())->embeddedContentBox();
-
+#endif
     return nullptr;
 }
 

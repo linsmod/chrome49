@@ -39,6 +39,7 @@ void {{v8_class}}::toImpl(v8::Isolate* isolate, v8::Local<v8::Value> v8Value, {{
     }
     {% endif %}
     {% for member in members %}
+    {% filter conditional(member.conditional_string) %}
     {% if member.runtime_enabled_function %}
     if ({{member.runtime_enabled_function}}()) {
     {% else %}
@@ -84,7 +85,7 @@ void {{v8_class}}::toImpl(v8::Isolate* isolate, v8::Local<v8::Value> v8Value, {{
             impl.{{member.setter_name}}({{member.name}});
         }
     }
-
+    {% endfilter %}
     {% endfor %}
 }
 

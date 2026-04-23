@@ -3565,14 +3565,18 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(LineCap e)
 {
     init(UnitType::ValueID);
     switch (e) {
+#if ENABLE(SVG)
     case ButtCap:
         m_value.valueID = CSSValueButt;
         break;
+#endif
     case RoundCap:
         m_value.valueID = CSSValueRound;
         break;
     case SquareCap:
         m_value.valueID = CSSValueSquare;
+        break;
+    default:
         break;
     }
 }
@@ -3581,8 +3585,10 @@ template<> inline LineCap CSSPrimitiveValue::convertTo() const
 {
     ASSERT(isValueID());
     switch (m_value.valueID) {
+#if ENABLE(SVG)
     case CSSValueButt:
         return ButtCap;
+#endif
     case CSSValueRound:
         return RoundCap;
     case CSSValueSquare:
@@ -3600,14 +3606,20 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(LineJoin e)
 {
     init(UnitType::ValueID);
     switch (e) {
+#if ENABLE(SVG)
     case MiterJoin:
         m_value.valueID = CSSValueMiter;
         break;
+#endif
     case RoundJoin:
         m_value.valueID = CSSValueRound;
         break;
+#if ENABLE(SVG)
     case BevelJoin:
         m_value.valueID = CSSValueBevel;
+        break;
+#endif
+    default:
         break;
     }
 }
@@ -3616,12 +3628,16 @@ template<> inline LineJoin CSSPrimitiveValue::convertTo() const
 {
     ASSERT(isValueID());
     switch (m_value.valueID) {
+#if ENABLE(SVG)
     case CSSValueMiter:
         return MiterJoin;
+#endif
     case CSSValueRound:
         return RoundJoin;
+#if ENABLE(SVG)
     case CSSValueBevel:
         return BevelJoin;
+#endif
     default:
         break;
     }
@@ -3672,6 +3688,7 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EAlignmentBaseline e)
     case AB_BASELINE:
         m_value.valueID = CSSValueBaseline;
         break;
+#if ENABLE(SVG)
     case AB_BEFORE_EDGE:
         m_value.valueID = CSSValueBeforeEdge;
         break;
@@ -3702,6 +3719,9 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EAlignmentBaseline e)
     case AB_MATHEMATICAL:
         m_value.valueID = CSSValueMathematical;
         break;
+#endif
+    default:
+        break;
     }
 }
 
@@ -3713,6 +3733,7 @@ template<> inline EAlignmentBaseline CSSPrimitiveValue::convertTo() const
         return AB_AUTO;
     case CSSValueBaseline:
         return AB_BASELINE;
+#if ENABLE(SVG)
     case CSSValueBeforeEdge:
         return AB_BEFORE_EDGE;
     case CSSValueTextBeforeEdge:
@@ -3733,6 +3754,7 @@ template<> inline EAlignmentBaseline CSSPrimitiveValue::convertTo() const
         return AB_HANGING;
     case CSSValueMathematical:
         return AB_MATHEMATICAL;
+#endif
     default:
         break;
     }
@@ -3854,11 +3876,15 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EBufferedRendering e)
     case BR_AUTO:
         m_value.valueID = CSSValueAuto;
         break;
+#if ENABLE(SVG)
     case BR_DYNAMIC:
         m_value.valueID = CSSValueDynamic;
         break;
+#endif
     case BR_STATIC:
         m_value.valueID = CSSValueStatic;
+        break;
+    default:
         break;
     }
 }
@@ -3869,8 +3895,10 @@ template<> inline EBufferedRendering CSSPrimitiveValue::convertTo() const
     switch (m_value.valueID) {
     case CSSValueAuto:
         return BR_AUTO;
+#if ENABLE(SVG)
     case CSSValueDynamic:
         return BR_DYNAMIC;
+#endif
     case CSSValueStatic:
         return BR_STATIC;
     default:
@@ -3889,11 +3917,15 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EColorInterpolation e)
     case CI_AUTO:
         m_value.valueID = CSSValueAuto;
         break;
+#if ENABLE(SVG)
     case CI_SRGB:
         m_value.valueID = CSSValueSRGB;
         break;
     case CI_LINEARRGB:
         m_value.valueID = CSSValueLinearRGB;
+        break;
+#endif
+    default:
         break;
     }
 }
@@ -3902,12 +3934,14 @@ template<> inline EColorInterpolation CSSPrimitiveValue::convertTo() const
 {
     ASSERT(isValueID());
     switch (m_value.valueID) {
+    case CSSValueAuto:
+        return CI_AUTO;
+#if ENABLE(SVG)
     case CSSValueSRGB:
         return CI_SRGB;
     case CSSValueLinearRGB:
         return CI_LINEARRGB;
-    case CSSValueAuto:
-        return CI_AUTO;
+#endif
     default:
         break;
     }
@@ -3959,6 +3993,7 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EDominantBaseline e)
     case DB_AUTO:
         m_value.valueID = CSSValueAuto;
         break;
+#if ENABLE(SVG)
     case DB_USE_SCRIPT:
         m_value.valueID = CSSValueUseScript;
         break;
@@ -3968,6 +4003,8 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EDominantBaseline e)
     case DB_RESET_SIZE:
         m_value.valueID = CSSValueResetSize;
         break;
+#endif
+#if ENABLE(SVG)
     case DB_CENTRAL:
         m_value.valueID = CSSValueCentral;
         break;
@@ -3992,6 +4029,9 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EDominantBaseline e)
     case DB_MATHEMATICAL:
         m_value.valueID = CSSValueMathematical;
         break;
+#endif
+    default:
+        break;
     }
 }
 
@@ -4001,6 +4041,7 @@ template<> inline EDominantBaseline CSSPrimitiveValue::convertTo() const
     switch (m_value.valueID) {
     case CSSValueAuto:
         return DB_AUTO;
+#if ENABLE(SVG)
     case CSSValueUseScript:
         return DB_USE_SCRIPT;
     case CSSValueNoChange:
@@ -4023,6 +4064,7 @@ template<> inline EDominantBaseline CSSPrimitiveValue::convertTo() const
         return DB_TEXT_AFTER_EDGE;
     case CSSValueTextBeforeEdge:
         return DB_TEXT_BEFORE_EDGE;
+#endif
     default:
         break;
     }
@@ -4042,11 +4084,15 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EShapeRendering e)
     case SR_OPTIMIZESPEED:
         m_value.valueID = CSSValueOptimizeSpeed;
         break;
+#if ENABLE(SVG)
     case SR_CRISPEDGES:
         m_value.valueID = CSSValueCrispEdges;
         break;
     case SR_GEOMETRICPRECISION:
         m_value.valueID = CSSValueGeometricPrecision;
+        break;
+#endif
+    default:
         break;
     }
 }
@@ -4059,10 +4105,12 @@ template<> inline EShapeRendering CSSPrimitiveValue::convertTo() const
         return SR_AUTO;
     case CSSValueOptimizeSpeed:
         return SR_OPTIMIZESPEED;
+#if ENABLE(SVG)
     case CSSValueCrispEdges:
         return SR_CRISPEDGES;
     case CSSValueGeometricPrecision:
         return SR_GEOMETRICPRECISION;
+#endif
     default:
         break;
     }
@@ -4114,8 +4162,12 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EVectorEffect e)
     case VE_NONE:
         m_value.valueID = CSSValueNone;
         break;
+#if ENABLE(SVG)
     case VE_NON_SCALING_STROKE:
         m_value.valueID = CSSValueNonScalingStroke;
+        break;
+#endif
+    default:
         break;
     }
 }
@@ -4126,8 +4178,10 @@ template<> inline EVectorEffect CSSPrimitiveValue::convertTo() const
     switch (m_value.valueID) {
     case CSSValueNone:
         return VE_NONE;
+#if ENABLE(SVG)
     case CSSValueNonScalingStroke:
         return VE_NON_SCALING_STROKE;
+#endif
     default:
         break;
     }
@@ -4180,11 +4234,15 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(EMaskType e)
 {
     init(UnitType::ValueID);
     switch (e) {
+#if ENABLE(SVG)
     case MT_LUMINANCE:
         m_value.valueID = CSSValueLuminance;
         break;
     case MT_ALPHA:
         m_value.valueID = CSSValueAlpha;
+        break;
+#endif
+    default:
         break;
     }
 }
@@ -4193,10 +4251,12 @@ template<> inline EMaskType CSSPrimitiveValue::convertTo() const
 {
     ASSERT(isValueID());
     switch (m_value.valueID) {
+#if ENABLE(SVG)
     case CSSValueLuminance:
         return MT_LUMINANCE;
     case CSSValueAlpha:
         return MT_ALPHA;
+#endif
     default:
         break;
     }

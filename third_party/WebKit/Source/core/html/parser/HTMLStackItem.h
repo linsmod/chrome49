@@ -124,9 +124,12 @@ public:
             || hasTagName(MathMLNames::msTag)
             || hasTagName(MathMLNames::mtextTag)
             || hasTagName(MathMLNames::annotation_xmlTag)
+#if ENABLE(SVG)
             || hasTagName(SVGNames::foreignObjectTag)
             || hasTagName(SVGNames::descTag)
-            || hasTagName(SVGNames::titleTag))
+            || hasTagName(SVGNames::titleTag)
+#endif
+            )
             return true;
         if (isDocumentFragmentNode())
             return true;

@@ -42,9 +42,12 @@
 #include "core/animation/PropertyHandle.h"
 #include "core/dom/Element.h"
 #include "core/dom/NodeComputedStyle.h"
+#include "platform/RuntimeEnabledFeatures.h"
 #include "core/frame/UseCounter.h"
 #include "core/paint/PaintLayer.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 
 namespace blink {
 
@@ -97,8 +100,10 @@ void KeyframeEffect::attach(Animation* animation)
     if (m_target) {
         m_target->ensureElementAnimations().animations().add(animation);
         m_target->setNeedsAnimationStyleRecalc();
+#if ENABLE(SVG)
         if (RuntimeEnabledFeatures::webAnimationsSVGEnabled() && m_target->isSVGElement())
             toSVGElement(m_target)->setWebAnimationsPending();
+#endif
     }
     AnimationEffect::attach(animation);
 }
@@ -196,8 +201,10 @@ void KeyframeEffect::applyEffects()
 
     if (changed) {
         m_target->setNeedsAnimationStyleRecalc();
+#if ENABLE(SVG)
         if (RuntimeEnabledFeatures::webAnimationsSVGEnabled() && m_target->isSVGElement())
             toSVGElement(*m_target).setWebAnimationsPending();
+#endif
     }
 }
 
@@ -210,8 +217,10 @@ void KeyframeEffect::clearEffects()
     m_sampledEffect = nullptr;
     restartAnimationOnCompositor();
     m_target->setNeedsAnimationStyleRecalc();
+#if ENABLE(SVG)
     if (RuntimeEnabledFeatures::webAnimationsSVGEnabled() && m_target->isSVGElement())
         toSVGElement(*m_target).clearWebAnimatedAttributes();
+#endif
     invalidate();
 }
 

@@ -7,6 +7,8 @@
 #include "core/css/StyleColor.h"
 #include "core/style/ComputedStyle.h"
 
+#if ENABLE(SVG)
+
 namespace blink {
 
 bool PaintPropertyFunctions::getInitialColor(CSSPropertyID property, StyleColor& result)
@@ -57,3 +59,26 @@ void PaintPropertyFunctions::setColor(CSSPropertyID property, ComputedStyle& sty
 
 
 } // namespace blink
+
+#else // !ENABLE(SVG)
+
+// Provide stub implementations when SVG is disabled
+namespace blink {
+
+bool PaintPropertyFunctions::getInitialColor(CSSPropertyID, StyleColor&)
+{
+    return false;
+}
+
+bool PaintPropertyFunctions::getColor(CSSPropertyID, const ComputedStyle&, StyleColor&)
+{
+    return false;
+}
+
+void PaintPropertyFunctions::setColor(CSSPropertyID, ComputedStyle&, const Color&)
+{
+}
+
+} // namespace blink
+
+#endif // ENABLE(SVG)

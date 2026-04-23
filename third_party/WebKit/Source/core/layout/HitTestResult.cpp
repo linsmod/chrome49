@@ -345,7 +345,10 @@ KURL HitTestResult::absoluteImageURL() const
     else if ((innerNodeOrImageMapImage->layoutObject() && innerNodeOrImageMapImage->layoutObject()->isImage())
         && (isHTMLEmbedElement(*innerNodeOrImageMapImage)
         || isHTMLObjectElement(*innerNodeOrImageMapImage)
-        || isSVGImageElement(*innerNodeOrImageMapImage)))
+#if ENABLE(SVG)
+        || isSVGImageElement(*innerNodeOrImageMapImage)
+#endif
+        ))
         urlString = toElement(*innerNodeOrImageMapImage).imageSourceURL();
     if (urlString.isEmpty())
         return KURL();

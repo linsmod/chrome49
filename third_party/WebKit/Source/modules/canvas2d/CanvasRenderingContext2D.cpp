@@ -657,6 +657,7 @@ void CanvasRenderingContext2D::setFilter(const String& filterString)
     modifiableState().setFilter(filterValue.release());
 }
 
+#if ENABLE(SVG)
 PassRefPtrWillBeRawPtr<SVGMatrixTearOff> CanvasRenderingContext2D::currentTransform() const
 {
     return SVGMatrixTearOff::create(state().transform());
@@ -668,6 +669,18 @@ void CanvasRenderingContext2D::setCurrentTransform(PassRefPtrWillBeRawPtr<SVGMat
     const AffineTransform& transform = matrixTearOff->value();
     setTransform(transform.a(), transform.b(), transform.c(), transform.d(), transform.e(), transform.f());
 }
+#else
+PassRefPtrWillBeRawPtr<SVGMatrixTearOff> CanvasRenderingContext2D::currentTransform() const
+{
+    // SVG is disabled, return null
+    return nullptr;
+}
+
+void CanvasRenderingContext2D::setCurrentTransform(PassRefPtrWillBeRawPtr<SVGMatrixTearOff>)
+{
+    // SVG is disabled, do nothing
+}
+#endif
 
 void CanvasRenderingContext2D::scale(double sx, double sy)
 {

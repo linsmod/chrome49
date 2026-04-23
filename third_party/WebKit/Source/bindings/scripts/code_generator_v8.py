@@ -410,6 +410,7 @@ def initialize_jinja_env(cache_dir):
         'blink_capitalize': capitalize,
         'exposed': exposed_if,
         'runtime_enabled': runtime_enabled_if,
+        'conditional': conditional_if,
         })
     return jinja_env
 
@@ -434,6 +435,13 @@ def runtime_enabled_if(code, runtime_enabled_function_name):
     if not runtime_enabled_function_name:
         return code
     return generate_indented_conditional(code, '%s()' % runtime_enabled_function_name)
+
+
+# [Conditional]
+def conditional_if(code, conditional_string):
+    if not conditional_string:
+        return code
+    return '#if %s\n%s\n#endif // %s\n' % (conditional_string, code, conditional_string)
 
 
 ################################################################################

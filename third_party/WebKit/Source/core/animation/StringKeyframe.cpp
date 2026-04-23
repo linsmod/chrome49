@@ -11,7 +11,9 @@
 #include "core/animation/CSSImageInterpolationType.h"
 #include "core/animation/CSSImageListInterpolationType.h"
 #include "core/animation/CSSLengthInterpolationType.h"
+#if ENABLE(SVG)
 #include "core/animation/CSSLengthListInterpolationType.h"
+#endif
 #include "core/animation/CSSNumberInterpolationType.h"
 #include "core/animation/CSSPaintInterpolationType.h"
 #include "core/animation/CSSShadowListInterpolationType.h"
@@ -274,9 +276,11 @@ const InterpolationTypes* applicableTypesForProperty(PropertyHandle property)
         case CSSPropertyWebkitMaskImage:
             applicableTypes->append(adoptPtr(new CSSImageListInterpolationType(cssProperty)));
             break;
+#if ENABLE(SVG)
         case CSSPropertyStrokeDasharray:
             applicableTypes->append(adoptPtr(new CSSLengthListInterpolationType(cssProperty)));
             break;
+#endif
         case CSSPropertyFontWeight:
             applicableTypes->append(adoptPtr(new CSSFontWeightInterpolationType(cssProperty)));
             break;
@@ -293,6 +297,7 @@ const InterpolationTypes* applicableTypesForProperty(PropertyHandle property)
         if (!fallbackToLegacy)
             applicableTypes->append(adoptPtr(new CSSValueInterpolationType(cssProperty)));
 
+#if ENABLE(SVG)
     } else {
         const QualifiedName& attribute = property.svgAttribute();
         if (attribute == SVGNames::orientAttr) {
@@ -412,6 +417,7 @@ const InterpolationTypes* applicableTypesForProperty(PropertyHandle property)
 
         if (!fallbackToLegacy)
             applicableTypes->append(adoptPtr(new SVGValueInterpolationType(attribute)));
+#endif
     }
 
     auto addResult = applicableTypesMap.add(property, fallbackToLegacy ? nullptr : applicableTypes.release());
@@ -623,6 +629,7 @@ PassOwnPtr<Keyframe::PropertySpecificKeyframe> SVGPropertySpecificKeyframe::neut
 
 namespace {
 
+#if ENABLE(SVG)
 PassRefPtr<Interpolation> createSVGInterpolation(SVGPropertyBase* fromValue, SVGPropertyBase* toValue, SVGAnimatedPropertyBase* attribute)
 {
     RefPtr<Interpolation> interpolation = nullptr;
@@ -653,9 +660,11 @@ PassRefPtr<Interpolation> createSVGInterpolation(SVGPropertyBase* fromValue, SVG
 
     return DefaultSVGInterpolation::create(fromValue, toValue, attribute);
 }
+#endif
 
 } // namespace
 
+#if ENABLE(SVG)
 PassRefPtr<Interpolation> SVGPropertySpecificKeyframe::maybeCreateInterpolation(PropertyHandle propertyHandle, Keyframe::PropertySpecificKeyframe& end, Element* element, const ComputedStyle* baseStyle) const
 {
     const InterpolationTypes* applicableTypes = applicableTypesForProperty(propertyHandle);
@@ -674,5 +683,11 @@ PassRefPtr<Interpolation> SVGPropertySpecificKeyframe::maybeCreateInterpolation(
 
     return createSVGInterpolation(fromValue.get(), toValue.get(), attribute);
 }
+#else
+PassRefPtr<Interpolation> SVGPropertySpecificKeyframe::maybeCreateInterpolation(PropertyHandle, Keyframe::PropertySpecificKeyframe&, Element*, const ComputedStyle*) const
+{
+    return nullptr;
+}
+#endif
 
 } // namespace blink

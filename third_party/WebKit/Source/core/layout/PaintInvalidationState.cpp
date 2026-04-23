@@ -85,12 +85,14 @@ PaintInvalidationState::PaintInvalidationState(PaintInvalidationState& next, Lay
             m_clipRect = next.m_clipRect;
     }
 
+#if ENABLE(SVG)
     if (m_cachedOffsetsEnabled && layoutObject.isSVGRoot()) {
         const LayoutSVGRoot& svgRoot = toLayoutSVGRoot(layoutObject);
         m_svgTransform = AffineTransform(svgRoot.localToBorderBoxTransform());
         if (svgRoot.shouldApplyViewportClip())
             addClipRectRelativeToPaintOffset(LayoutSize(svgRoot.pixelSnappedSize()));
     }
+#endif
 
     applyClipIfNeeded(layoutObject);
 

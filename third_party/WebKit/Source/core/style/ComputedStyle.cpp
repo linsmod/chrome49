@@ -60,8 +60,9 @@ static_assert(sizeof(BorderValue) == sizeof(SameSizeAsBorderValue), "BorderValue
 struct SameSizeAsComputedStyle : public RefCounted<SameSizeAsComputedStyle> {
     void* dataRefs[7];
     void* ownPtrs[1];
+    #if ENABLE(SVG)
     void* dataRefSvgStyle;
-
+    #endif
     struct InheritedFlags {
         unsigned m_bitfields[2];
     } inherited_flags;
@@ -105,7 +106,9 @@ ALWAYS_INLINE ComputedStyle::ComputedStyle()
     , rareNonInheritedData(initialStyle()->rareNonInheritedData)
     , rareInheritedData(initialStyle()->rareInheritedData)
     , inherited(initialStyle()->inherited)
+    #if ENABLE(SVG)
     , m_svgStyle(initialStyle()->m_svgStyle)
+    #endif
 {
     setBitDefaults(); // Would it be faster to copy this from the default style?
     static_assert((sizeof(InheritedFlags) <= 8), "InheritedFlags should not grow");
@@ -133,7 +136,9 @@ ALWAYS_INLINE ComputedStyle::ComputedStyle(InitialStyleTag)
     rareNonInheritedData.access()->m_scrollSnap.init();
     rareInheritedData.init();
     inherited.init();
+#if ENABLE(SVG)
     m_svgStyle.init();
+#endif
 }
 
 ALWAYS_INLINE ComputedStyle::ComputedStyle(const ComputedStyle& o)
@@ -145,7 +150,9 @@ ALWAYS_INLINE ComputedStyle::ComputedStyle(const ComputedStyle& o)
     , rareNonInheritedData(o.rareNonInheritedData)
     , rareInheritedData(o.rareInheritedData)
     , inherited(o.inherited)
+    #if ENABLE(SVG)
     , m_svgStyle(o.m_svgStyle)
+    #endif
     , inherited_flags(o.inherited_flags)
     , noninherited_flags(o.noninherited_flags)
 {
@@ -235,8 +242,10 @@ void ComputedStyle::inheritFrom(const ComputedStyle& inheritParent, IsAtShadowBo
     }
     inherited = inheritParent.inherited;
     inherited_flags = inheritParent.inherited_flags;
+#if ENABLE(SVG)
     if (m_svgStyle != inheritParent.m_svgStyle)
         m_svgStyle.access()->inheritFrom(inheritParent.m_svgStyle.get());
+#endif
 }
 
 void ComputedStyle::copyNonInheritedFromCached(const ComputedStyle& other)
@@ -298,8 +307,10 @@ void ComputedStyle::copyNonInheritedFromCached(const ComputedStyle& other)
     // noninherited_flags.affectedByDrag
     // noninherited_flags.isLink
 
+#if ENABLE(SVG)
     if (m_svgStyle != other.m_svgStyle)
         m_svgStyle.access()->copyNonInheritedFromCached(other.m_svgStyle.get());
+#endif
     ASSERT(zoom() == initialZoom());
 }
 
@@ -315,7 +326,10 @@ bool ComputedStyle::operator==(const ComputedStyle& o) const
         && rareNonInheritedData == o.rareNonInheritedData
         && rareInheritedData == o.rareInheritedData
         && inherited == o.inherited
-        && m_svgStyle == o.m_svgStyle;
+#if ENABLE(SVG)
+        && m_svgStyle == o.m_svgStyle
+#endif
+        ;
 }
 
 bool ComputedStyle::isStyleAvailable() const
@@ -389,7 +403,9 @@ bool ComputedStyle::inheritedNotEqual(const ComputedStyle& other) const
     return inherited_flags != other.inherited_flags
         || inherited != other.inherited
         || font().loadingCustomFonts() != other.font().loadingCustomFonts()
+#if ENABLE(SVG)
         || m_svgStyle->inheritedNotEqual(other.m_svgStyle.get())
+#endif
         || rareInheritedData != other.rareInheritedData;
 }
 
@@ -398,7 +414,9 @@ bool ComputedStyle::inheritedDataShared(const ComputedStyle& other) const
     // This is a fast check that only looks if the data structures are shared.
     return inherited_flags == other.inherited_flags
         && inherited.get() == other.inherited.get()
+        #if ENABLE(SVG)
         && m_svgStyle.get() == other.m_svgStyle.get()
+        #endif
         && rareInheritedData.get() == other.rareInheritedData.get();
 }
 
@@ -417,8 +435,10 @@ StyleDifference ComputedStyle::visualInvalidationDiff(const ComputedStyle& other
     // this function anyway.
 
     StyleDifference diff;
+#if ENABLE(SVG)
     if (m_svgStyle.get() != other.m_svgStyle.get())
         diff = m_svgStyle->diff(other.m_svgStyle.get());
+#endif
 
     if ((!diff.needsFullLayout() || !diff.needsPaintInvalidation()) && diffNeedsFullLayoutAndPaintInvalidation(other)) {
         diff.setNeedsFullLayout();
@@ -1516,6 +1536,7 @@ Color ComputedStyle::colorIncludingFallback(int colorProperty, bool visitedLink)
     case CSSPropertyWebkitTextStrokeColor:
         result = visitedLink ? visitedLinkTextStrokeColor() : textStrokeColor();
         break;
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         result = floodColor();
         break;
@@ -1525,6 +1546,7 @@ Color ComputedStyle::colorIncludingFallback(int colorProperty, bool visitedLink)
     case CSSPropertyStopColor:
         result = stopColor();
         break;
+#endif
     case CSSPropertyWebkitTapHighlightColor:
         result = tapHighlightColor();
         break;

@@ -44,10 +44,14 @@
 #include "core/animation/animatable/AnimatableLengthSize.h"
 #include "core/animation/animatable/AnimatablePath.h"
 #include "core/animation/animatable/AnimatableRepeatable.h"
+#if ENABLE(SVG)
 #include "core/animation/animatable/AnimatableSVGPaint.h"
+#endif
 #include "core/animation/animatable/AnimatableShadow.h"
 #include "core/animation/animatable/AnimatableShapeValue.h"
+#if ENABLE(SVG)
 #include "core/animation/animatable/AnimatableStrokeDasharrayList.h"
+#endif
 #include "core/animation/animatable/AnimatableTransform.h"
 #include "core/animation/animatable/AnimatableUnknown.h"
 #include "core/animation/animatable/AnimatableValue.h"
@@ -79,10 +83,12 @@ Length animatableValueToLength(const AnimatableValue* value, const StyleResolver
     return animatableValueToLengthWithZoom(value, state.style()->effectiveZoom(), range);
 }
 
+#if ENABLE(SVG)
 UnzoomedLength animatableValueToUnzoomedLength(const AnimatableValue* value, const StyleResolverState&, ValueRange range = ValueRangeAll)
 {
     return UnzoomedLength(animatableValueToLengthWithZoom(value, 1, range));
 }
+#endif
 
 BorderImageLength animatableValueToBorderImageLength(const AnimatableValue* value, const StyleResolverState& state)
 {
@@ -308,10 +314,12 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyBackgroundSize:
         setOnFillLayers<CSSPropertyBackgroundSize>(style->accessBackgroundLayers(), value, state);
         return;
+#if ENABLE(SVG)
     case CSSPropertyBaselineShift:
         style->accessSVGStyle().setBaselineShift(BS_LENGTH);
         style->accessSVGStyle().setBaselineShiftValue(animatableValueToLength(value, state));
         return;
+#endif
     case CSSPropertyBorderBottomColor:
         style->setBorderBottomColor(toAnimatableColor(value)->color());
         style->setVisitedLinkBorderBottomColor(toAnimatableColor(value)->visitedLinkColor());
@@ -378,6 +386,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
         style->setColor(toAnimatableColor(value)->color());
         style->setVisitedLinkColor(toAnimatableColor(value)->visitedLinkColor());
         return;
+#if ENABLE(SVG)
     case CSSPropertyFillOpacity:
         style->setFillOpacity(clampTo<float>(toAnimatableDouble(value)->toDouble(), 0, 1));
         return;
@@ -388,6 +397,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
             style->accessSVGStyle().setFillPaint(svgPaint->visitedLinkPaintType(), svgPaint->visitedLinkColor(), svgPaint->visitedLinkURI(), false, true);
         }
         return;
+#endif
     case CSSPropertyFlexGrow:
         style->setFlexGrow(clampTo<float>(toAnimatableDouble(value)->toDouble(), 0));
         return;
@@ -397,12 +407,14 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyFlexBasis:
         style->setFlexBasis(animatableValueToLength(value, state, ValueRangeNonNegative));
         return;
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         style->setFloodColor(toAnimatableColor(value)->color());
         return;
     case CSSPropertyFloodOpacity:
         style->setFloodOpacity(clampTo<float>(toAnimatableDouble(value)->toDouble(), 0, 1));
         return;
+#endif
     case CSSPropertyFontSize:
         state.fontBuilder().setSize(animatableValueToFontSize(value));
         return;
@@ -421,9 +433,11 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyLeft:
         style->setLeft(animatableValueToLength(value, state));
         return;
+#if ENABLE(SVG)
     case CSSPropertyLightingColor:
         style->setLightingColor(toAnimatableColor(value)->color());
         return;
+#endif
     case CSSPropertyLineHeight:
         if (value->isLength())
             style->setLineHeight(animatableValueToLength(value, state, ValueRangeNonNegative));
@@ -495,6 +509,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyRight:
         style->setRight(animatableValueToLength(value, state));
         return;
+#if ENABLE(SVG)
     case CSSPropertyStrokeWidth:
         style->setStrokeWidth(animatableValueToUnzoomedLength(value, state, ValueRangeNonNegative));
         return;
@@ -523,6 +538,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
             style->accessSVGStyle().setStrokePaint(svgPaint->visitedLinkPaintType(), svgPaint->visitedLinkColor(), svgPaint->visitedLinkURI(), false, true);
         }
         return;
+#endif
     case CSSPropertyTextDecorationColor:
         style->setTextDecorationColor(toAnimatableColor(value)->color());
         style->setVisitedLinkTextDecorationColor(toAnimatableColor(value)->visitedLinkColor());
@@ -681,6 +697,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyZIndex:
         style->setZIndex(clampTo<int>(round(toAnimatableDouble(value)->toDouble())));
         return;
+#if ENABLE(SVG)
     case CSSPropertyD:
         style->setD(toAnimatablePath(value)->path());
         return;
@@ -705,6 +722,7 @@ void AnimatedStyleBuilder::applyProperty(CSSPropertyID property, StyleResolverSt
     case CSSPropertyRy:
         style->setRy(animatableValueToLength(value, state, ValueRangeNonNegative));
         return;
+#endif
 
     default:
         ASSERT_NOT_REACHED();

@@ -199,6 +199,7 @@ def method_context(interface, method, is_visible=True):
         'property_attributes': property_attributes(interface, method),
         'returns_promise': method.returns_promise,
         'runtime_enabled_function': v8_utilities.runtime_enabled_function_name(method),  # [RuntimeEnabled]
+        'conditional_string': v8_utilities.conditional_string(method),  # [Conditional]
         'should_be_exposed_to_script': not (is_implemented_in_private_script and is_only_exposed_to_private_script),
         'use_output_parameter_for_result': idl_type.use_output_parameter_for_result,
         'use_local_result': use_local_result(method),

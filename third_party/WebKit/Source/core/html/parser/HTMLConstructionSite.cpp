@@ -47,7 +47,9 @@
 #include "core/html/parser/HTMLToken.h"
 #include "core/loader/FrameLoader.h"
 #include "core/loader/FrameLoaderClient.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGScriptElement.h"
+#endif
 #include "platform/NotImplemented.h"
 #include "platform/text/TextBreakIterator.h"
 #include <limits>
@@ -83,7 +85,10 @@ static bool shouldUseLengthLimit(const ContainerNode& node)
 {
     return !isHTMLScriptElement(node)
         && !isHTMLStyleElement(node)
-        && !isSVGScriptElement(node);
+#if ENABLE(SVG)
+        && !isSVGScriptElement(node)
+#endif
+        ;
 }
 
 static unsigned textLengthLimitForContainer(const ContainerNode& node)

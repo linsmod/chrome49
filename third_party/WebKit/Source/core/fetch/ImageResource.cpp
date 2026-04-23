@@ -280,7 +280,11 @@ inline void ImageResource::createImage()
         return;
 
     if (m_response.mimeType() == "image/svg+xml") {
+#if ENABLE(SVG)
         m_image = SVGImage::create(this);
+#else
+        m_image = BitmapImage::create(this);
+#endif
     } else {
         m_image = BitmapImage::create(this);
     }

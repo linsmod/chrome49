@@ -524,6 +524,41 @@ static void conditionalReadOnlyLongAttributeAttributeGetterCallback(const v8::Fu
     TRACE_EVENT_SET_SAMPLING_STATE("v8", "V8Execution");
 }
 
+#if ENABLE(SVG)
+static void conditionalAttributeAttributeGetter(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    v8::Local<v8::Object> holder = info.Holder();
+    TestInterfaceImplementation* impl = V8TestInterface::toImpl(holder);
+    v8SetReturnValueInt(info, impl->conditionalAttribute());
+}
+
+static void conditionalAttributeAttributeGetterCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    TRACE_EVENT_SET_SAMPLING_STATE("blink", "DOMGetter");
+    TestInterfaceImplementationV8Internal::conditionalAttributeAttributeGetter(info);
+    TRACE_EVENT_SET_SAMPLING_STATE("v8", "V8Execution");
+}
+
+static void conditionalAttributeAttributeSetter(v8::Local<v8::Value> v8Value, const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    v8::Local<v8::Object> holder = info.Holder();
+    ExceptionState exceptionState(ExceptionState::SetterContext, "conditionalAttribute", "TestInterface", holder, info.GetIsolate());
+    TestInterfaceImplementation* impl = V8TestInterface::toImpl(holder);
+    int cppValue = toInt32(info.GetIsolate(), v8Value, NormalConversion, exceptionState);
+    if (exceptionState.throwIfNeeded())
+        return;
+    impl->setConditionalAttribute(cppValue);
+}
+
+static void conditionalAttributeAttributeSetterCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    v8::Local<v8::Value> v8Value = info[0];
+    TRACE_EVENT_SET_SAMPLING_STATE("blink", "DOMSetter");
+    TestInterfaceImplementationV8Internal::conditionalAttributeAttributeSetter(v8Value, info);
+    TRACE_EVENT_SET_SAMPLING_STATE("v8", "V8Execution");
+}
+#endif // ENABLE(SVG)
+
 static void staticStringAttributeAttributeGetter(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
     ExecutionContext* executionContext = currentExecutionContext(info.GetIsolate());
@@ -2063,13 +2098,27 @@ static void methodWithExposedAndRuntimeEnabledFlagMethodCallback(const v8::Funct
     ExecutionContext* executionContext = currentExecutionContext(info.GetIsolate());
     String errorMessage;
     if (!ExperimentalFeatures::featureNameEnabled(executionContext, errorMessage)) {
-         v8SetReturnValue(info, v8::Undefined(info.GetIsolate()));
          toDocument(executionContext)->addConsoleMessage(ConsoleMessage::create(JSMessageSource, ErrorMessageLevel, errorMessage));
          return;
     }
     TestInterfaceImplementationV8Internal::methodWithExposedAndRuntimeEnabledFlagMethod(info);
     TRACE_EVENT_SET_SAMPLING_STATE("v8", "V8Execution");
 }
+
+#if ENABLE(SVG)
+static void conditionalMethodMethod(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    TestInterfaceImplementation* impl = V8TestInterface::toImpl(info.Holder());
+    impl->conditionalMethod();
+}
+
+static void conditionalMethodMethodCallback(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+    TRACE_EVENT_SET_SAMPLING_STATE("blink", "DOMMethod");
+    TestInterfaceImplementationV8Internal::conditionalMethodMethod(info);
+    TRACE_EVENT_SET_SAMPLING_STATE("v8", "V8Execution");
+}
+#endif // ENABLE(SVG)
 
 static void overloadMethodWithExposedAndRuntimeEnabledFlag1Method(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
@@ -3094,6 +3143,11 @@ void V8TestInterface::installV8TestInterfaceTemplate(v8::Local<v8::FunctionTempl
         {"conditionalLongAttribute", TestInterfaceImplementationV8Internal::conditionalLongAttributeAttributeGetterCallback, TestInterfaceImplementationV8Internal::conditionalLongAttributeAttributeSetterCallback, 0, 0, 0, v8::DEFAULT, static_cast<v8::PropertyAttribute>(v8::None), V8DOMConfiguration::ExposedToAllScripts, V8DOMConfiguration::OnPrototype, V8DOMConfiguration::CheckHolder};
         V8DOMConfiguration::installAccessor(isolate, instanceTemplate, prototypeTemplate, functionTemplate, defaultSignature, accessorconditionalLongAttributeConfiguration);
     }
+#if ENABLE(SVG)
+    const V8DOMConfiguration::AccessorConfiguration accessorconditionalAttributeConfiguration = \
+    {"conditionalAttribute", TestInterfaceImplementationV8Internal::conditionalAttributeAttributeGetterCallback, TestInterfaceImplementationV8Internal::conditionalAttributeAttributeSetterCallback, 0, 0, 0, v8::DEFAULT, static_cast<v8::PropertyAttribute>(v8::None), V8DOMConfiguration::ExposedToAllScripts, V8DOMConfiguration::OnPrototype, V8DOMConfiguration::CheckHolder};
+    V8DOMConfiguration::installAccessor(isolate, instanceTemplate, prototypeTemplate, functionTemplate, defaultSignature, accessorconditionalAttributeConfiguration);
+#endif // ENABLE(SVG)
     if (RuntimeEnabledFeatures::implements2FeatureNameEnabled()) {
         const V8DOMConfiguration::AccessorConfiguration accessorimplements2StaticStringAttributeConfiguration = \
         {"implements2StaticStringAttribute", TestInterfaceImplementationV8Internal::implements2StaticStringAttributeAttributeGetterCallback, TestInterfaceImplementationV8Internal::implements2StaticStringAttributeAttributeSetterCallback, 0, 0, 0, v8::DEFAULT, static_cast<v8::PropertyAttribute>(v8::None), V8DOMConfiguration::ExposedToAllScripts, V8DOMConfiguration::OnInterface, V8DOMConfiguration::CheckHolder};
@@ -3234,6 +3288,10 @@ void V8TestInterface::preparePrototypeAndInterfaceObject(v8::Local<v8::Context> 
             V8DOMConfiguration::installMethod(isolate, v8::Local<v8::Object>(), prototypeObject, interfaceObject, defaultSignature, methodWithExposedAndRuntimeEnabledFlagMethodConfiguration);
         }
     }
+#if ENABLE(SVG)
+    const V8DOMConfiguration::MethodConfiguration conditionalMethodMethodConfiguration = {"conditionalMethod", TestInterfaceImplementationV8Internal::conditionalMethodMethodCallback, 0, 0, v8::None, V8DOMConfiguration::ExposedToAllScripts, V8DOMConfiguration::OnPrototype};
+    V8DOMConfiguration::installMethod(isolate, v8::Local<v8::Object>(), prototypeObject, interfaceObject, defaultSignature, conditionalMethodMethodConfiguration);
+#endif // ENABLE(SVG)
     if (executionContext && (executionContext->isDocument())) {
         const V8DOMConfiguration::MethodConfiguration overloadMethodWithExposedAndRuntimeEnabledFlagMethodConfiguration = {"overloadMethodWithExposedAndRuntimeEnabledFlag", TestInterfaceImplementationV8Internal::overloadMethodWithExposedAndRuntimeEnabledFlagMethodCallback, 0, 1, v8::None, V8DOMConfiguration::ExposedToAllScripts, V8DOMConfiguration::OnPrototype};
         V8DOMConfiguration::installMethod(isolate, v8::Local<v8::Object>(), prototypeObject, interfaceObject, defaultSignature, overloadMethodWithExposedAndRuntimeEnabledFlagMethodConfiguration);

@@ -88,8 +88,15 @@ class Maker(object):
         parser = optparse.OptionParser()
         parser.add_option("--gperf", default="gperf")
         parser.add_option("--output_dir", default=os.getcwd())
+        parser.add_option("--feature_defines", default="")
         options, args = parser.parse_args()
 
-        writer = self._writer_class(args)
+        # Try to pass feature_defines if writer accepts it
+        import inspect
+        writer_args = inspect.getargspec(self._writer_class.__init__).args
+        if len(writer_args) > 2:  # More than just self and in_files
+            writer = self._writer_class(args, options.feature_defines)
+        else:
+            writer = self._writer_class(args)
         writer.set_gperf_path(options.gperf)
         writer.write_files(options.output_dir)

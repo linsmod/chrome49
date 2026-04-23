@@ -126,7 +126,11 @@ class ClipPathHelper {
 public:
     ClipPathHelper(GraphicsContext& context, const PaintLayer& paintLayer, PaintLayerPaintingInfo& paintingInfo, LayoutRect& rootRelativeBounds, bool& rootRelativeBoundsComputed,
         const LayoutPoint& offsetFromRoot, PaintLayerFlags paintFlags)
-        : m_resourceClipper(0), m_paintLayer(paintLayer), m_context(context)
+#if ENABLE(SVG)
+        : m_resourceClipper(0), m_clipperState(SVGClipPainter::ClipperNotApplied), m_paintLayer(paintLayer), m_context(context)
+#else
+        : m_paintLayer(paintLayer), m_context(context)
+#endif
     {
         const ComputedStyle& style = paintLayer.layoutObject()->styleRef();
 
@@ -136,7 +140,9 @@ public:
         if (!paintLayer.layoutObject()->hasClipPath() || (paintLayer.needsCompositedScrolling() && !(paintFlags & PaintLayerPaintingChildClippingMaskPhase)))
             return;
 
+#if ENABLE(SVG)
         m_clipperState = SVGClipPainter::ClipperNotApplied;
+#endif
 
         paintingInfo.ancestorHasClipPathClipping = true;
 
@@ -151,6 +157,7 @@ public:
                 m_clipPathRecorder.emplace(context, *paintLayer.layoutObject(), clipPath->path(FloatRect(rootRelativeBounds)));
             }
         } else if (style.clipPath()->type() == ClipPathOperation::REFERENCE) {
+#if ENABLE(SVG)
             ReferenceClipPathOperation* referenceClipPathOperation = toReferenceClipPathOperation(style.clipPath());
             Document& document = paintLayer.layoutObject()->document();
             // FIXME: It doesn't work with forward or external SVG references (https://bugs.webkit.org/show_bug.cgi?id=90405)
@@ -168,20 +175,25 @@ public:
                     m_resourceClipper = 0;
                 }
             }
+#endif
         }
     }
 
     ~ClipPathHelper()
     {
+#if ENABLE(SVG)
         if (m_resourceClipper)
             SVGClipPainter(*m_resourceClipper).finishEffect(*m_paintLayer.layoutObject(), m_context, m_clipperState);
+#endif
     }
 private:
+#if ENABLE(SVG)
     LayoutSVGResourceClipper* m_resourceClipper;
-    Optional<ClipPathRecorder> m_clipPathRecorder;
     SVGClipPainter::ClipperState m_clipperState;
-    const PaintLayer& m_paintLayer;
-    GraphicsContext& m_context;
+#endif
+    const PaintLayer& m_paintLayer __attribute__((unused));
+    GraphicsContext& m_context __attribute__((unused));
+    Optional<ClipPathRecorder> m_clipPathRecorder;
 };
 
 static bool shouldCreateSubsequence(const PaintLayer& paintLayer, GraphicsContext& context, const PaintLayerPaintingInfo& paintingInfo, PaintLayerFlags paintFlags)

@@ -120,6 +120,7 @@ def member_context(dictionary, member):
         'is_required': member.is_required,
         'name': member.name,
         'runtime_enabled_function': v8_utilities.runtime_enabled_function_name(member),  # [RuntimeEnabled]
+        'conditional_string': v8_utilities.conditional_string(member),  # [Conditional]
         'setter_name': setter_name_for_dictionary_member(member),
         'null_setter_name': null_setter_name_for_dictionary_member(member),
         'v8_default_value': v8_default_value,

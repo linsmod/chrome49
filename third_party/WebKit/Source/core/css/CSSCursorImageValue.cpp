@@ -36,11 +36,18 @@
 
 namespace blink {
 
+#if ENABLE(SVG)
 static inline SVGCursorElement* resourceReferencedByCursorElement(const String& url, TreeScope& treeScope)
 {
     Element* element = SVGURIReference::targetElementFromIRIString(url, treeScope);
     return isSVGCursorElement(element) ? toSVGCursorElement(element) : nullptr;
 }
+#else
+static inline SVGCursorElement* resourceReferencedByCursorElement(const String&, TreeScope&)
+{
+    return nullptr;
+}
+#endif
 
 CSSCursorImageValue::CSSCursorImageValue(PassRefPtrWillBeRawPtr<CSSValue> imageValue, bool hotSpotSpecified, const IntPoint& hotSpot)
     : CSSValue(CursorImageClass)
@@ -54,7 +61,7 @@ CSSCursorImageValue::CSSCursorImageValue(PassRefPtrWillBeRawPtr<CSSValue> imageV
 CSSCursorImageValue::~CSSCursorImageValue()
 {
     // The below teardown is all handled by weak pointer processing in oilpan.
-#if !ENABLE(OILPAN)
+#if !ENABLE(OILPAN) && ENABLE(SVG)
     if (!isSVGCursor())
         return;
 
@@ -81,6 +88,7 @@ String CSSCursorImageValue::customCSSText() const
     return result.toString();
 }
 
+#if ENABLE(SVG)
 bool CSSCursorImageValue::updateIfSVGCursorIsUsed(Element* element)
 {
     if (!element || !element->isSVGElement())
@@ -114,6 +122,12 @@ bool CSSCursorImageValue::updateIfSVGCursorIsUsed(Element* element)
 
     return false;
 }
+#else
+bool CSSCursorImageValue::updateIfSVGCursorIsUsed(Element*)
+{
+    return false;
+}
+#endif
 
 bool CSSCursorImageValue::isCachePending(float deviceScaleFactor) const
 {

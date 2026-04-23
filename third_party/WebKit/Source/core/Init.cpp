@@ -40,8 +40,10 @@
 #include "core/MathMLNames.h"
 #include "core/MediaFeatureNames.h"
 #include "core/MediaTypeNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
 #include "core/XLinkNames.h"
+#endif
 #include "core/XMLNSNames.h"
 #include "core/XMLNames.h"
 #include "core/css/parser/CSSParserTokenRange.h"
@@ -83,8 +85,10 @@ void CoreInitializer::init()
     // TODO(mikhail.pozdnyakov@intel.com): We should generate static strings initialization code.
     const unsigned qualifiedNamesCount = HTMLNames::HTMLTagsCount + HTMLNames::HTMLAttrsCount
         + MathMLNames::MathMLTagsCount + MathMLNames::MathMLAttrsCount
+#if ENABLE(SVG)
         + SVGNames::SVGTagsCount + SVGNames::SVGAttrsCount
         + XLinkNames::XLinkAttrsCount
+#endif
         + XMLNSNames::XMLNSAttrsCount
         + XMLNames::XMLAttrsCount;
 
@@ -105,8 +109,10 @@ void CoreInitializer::init()
     AtomicString::reserveTableCapacity(coreStaticStringsCount);
 
     HTMLNames::init();
+#if ENABLE(SVG)
     SVGNames::init();
     XLinkNames::init();
+#endif
     MathMLNames::init();
     XMLNSNames::init();
     XMLNames::init();

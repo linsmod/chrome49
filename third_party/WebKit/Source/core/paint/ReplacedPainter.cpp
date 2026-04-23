@@ -19,7 +19,11 @@ namespace blink {
 
 static bool shouldApplyViewportClip(const LayoutReplaced& layoutReplaced)
 {
+#if ENABLE(SVG)
     return !layoutReplaced.isSVGRoot() || toLayoutSVGRoot(&layoutReplaced)->shouldApplyViewportClip();
+#else
+    return true;
+#endif
 }
 
 void ReplacedPainter::paint(const PaintInfo& paintInfo, const LayoutPoint& paintOffset)

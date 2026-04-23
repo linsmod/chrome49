@@ -18,6 +18,9 @@
  */
 
 #include "core/svg/SVGPathUtilities.h"
+#include "wtf/build_config.h"
+
+#if ENABLE(SVG)
 
 #include "core/svg/SVGPathBuilder.h"
 #include "core/svg/SVGPathByteStreamBuilder.h"
@@ -79,4 +82,6 @@ bool buildByteStreamFromString(const String& d, SVGPathByteStream& result)
     return ok;
 }
 
-}
+} // namespace blink
+
+#endif // ENABLE(SVG)

@@ -251,8 +251,11 @@ bool SVGInlineTextBox::nodeAtPoint(HitTestResult& result, const HitTestLocation&
     bool isVisible = lineLayoutItem().style()->visibility() == VISIBLE;
     if (isVisible || !hitRules.requireVisible) {
         if (hitRules.canHitBoundingBox
+#if ENABLE(SVG)
             || (hitRules.canHitStroke && (lineLayoutItem().style()->svgStyle().hasStroke() || !hitRules.requireStroke))
-            || (hitRules.canHitFill && (lineLayoutItem().style()->svgStyle().hasFill() || !hitRules.requireFill))) {
+            || (hitRules.canHitFill && (lineLayoutItem().style()->svgStyle().hasFill() || !hitRules.requireFill))
+#endif
+            ) {
             LayoutPoint boxOrigin(x(), y());
             boxOrigin.moveBy(accumulatedOffset);
             LayoutRect rect(boxOrigin, size());

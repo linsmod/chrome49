@@ -75,8 +75,10 @@ PassRefPtrWillBeRawPtr<Element> CustomElementRegistrationContext::createCustomTa
 
     if (HTMLNames::xhtmlNamespaceURI == tagName.namespaceURI()) {
         element = HTMLElement::create(tagName, document);
+#if ENABLE(SVG)
     } else if (SVGNames::svgNamespaceURI == tagName.namespaceURI()) {
         element = SVGUnknownElement::create(tagName, document);
+#endif
     } else {
         // XML elements are not custom elements, so return early.
         return Element::create(tagName, &document);

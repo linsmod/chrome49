@@ -112,6 +112,7 @@ void ElementStyleResources::loadPendingSVGDocuments(ComputedStyle* computedStyle
     if (!computedStyle->hasFilter() || m_pendingSVGDocuments.isEmpty())
         return;
 
+#if ENABLE(SVG)
     FilterOperations::FilterOperationVector& filterOperations = computedStyle->mutableFilter().operations();
     for (unsigned i = 0; i < filterOperations.size(); ++i) {
         RefPtrWillBeRawPtr<FilterOperation> filterOperation = filterOperations.at(i);
@@ -129,6 +130,7 @@ void ElementStyleResources::loadPendingSVGDocuments(ComputedStyle* computedStyle
             ReferenceFilterBuilder::setDocumentResourceReference(referenceFilter, adoptPtr(new DocumentResourceReference(resource)));
         }
     }
+#endif
 }
 
 PassRefPtrWillBeRawPtr<StyleImage> ElementStyleResources::loadPendingImage(StylePendingImage* pendingImage, CrossOriginAttributeValue crossOrigin)

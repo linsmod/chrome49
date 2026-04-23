@@ -104,6 +104,7 @@ PassRefPtr<Image> LayoutImageResource::image(const IntSize& containerSize, float
     if (!m_cachedImage)
         return Image::nullImage();
 
+#if ENABLE(SVG)
     if (!m_cachedImage->image()->isSVGImage())
         return m_cachedImage->image();
 
@@ -115,6 +116,9 @@ PassRefPtr<Image> LayoutImageResource::image(const IntSize& containerSize, float
         url = node->document().completeURL(urlString);
     }
     return SVGImageForContainer::create(svgImage, containerSize, zoom, url);
+#else
+    return m_cachedImage->image();
+#endif
 }
 
 bool LayoutImageResource::maybeAnimated() const

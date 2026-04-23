@@ -657,3 +657,8 @@ SVG模块移除比ARIA模块移除复杂得多：
 5. 特别注意DOM层文件（QualifiedName.cpp, Range.cpp, Text.cpp）和Layout层文件（PaintInvalidationState.cpp）的guard
 6. 分阶段实施，先过滤SVG文件，再guard混合文件，最后处理生成文件
 7. 基于ARIA移除的成功经验，特别注意纯虚函数基类和循环依赖的处理
+
+USER CONFIRM：实施范围确认，all。循环依赖：guard。纯虚函数：对于未编译排除的部分，如果不是整体移除的SVG相关类，遇到虚函数都guard掉。按方案顺序。编译测试的具体方法：``bash
+py2 #必须执行以切换到python2以让chrome构建系统正确运行
+ninja -C out/Release simpleblink
+``生成文件处理：也条件化。

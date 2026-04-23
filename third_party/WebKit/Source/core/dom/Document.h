@@ -149,8 +149,10 @@ class QualifiedName;
 class Range;
 class LayoutView;
 class ResourceFetcher;
+#if ENABLE(SVG)
 class SVGDocumentExtensions;
 class SVGUseElement;
+#endif
 class ScriptRunner;
 class ScriptableDocumentParser;
 class ScriptedAnimationController;
@@ -400,13 +402,14 @@ public:
     void modifiedStyleSheet(StyleSheet*, StyleResolverUpdateMode = FullStyleUpdate);
     void changedSelectorWatch() { styleResolverChanged(); }
 
-    void scheduleUseShadowTreeUpdate(SVGUseElement&);
-    void unscheduleUseShadowTreeUpdate(SVGUseElement&);
-
-    // FIXME: SVG filters should change to store the filter on the ComputedStyle
-    // instead of the LayoutObject so we can get rid of this hack.
     void scheduleSVGFilterLayerUpdateHack(Element&);
     void unscheduleSVGFilterLayerUpdateHack(Element&);
+
+#if ENABLE(SVG)
+    void scheduleUseShadowTreeUpdate(SVGUseElement&);
+    void unscheduleUseShadowTreeUpdate(SVGUseElement&);
+    void updateUseShadowTreesIfNeeded();
+#endif
 
     void evaluateMediaQueryList();
 
@@ -865,8 +868,10 @@ public:
 
     void removeAllEventListeners() final;
 
+#if ENABLE(SVG)
     const SVGDocumentExtensions* svgExtensions();
     SVGDocumentExtensions& accessSVGExtensions();
+#endif
 
     void initSecurityContext();
     void initSecurityContext(const DocumentInit&);
@@ -1032,7 +1037,9 @@ public:
 
     DECLARE_VIRTUAL_TRACE();
 
+#if ENABLE(SVG)
     bool hasSVGFilterElementsRequiringLayerUpdate() const { return m_layerUpdateSVGFilterElements.size(); }
+#endif
     void didRecalculateStyleForElement() { ++m_styleRecalcElementCounter; }
 
     AtomicString convertLocalName(const AtomicString&);
@@ -1317,7 +1324,9 @@ private:
     unsigned m_nodeListCounts[numNodeListInvalidationTypes];
 #endif
 
+#if ENABLE(SVG)
     OwnPtrWillBeMember<SVGDocumentExtensions> m_svgExtensions;
+#endif
 
     Vector<AnnotatedRegionValue> m_annotatedRegions;
     bool m_hasAnnotatedRegions;
@@ -1396,8 +1405,10 @@ private:
     Timer<Document> m_didAssociateFormControlsTimer;
     WillBeHeapHashSet<RefPtrWillBeMember<Element>> m_associatedFormControls;
 
+#if ENABLE(SVG)
     WillBeHeapHashSet<RawPtrWillBeMember<SVGUseElement>> m_useElementsNeedingUpdate;
     WillBeHeapHashSet<RawPtrWillBeMember<Element>> m_layerUpdateSVGFilterElements;
+#endif
 
     DOMTimerCoordinator m_timers;
 

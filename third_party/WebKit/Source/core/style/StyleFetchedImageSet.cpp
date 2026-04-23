@@ -134,7 +134,11 @@ PassRefPtr<Image> StyleFetchedImageSet::image(const LayoutObject*, const IntSize
     if (!m_bestFitImage->image()->isSVGImage())
         return m_bestFitImage->image();
 
+#if ENABLE(SVG)
     return SVGImageForContainer::create(toSVGImage(m_bestFitImage->image()), containerSize, zoom, m_url);
+#else
+    return m_bestFitImage->image();
+#endif
 }
 
 bool StyleFetchedImageSet::knownToBeOpaque(const LayoutObject* layoutObject) const

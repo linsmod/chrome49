@@ -454,6 +454,7 @@ WebInputEventResult EventHandler::handleMousePressEvent(const MouseEventWithHitT
 
     m_mouseDown = event.event();
 
+#if ENABLE(SVG)
     if (m_frame->document()->isSVGDocument() && m_frame->document()->accessSVGExtensions().zoomAndPanEnabled()) {
         if (event.event().shiftKey() && singleClick) {
             m_svgPan = true;
@@ -461,6 +462,7 @@ WebInputEventResult EventHandler::handleMousePressEvent(const MouseEventWithHitT
             return WebInputEventResult::HandledSystem;
         }
     }
+#endif
 
     // We don't do this at the start of mouse down handling,
     // because we don't want to do it until we know we didn't hit a widget.
@@ -1193,10 +1195,12 @@ WebInputEventResult EventHandler::handleMouseMoveOrLeaveEvent(const PlatformMous
 
     cancelFakeMouseMoveEvent();
 
+#if ENABLE(SVG)
     if (m_svgPan) {
         m_frame->document()->accessSVGExtensions().updatePan(m_frame->view()->rootFrameToContents(m_lastKnownMousePosition));
         return WebInputEventResult::HandledSuppressed;
     }
+#endif
 
     if (m_frameSetBeingResized)
         return updatePointerTargetAndDispatchEvents(EventTypeNames::mousemove, m_frameSetBeingResized.get(), 0, mouseEvent);
@@ -1327,11 +1331,13 @@ WebInputEventResult EventHandler::handleMouseReleaseEvent(const PlatformMouseEve
     m_mousePressed = false;
     setLastKnownMousePosition(mouseEvent);
 
+#if ENABLE(SVG)
     if (m_svgPan) {
         m_svgPan = false;
         m_frame->document()->accessSVGExtensions().updatePan(m_frame->view()->rootFrameToContents(m_lastKnownMousePosition));
         return WebInputEventResult::HandledSuppressed;
     }
+#endif
 
     if (m_frameSetBeingResized)
         return dispatchMouseEvent(EventTypeNames::mouseup, m_frameSetBeingResized.get(), m_clickCount, mouseEvent);

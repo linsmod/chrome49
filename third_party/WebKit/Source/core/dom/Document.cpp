@@ -39,8 +39,10 @@
 #include "bindings/core/v8/WindowProxy.h"
 #include "core/HTMLElementFactory.h"
 #include "core/HTMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGElementFactory.h"
 #include "core/SVGNames.h"
+#endif
 #include "core/XMLNSNames.h"
 #include "core/XMLNames.h"
 #include "core/animation/AnimationTimeline.h"
@@ -190,9 +192,11 @@
 #include "core/page/Page.h"
 #include "core/page/PointerLockController.h"
 #include "core/page/scrolling/ScrollingCoordinator.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGDocumentExtensions.h"
 #include "core/svg/SVGTitleElement.h"
 #include "core/svg/SVGUseElement.h"
+#endif
 #include "core/timing/DOMWindowPerformance.h"
 #include "core/timing/Performance.h"
 #include "core/workers/SharedWorkerRepositoryClient.h"
@@ -609,8 +613,10 @@ void Document::dispose()
 
     m_scriptedIdleTaskController.clear();
 
+#if ENABLE(SVG)
     if (svgExtensions())
         accessSVGExtensions().pauseAnimations();
+#endif
 
     if (m_intersectionObserverData)
         m_intersectionObserverData->dispose();
@@ -1035,8 +1041,10 @@ PassRefPtrWillBeRawPtr<Element> Document::createElement(const QualifiedName& qNa
     // FIXME: Use registered namespaces and look up in a hash to find the right factory.
     if (qName.namespaceURI() == xhtmlNamespaceURI)
         e = HTMLElementFactory::createHTMLElement(qName.localName(), *this, 0, createdByParser);
+#if ENABLE(SVG)
     else if (qName.namespaceURI() == SVGNames::svgNamespaceURI)
         e = SVGElementFactory::createSVGElement(qName.localName(), *this, createdByParser);
+#endif
 
     if (e)
         m_sawElementsInKnownNamespaces = true;
@@ -1152,8 +1160,10 @@ String Document::suggestedMIMEType() const
     if (isXMLDocument()) {
         if (isXHTMLDocument())
             return "application/xhtml+xml";
+#if ENABLE(SVG)
         if (isSVGDocument())
             return "image/svg+xml";
+#endif
         return "application/xml";
     }
     if (xmlStandalone())
@@ -1313,8 +1323,10 @@ void Document::setTitleElement(Element* titleElement)
     if (m_titleElement && m_titleElement != titleElement) {
         if (isHTMLDocument() || isXHTMLDocument()) {
             m_titleElement = Traversal<HTMLTitleElement>::firstWithin(*this);
+#if ENABLE(SVG)
         } else if (isSVGDocument()) {
             m_titleElement = Traversal<SVGTitleElement>::firstWithin(*this);
+#endif
         }
     } else {
         m_titleElement = titleElement;
@@ -1322,8 +1334,10 @@ void Document::setTitleElement(Element* titleElement)
 
     if (isHTMLTitleElement(m_titleElement))
         updateTitle(toHTMLTitleElement(m_titleElement)->text());
+#if ENABLE(SVG)
     else if (isSVGTitleElement(m_titleElement))
         updateTitle(toSVGTitleElement(m_titleElement)->textContent());
+#endif
 }
 
 void Document::removeTitle(Element* titleElement)
@@ -1337,9 +1351,11 @@ void Document::removeTitle(Element* titleElement)
     if (isHTMLDocument() || isXHTMLDocument()) {
         if (HTMLTitleElement* title = Traversal<HTMLTitleElement>::firstWithin(*this))
             setTitleElement(title);
+#if ENABLE(SVG)
     } else if (isSVGDocument()) {
         if (SVGTitleElement* title = Traversal<SVGTitleElement>::firstWithin(*this))
             setTitleElement(title);
+#endif
     }
 
     if (!m_titleElement)
@@ -1501,10 +1517,12 @@ bool Document::needsFullLayoutTreeUpdate() const
 {
     if (!isActive() || !view())
         return false;
+#if ENABLE(SVG)
     if (!m_useElementsNeedingUpdate.isEmpty())
         return true;
     if (!m_layerUpdateSVGFilterElements.isEmpty())
         return true;
+#endif
     if (needsStyleRecalc())
         return true;
     if (needsStyleInvalidation())
@@ -1781,7 +1799,9 @@ void Document::updateLayoutTree(StyleRecalcChange change)
 
     DocumentAnimations::updateAnimationTimingIfNeeded(*this);
     evaluateMediaQueryListIfNeeded();
+#if ENABLE(SVG)
     updateUseShadowTreesIfNeeded();
+#endif
     updateDistribution();
     updateStyleInvalidationIfNeeded();
 
@@ -2103,6 +2123,7 @@ void Document::setIsViewSource(bool isViewSource)
 
 bool Document::dirtyElementsForLayerUpdate()
 {
+#if ENABLE(SVG)
     if (m_layerUpdateSVGFilterElements.isEmpty())
         return false;
 
@@ -2110,23 +2131,31 @@ bool Document::dirtyElementsForLayerUpdate()
         element->setNeedsStyleRecalc(LocalStyleChange, StyleChangeReasonForTracing::create(StyleChangeReason::SVGFilterLayerUpdate));
     m_layerUpdateSVGFilterElements.clear();
     return true;
+#else
+    return false;
+#endif
 }
 
 void Document::scheduleSVGFilterLayerUpdateHack(Element& element)
 {
+#if ENABLE(SVG)
     if (element.styleChangeType() == NeedsReattachStyleChange)
         return;
     element.setSVGFilterNeedsLayerUpdate();
     m_layerUpdateSVGFilterElements.add(&element);
     scheduleLayoutTreeUpdateIfNeeded();
+#endif
 }
 
 void Document::unscheduleSVGFilterLayerUpdateHack(Element& element)
 {
+#if ENABLE(SVG)
     element.clearSVGFilterNeedsLayerUpdate();
     m_layerUpdateSVGFilterElements.remove(&element);
+#endif
 }
 
+#if ENABLE(SVG)
 void Document::scheduleUseShadowTreeUpdate(SVGUseElement& element)
 {
     m_useElementsNeedingUpdate.add(&element);
@@ -2152,6 +2181,7 @@ void Document::updateUseShadowTreesIfNeeded()
     for (SVGUseElement* element : elements)
         element->buildPendingResource();
 }
+#endif
 
 StyleResolver* Document::styleResolver() const
 {
@@ -2228,8 +2258,10 @@ void Document::detach(const AttachContext& context)
 
     m_scriptedIdleTaskController.clear();
 
+#if ENABLE(SVG)
     if (svgExtensions())
         accessSVGExtensions().pauseAnimations();
+#endif
 
     // FIXME: This shouldn't be needed once LocalDOMWindow becomes ExecutionContext.
     if (m_domWindow)
@@ -2676,8 +2708,10 @@ void Document::implicitClose()
 
     // To align the HTML load event and the SVGLoad event for the outermost <svg> element, fire it from
     // here, instead of doing it from SVGElement::finishedParsingChildren.
+#if ENABLE(SVG)
     if (svgExtensions())
         accessSVGExtensions().dispatchSVGLoadEventToOutermostSVGElements();
+#endif
 
     if (protectedWindow)
         protectedWindow->documentWasClosed();
@@ -2727,8 +2761,10 @@ void Document::implicitClose()
     }
 #endif
 
+#if ENABLE(SVG)
     if (svgExtensions())
         accessSVGExtensions().startAnimations();
+#endif
 }
 
 bool Document::dispatchBeforeUnloadEvent(ChromeClient& chromeClient, bool isReload, bool& didAllowNavigation)
@@ -4646,6 +4682,7 @@ PassRefPtrWillBeRawPtr<Attr> Document::createAttributeNS(const AtomicString& nam
     return Attr::create(*this, qName, emptyAtom);
 }
 
+#if ENABLE(SVG)
 const SVGDocumentExtensions* Document::svgExtensions()
 {
     return m_svgExtensions.get();
@@ -4657,10 +4694,15 @@ SVGDocumentExtensions& Document::accessSVGExtensions()
         m_svgExtensions = adoptPtrWillBeNoop(new SVGDocumentExtensions(this));
     return *m_svgExtensions;
 }
+#endif
 
 bool Document::hasSVGRootNode() const
 {
+#if ENABLE(SVG)
     return isSVGSVGElement(documentElement());
+#else
+    return false;
+#endif
 }
 
 PassRefPtrWillBeRawPtr<HTMLCollection> Document::images()
@@ -5913,14 +5955,18 @@ DEFINE_TRACE(Document)
     visitor->trace(m_customElementMicrotaskRunQueue);
     visitor->trace(m_elementDataCache);
     visitor->trace(m_associatedFormControls);
+#if ENABLE(SVG)
     visitor->trace(m_useElementsNeedingUpdate);
     visitor->trace(m_layerUpdateSVGFilterElements);
+#endif
     visitor->trace(m_timers);
     visitor->trace(m_templateDocument);
     visitor->trace(m_templateDocumentHost);
     visitor->trace(m_visibilityObservers);
     visitor->trace(m_userActionElements);
+#if ENABLE(SVG)
     visitor->trace(m_svgExtensions);
+#endif
     visitor->trace(m_timeline);
     visitor->trace(m_compositorPendingAnimations);
     visitor->trace(m_contextDocument);

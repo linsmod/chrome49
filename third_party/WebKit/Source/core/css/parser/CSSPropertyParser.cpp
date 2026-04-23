@@ -159,7 +159,9 @@ bool CSSPropertyParser::isColorKeyword(CSSValueID id)
     //   '-webkit-text'
     //
     return (id >= CSSValueAqua && id <= CSSValueWebkitText)
+#if ENABLE(SVG)
         || (id >= CSSValueAliceblue && id <= CSSValueYellowgreen)
+#endif
         || id == CSSValueMenu;
 }
 
@@ -1282,7 +1284,9 @@ static PassRefPtrWillBeRawPtr<CSSValue> consumeTextIndent(CSSParserTokenRange& r
 
     bool hasLengthOrPercentage = false;
     bool hasEachLine = false;
+#if ENABLE(SVG)
     bool hasHanging = false;
+#endif
 
     do {
         if (!hasLengthOrPercentage) {
@@ -1300,11 +1304,13 @@ static PassRefPtrWillBeRawPtr<CSSValue> consumeTextIndent(CSSParserTokenRange& r
                 hasEachLine = true;
                 continue;
             }
+#if ENABLE(SVG)
             if (!hasHanging && id == CSSValueHanging) {
                 list->append(consumeIdent(range));
                 hasHanging = true;
                 continue;
             }
+#endif
         }
         return nullptr;
     } while (!range.atEnd());
@@ -1934,12 +1940,16 @@ static PassRefPtrWillBeRawPtr<CSSValue> consumePath(CSSParserTokenRange& range)
         return nullptr;
     String pathString = functionArgs.consumeIncludingWhitespace().value();
 
+#if ENABLE(SVG)
     RefPtr<SVGPathByteStream> byteStream = SVGPathByteStream::create();
     if (!buildByteStreamFromString(pathString, *byteStream) || !functionArgs.atEnd())
         return nullptr;
 
     range = functionRange;
     return CSSPathValue::create(byteStream.release());
+#else
+    return nullptr;
+#endif
 }
 
 static PassRefPtrWillBeRawPtr<CSSValue> consumePathOrNone(CSSParserTokenRange& range)

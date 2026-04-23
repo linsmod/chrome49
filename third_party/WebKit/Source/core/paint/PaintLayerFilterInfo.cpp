@@ -105,6 +105,7 @@ void PaintLayerFilterInfo::notifyFinished(Resource*)
 void PaintLayerFilterInfo::updateReferenceFilterClients(const FilterOperations& operations)
 {
     removeReferenceFilterClients();
+#if ENABLE(SVG)
     for (size_t i = 0; i < operations.size(); ++i) {
         RefPtrWillBeRawPtr<FilterOperation> filterOperation = operations.operations().at(i);
         if (filterOperation->type() != FilterOperation::REFERENCE)
@@ -130,6 +131,7 @@ void PaintLayerFilterInfo::updateReferenceFilterClients(const FilterOperations& 
             m_internalSVGReferences.append(filter);
         }
     }
+#endif
 }
 
 void PaintLayerFilterInfo::removeReferenceFilterClients()
@@ -137,6 +139,7 @@ void PaintLayerFilterInfo::removeReferenceFilterClients()
     for (size_t i = 0; i < m_externalSVGReferences.size(); ++i)
         m_externalSVGReferences.at(i)->removeClient(this);
     m_externalSVGReferences.clear();
+#if ENABLE(SVG)
     for (size_t i = 0; i < m_internalSVGReferences.size(); ++i) {
         Element* filter = m_internalSVGReferences.at(i).get();
         if (filter->layoutObject())
@@ -145,6 +148,7 @@ void PaintLayerFilterInfo::removeReferenceFilterClients()
             toSVGFilterElement(filter)->removeClient(m_layer->layoutObject()->node());
     }
     m_internalSVGReferences.clear();
+#endif
 }
 
 } // namespace blink

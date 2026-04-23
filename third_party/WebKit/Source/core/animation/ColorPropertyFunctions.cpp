@@ -38,12 +38,14 @@ StyleColor ColorPropertyFunctions::getUnvisitedColor(CSSPropertyID property, con
         return style.textFillColor();
     case CSSPropertyWebkitTextStrokeColor:
         return style.textStrokeColor();
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         return style.floodColor();
     case CSSPropertyLightingColor:
         return style.lightingColor();
     case CSSPropertyStopColor:
         return style.stopColor();
+#endif
     case CSSPropertyWebkitTapHighlightColor:
         return style.tapHighlightColor();
     case CSSPropertyTextDecorationColor:
@@ -79,12 +81,14 @@ StyleColor ColorPropertyFunctions::getVisitedColor(CSSPropertyID property, const
         return style.visitedLinkTextFillColor();
     case CSSPropertyWebkitTextStrokeColor:
         return style.visitedLinkTextStrokeColor();
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         return style.floodColor();
     case CSSPropertyLightingColor:
         return style.lightingColor();
     case CSSPropertyStopColor:
         return style.stopColor();
+#endif
     case CSSPropertyWebkitTapHighlightColor:
         return style.tapHighlightColor();
     case CSSPropertyTextDecorationColor:
@@ -116,18 +120,22 @@ void ColorPropertyFunctions::setUnvisitedColor(CSSPropertyID property, ComputedS
     case CSSPropertyColor:
         style.setColor(color);
         return;
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         style.setFloodColor(color);
         return;
     case CSSPropertyLightingColor:
         style.setLightingColor(color);
         return;
+#endif
     case CSSPropertyOutlineColor:
         style.setOutlineColor(color);
         return;
+#if ENABLE(SVG)
     case CSSPropertyStopColor:
         style.setStopColor(color);
         return;
+#endif
     case CSSPropertyTextDecorationColor:
         style.setTextDecorationColor(color);
         return;
@@ -164,18 +172,22 @@ void ColorPropertyFunctions::setVisitedColor(CSSPropertyID property, ComputedSty
     case CSSPropertyColor:
         style.setVisitedLinkColor(color);
         return;
+#if ENABLE(SVG)
     case CSSPropertyFloodColor:
         style.setFloodColor(color);
         return;
     case CSSPropertyLightingColor:
         style.setLightingColor(color);
         return;
+#endif
     case CSSPropertyOutlineColor:
         style.setVisitedLinkOutlineColor(color);
         return;
+#if ENABLE(SVG)
     case CSSPropertyStopColor:
         style.setStopColor(color);
         return;
+#endif
     case CSSPropertyTextDecorationColor:
         style.setVisitedLinkTextDecorationColor(color);
         return;

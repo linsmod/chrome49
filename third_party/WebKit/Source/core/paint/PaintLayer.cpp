@@ -978,8 +978,10 @@ bool PaintLayer::hasNonIsolatedDescendantWithBlendMode() const
 {
     if (descendantDependentCompositingInputs().hasNonIsolatedDescendantWithBlendMode)
         return true;
+#if ENABLE(SVG)
     if (layoutObject()->isSVGRoot())
         return toLayoutSVGRoot(layoutObject())->hasNonIsolatedBlendingDescendants();
+#endif
     return false;
 }
 
@@ -1997,6 +1999,7 @@ bool PaintLayer::hitTestClippedOutByClipPath(PaintLayer* rootLayer, const HitTes
         if (!clipPath->path(FloatRect(rootRelativeBounds)).contains(FloatPoint(hitTestLocation.point())))
             return true;
     } else {
+#if ENABLE(SVG)
         ASSERT(clipPathOperation->type() == ClipPathOperation::REFERENCE);
         ReferenceClipPathOperation* referenceClipPathOperation = toReferenceClipPathOperation(clipPathOperation);
         Element* element = layoutObject()->document().getElementById(referenceClipPathOperation->fragment());
@@ -2005,6 +2008,7 @@ bool PaintLayer::hitTestClippedOutByClipPath(PaintLayer* rootLayer, const HitTes
             if (!clipper->hitTestClipContent(FloatRect(rootRelativeBounds), FloatPoint(hitTestLocation.point())))
                 return true;
         }
+#endif
     }
 
     return false;
@@ -2605,6 +2609,7 @@ namespace {
 
 FilterOperations computeFilterOperationsHandleReferenceFilters(const FilterOperations& filters, float effectiveZoom, Node* enclosingNode)
 {
+#if ENABLE(SVG)
     if (filters.hasReferenceFilter()) {
         for (size_t i = 0; i < filters.size(); ++i) {
             FilterOperation* filterOperation = filters.operations().at(i).get();
@@ -2616,6 +2621,7 @@ FilterOperations computeFilterOperationsHandleReferenceFilters(const FilterOpera
             referenceOperation.setFilter(referenceFilter.release());
         }
     }
+#endif
 
     return filters;
 }

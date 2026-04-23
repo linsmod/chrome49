@@ -18,6 +18,9 @@ void StyleBuilder::applyProperty(CSSPropertyID property, StyleResolverState& sta
         if property.should_declare_functions or property.use_handlers_for %}
     {% set used_property = properties[property.use_handlers_for] or property %}
     {% set used_property_id = used_property.property_id %}
+{% if used_property.svg %}
+#if ENABLE(SVG)
+{% endif %}
     case {{property_id}}:
         if (isInitial)
             StyleBuilderFunctions::applyInitial{{used_property_id}}(state);
@@ -26,6 +29,9 @@ void StyleBuilder::applyProperty(CSSPropertyID property, StyleResolverState& sta
         else
             StyleBuilderFunctions::applyValue{{used_property_id}}(state, value);
         return;
+{% if used_property.svg %}
+#endif // ENABLE(SVG)
+{% endif %}
 
     {% endfor %}
     case CSSPropertyVariable:

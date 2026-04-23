@@ -29,8 +29,10 @@
 #include "bindings/core/v8/ExceptionStatePlaceholder.h"
 #include "core/HTMLNames.h"
 #include "core/MathMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
 #include "core/XLinkNames.h"
+#endif
 #include "core/XMLNSNames.h"
 #include "core/XMLNames.h"
 #include "core/dom/DocumentFragment.h"
@@ -520,6 +522,7 @@ static void mapLoweredLocalNameToName(PrefixedNameToQualifiedNameMap* map, const
     }
 }
 
+#if ENABLE(SVG)
 static void adjustSVGTagNameCase(AtomicHTMLToken* token)
 {
     static PrefixedNameToQualifiedNameMap* caseMap = 0;
@@ -534,6 +537,7 @@ static void adjustSVGTagNameCase(AtomicHTMLToken* token)
         return;
     token->setName(casedName.localName());
 }
+#endif
 
 template<PassOwnPtr<const QualifiedName*[]> getAttrs(), unsigned length>
 static void adjustAttributes(AtomicHTMLToken* token)
@@ -553,10 +557,12 @@ static void adjustAttributes(AtomicHTMLToken* token)
     }
 }
 
+#if ENABLE(SVG)
 static void adjustSVGAttributes(AtomicHTMLToken* token)
 {
     adjustAttributes<SVGNames::getSVGAttrs, SVGNames::SVGAttrsCount>(token);
 }
+#endif
 
 static void adjustMathMLAttributes(AtomicHTMLToken* token)
 {
@@ -580,8 +586,10 @@ static void adjustForeignAttributes(AtomicHTMLToken* token)
     if (!map) {
         map = new PrefixedNameToQualifiedNameMap;
 
+#if ENABLE(SVG)
         OwnPtr<const QualifiedName*[]> attrs = XLinkNames::getXLinkAttrs();
         addNamesWithPrefix(map, xlinkAtom, attrs.get(), XLinkNames::XLinkAttrsCount);
+#endif
 
         OwnPtr<const QualifiedName*[]> xmlAttrs = XMLNames::getXMLAttrs();
         addNamesWithPrefix(map, xmlAtom, xmlAttrs.get(), XMLNames::XMLAttrsCount);
@@ -898,6 +906,7 @@ void HTMLTreeBuilder::processStartTagForInBody(AtomicHTMLToken* token)
         m_tree.insertForeignElement(token, MathMLNames::mathmlNamespaceURI);
         return;
     }
+#if ENABLE(SVG)
     if (token->name() == SVGNames::svgTag.localName()) {
         m_tree.reconstructTheActiveFormattingElements();
         adjustSVGAttributes(token);
@@ -905,6 +914,7 @@ void HTMLTreeBuilder::processStartTagForInBody(AtomicHTMLToken* token)
         m_tree.insertForeignElement(token, SVGNames::svgNamespaceURI);
         return;
     }
+#endif
     if (isCaptionColOrColgroupTag(token->name())
         || token->name() == frameTag
         || token->name() == headTag
@@ -2673,7 +2683,10 @@ bool HTMLTreeBuilder::shouldProcessTokenInForeignContent(AtomicHTMLToken* token)
     }
     if (adjustedCurrentNode->hasTagName(MathMLNames::annotation_xmlTag)
         && token->type() == HTMLToken::StartTag
-        && token->name() == SVGNames::svgTag)
+#if ENABLE(SVG)
+        && token->name() == SVGNames::svgTag
+#endif
+)
         return false;
     if (HTMLElementStack::isHTMLIntegrationPoint(adjustedCurrentNode)) {
         if (token->type() == HTMLToken::StartTag)
@@ -2755,15 +2768,18 @@ void HTMLTreeBuilder::processTokenInForeignContent(AtomicHTMLToken* token)
         const AtomicString& currentNamespace = adjustedCurrentNode->namespaceURI();
         if (currentNamespace == MathMLNames::mathmlNamespaceURI)
             adjustMathMLAttributes(token);
+#if ENABLE(SVG)
         if (currentNamespace == SVGNames::svgNamespaceURI) {
             adjustSVGTagNameCase(token);
             adjustSVGAttributes(token);
         }
+#endif
         adjustForeignAttributes(token);
         m_tree.insertForeignElement(token, currentNamespace);
         break;
     }
     case HTMLToken::EndTag: {
+#if ENABLE(SVG)
         if (adjustedCurrentNode->namespaceURI() == SVGNames::svgNamespaceURI)
             adjustSVGTagNameCase(token);
 
@@ -2773,6 +2789,7 @@ void HTMLTreeBuilder::processTokenInForeignContent(AtomicHTMLToken* token)
             m_tree.openElements()->pop();
             return;
         }
+#endif
         if (!m_tree.currentStackItem()->isInHTMLNamespace()) {
             // FIXME: This code just wants an Element* iterator, instead of an ElementRecord*
             HTMLElementStack::ElementRecord* nodeRecord = m_tree.openElements()->topRecord();

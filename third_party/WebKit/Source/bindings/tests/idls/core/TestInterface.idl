@@ -59,6 +59,7 @@
     attribute DOMStringOrDouble stringOrDoubleAttribute;
     [RuntimeEnabled=FeatureName] attribute long conditionalLongAttribute;
     [RuntimeEnabled=FeatureName] readonly attribute long conditionalReadOnlyLongAttribute;
+    [Conditional=SVG] attribute long conditionalAttribute;
     static attribute DOMString staticStringAttribute;
     static attribute TestInterface staticReturnDOMWrapperAttribute;
     static readonly attribute DOMString staticReadOnlyStringAttribute;
@@ -100,6 +101,7 @@
     [Exposed=Window] attribute long windowExposedAttribute;
 
     [Exposed=Window, RuntimeEnabled=FeatureName] void methodWithExposedAndRuntimeEnabledFlag();
+    [Conditional=SVG] void conditionalMethod();
     [Exposed=Window] void overloadMethodWithExposedAndRuntimeEnabledFlag(long longArg);
     [Exposed=Window, RuntimeEnabled=FeatureName] void overloadMethodWithExposedAndRuntimeEnabledFlag(DOMString string);
     [Exposed=Window, RuntimeEnabled=FeatureName2] void overloadMethodWithExposedAndRuntimeEnabledFlag(Window window);

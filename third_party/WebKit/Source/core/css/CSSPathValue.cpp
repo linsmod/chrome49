@@ -14,12 +14,19 @@ PassRefPtrWillBeRawPtr<CSSPathValue> CSSPathValue::create(PassRefPtr<SVGPathByte
     return adoptRefWillBeNoop(new CSSPathValue(pathByteStream, cachedPath));
 }
 
+#if ENABLE(SVG)
 PassRefPtrWillBeRawPtr<CSSPathValue> CSSPathValue::create(const String& pathString)
 {
     RefPtr<SVGPathByteStream> byteStream = SVGPathByteStream::create();
     buildByteStreamFromString(pathString, *byteStream);
     return CSSPathValue::create(byteStream.release());
 }
+#else
+PassRefPtrWillBeRawPtr<CSSPathValue> CSSPathValue::create(const String& pathString)
+{
+    return nullptr;
+}
+#endif
 
 CSSPathValue::CSSPathValue(PassRefPtr<SVGPathByteStream> pathByteStream, StylePath* cachedPath)
     : CSSValue(PathClass)
@@ -74,9 +81,16 @@ DEFINE_TRACE_AFTER_DISPATCH(CSSPathValue)
     CSSValue::traceAfterDispatch(visitor);
 }
 
+#if ENABLE(SVG)
 String CSSPathValue::pathString() const
 {
     return buildStringFromByteStream(*m_pathByteStream);
 }
+#else
+String CSSPathValue::pathString() const
+{
+    return emptyString();
+}
+#endif
 
 } // namespace blink

@@ -26,6 +26,8 @@
 #ifndef LayoutSVGShape_h
 #define LayoutSVGShape_h
 
+#if ENABLE(SVG)
+
 #include "core/layout/svg/LayoutSVGModelObject.h"
 #include "core/layout/svg/SVGMarkerData.h"
 #include "platform/geometry/FloatRect.h"
@@ -74,7 +76,9 @@ public:
 
     virtual bool isShapeEmpty() const { return path().isEmpty(); }
 
+#if ENABLE(SVG)
     bool hasNonScalingStroke() const { return style()->svgStyle().vectorEffect() == VE_NON_SCALING_STROKE; }
+#endif
     Path* nonScalingStrokePath(const Path*, const AffineTransform&) const;
     AffineTransform nonScalingStrokeTransform() const;
     AffineTransform localTransform() const final { return m_localTransform; }
@@ -143,6 +147,8 @@ private:
 
 DEFINE_LAYOUT_OBJECT_TYPE_CASTS(LayoutSVGShape, isSVGShape());
 
-}
+} // ENABLE(SVG)
+
+#endif
 
 #endif

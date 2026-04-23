@@ -45,6 +45,7 @@
 #include "core/layout/LayoutView.h"
 #include "core/layout/compositing/CompositedLayerMapping.h"
 #include "core/layout/line/InlineTextBox.h"
+#if ENABLE(SVG)
 #include "core/layout/svg/LayoutSVGContainer.h"
 #include "core/layout/svg/LayoutSVGGradientStop.h"
 #include "core/layout/svg/LayoutSVGImage.h"
@@ -53,6 +54,7 @@
 #include "core/layout/svg/LayoutSVGRoot.h"
 #include "core/layout/svg/LayoutSVGText.h"
 #include "core/layout/svg/SVGLayoutTreeAsText.h"
+#endif
 #include "core/page/PrintContext.h"
 #include "core/paint/PaintLayer.h"
 #include "platform/LayoutUnit.h"
@@ -478,6 +480,7 @@ static void writeTextRun(TextStream& ts, const LayoutText& o, const InlineTextBo
 
 void write(TextStream& ts, const LayoutObject& o, int indent, LayoutAsTextBehavior behavior)
 {
+#if ENABLE(SVG)
     if (o.isSVGShape()) {
         write(ts, toLayoutSVGShape(o), indent);
         return;
@@ -490,6 +493,8 @@ void write(TextStream& ts, const LayoutObject& o, int indent, LayoutAsTextBehavi
         writeSVGResourceContainer(ts, o, indent);
         return;
     }
+#endif
+#if ENABLE(SVG)
     if (o.isSVGContainer()) {
         writeSVGContainer(ts, o, indent);
         return;
@@ -510,6 +515,7 @@ void write(TextStream& ts, const LayoutObject& o, int indent, LayoutAsTextBehavi
         writeSVGImage(ts, toLayoutSVGImage(o), indent);
         return;
     }
+#endif
 
     writeIndent(ts, indent);
 

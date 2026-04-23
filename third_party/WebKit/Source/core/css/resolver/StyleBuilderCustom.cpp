@@ -413,8 +413,10 @@ void StyleBuilderFunctions::applyValueCSSPropertyTextIndent(StyleResolverState& 
             lengthOrPercentageValue = primitiveValue->convertToLength(state.cssToLengthConversionData());
         else if (primitiveValue->getValueID() == CSSValueEachLine)
             textIndentLineValue = TextIndentEachLine;
+#if ENABLE(SVG)
         else if (primitiveValue->getValueID() == CSSValueHanging)
             textIndentTypeValue = TextIndentHanging;
+#endif
         else
             ASSERT_NOT_REACHED();
     }
@@ -836,6 +838,7 @@ void StyleBuilderFunctions::applyValueCSSPropertyVariable(StyleResolverState& st
     }
 }
 
+#if ENABLE(SVG)
 void StyleBuilderFunctions::applyInheritCSSPropertyBaselineShift(StyleResolverState& state)
 {
     const SVGComputedStyle& parentSvgStyle = state.parentStyle()->svgStyle();
@@ -870,5 +873,6 @@ void StyleBuilderFunctions::applyValueCSSPropertyBaselineShift(StyleResolverStat
         ASSERT_NOT_REACHED();
     }
 }
+#endif
 
 } // namespace blink

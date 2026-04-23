@@ -23,7 +23,9 @@
 
 #include "bindings/core/v8/ExceptionState.h"
 #include "bindings/core/v8/ExceptionStatePlaceholder.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/css/resolver/StyleResolver.h"
 #include "core/dom/ExceptionCode.h"
 #include "core/dom/LayoutTreeBuilder.h"
@@ -34,8 +36,10 @@
 #include "core/events/ScopedEventQueue.h"
 #include "core/layout/LayoutText.h"
 #include "core/layout/LayoutTextCombine.h"
+#if ENABLE(SVG)
 #include "core/layout/svg/LayoutSVGInlineText.h"
 #include "core/svg/SVGForeignObjectElement.h"
+#endif
 #include "wtf/text/CString.h"
 #include "wtf/text/StringBuilder.h"
 
@@ -320,17 +324,21 @@ bool Text::textLayoutObjectIsNeeded(const ComputedStyle& style, const LayoutObje
     return true;
 }
 
+#if ENABLE(SVG)
 static bool isSVGText(Text* text)
 {
     Node* parentOrShadowHostNode = text->parentOrShadowHostNode();
     ASSERT(parentOrShadowHostNode);
     return parentOrShadowHostNode->isSVGElement() && !isSVGForeignObjectElement(*parentOrShadowHostNode);
 }
+#endif
 
 LayoutText* Text::createTextLayoutObject(const ComputedStyle& style)
 {
+#if ENABLE(SVG)
     if (isSVGText(this))
         return new LayoutSVGInlineText(this, dataImpl());
+#endif
 
     if (style.hasTextCombine())
         return new LayoutTextCombine(this, dataImpl());

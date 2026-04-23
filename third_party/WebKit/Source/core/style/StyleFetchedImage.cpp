@@ -127,8 +127,10 @@ void StyleFetchedImage::removeClient(LayoutObject* layoutObject)
 
 void StyleFetchedImage::notifyFinished(Resource* resource)
 {
+#if ENABLE(SVG)
     if (m_document && m_image && m_image->image() && m_image->image()->isSVGImage())
         toSVGImage(m_image->image())->updateUseCounters(*m_document);
+#endif
     // Oilpan: do not prolong the Document's lifetime.
     m_document.clear();
 }
@@ -138,7 +140,11 @@ PassRefPtr<Image> StyleFetchedImage::image(const LayoutObject*, const IntSize& c
     if (!m_image->image()->isSVGImage())
         return m_image->image();
 
+#if ENABLE(SVG)
     return SVGImageForContainer::create(toSVGImage(m_image->image()), containerSize, zoom, m_url);
+#else
+    return m_image->image();
+#endif
 }
 
 bool StyleFetchedImage::knownToBeOpaque(const LayoutObject* layoutObject) const

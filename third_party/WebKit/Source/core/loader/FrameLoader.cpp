@@ -255,8 +255,13 @@ void FrameLoader::dispatchUnloadEvent()
 {
     saveScrollState();
 
+#if ENABLE(SVG)
     if (m_frame->document() && !SVGImage::isInSVGImage(m_frame->document()))
         m_frame->document()->dispatchUnloadEvents();
+#else
+    if (m_frame->document())
+        m_frame->document()->dispatchUnloadEvents();
+#endif
 
     if (Page* page = m_frame->page())
         page->undoStack().didUnloadFrame(*m_frame);

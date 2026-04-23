@@ -601,6 +601,7 @@ void FrameView::calculateScrollbarModes(ScrollbarMode& hMode, ScrollbarMode& vMo
     if (!viewport || !viewport->style())
         RETURN_SCROLLBAR_MODE(ScrollbarAuto);
 
+#if ENABLE(SVG)
     if (viewport->isSVGRoot()) {
         // Don't allow overflow to affect <img> and css backgrounds
         if (toLayoutSVGRoot(viewport)->isEmbeddedThroughSVGImage())
@@ -611,6 +612,7 @@ void FrameView::calculateScrollbarModes(ScrollbarMode& hMode, ScrollbarMode& vMo
         if (toLayoutSVGRoot(viewport)->isEmbeddedThroughFrameContainingSVGDocument())
             RETURN_SCROLLBAR_MODE(ScrollbarAlwaysOff);
     }
+#endif
 
     calculateScrollbarModesFromOverflowStyle(viewport->style(), hMode, vMode);
 
@@ -1455,6 +1457,7 @@ bool FrameView::processUrlFragmentHelper(const String& name, UrlFragmentBehavior
     // Setting to null will clear the current target.
     m_frame->document()->setCSSTarget(anchorNode);
 
+#if ENABLE(SVG)
     if (m_frame->document()->isSVGDocument()) {
         if (SVGSVGElement* svg = SVGDocumentExtensions::rootElement(*m_frame->document())) {
             svg->setupInitialView(name, anchorNode);
@@ -1462,6 +1465,7 @@ bool FrameView::processUrlFragmentHelper(const String& name, UrlFragmentBehavior
                 return true;
         }
     }
+#endif
 
     // Implement the rule that "" and "top" both mean top of page as in other browsers.
     if (!anchorNode && !(name.isEmpty() || equalIgnoringCase(name, "top")))
@@ -2594,16 +2598,20 @@ void FrameView::updateStyleAndLayoutIfNeededRecursive()
     // To avoid pushing an invalid tree for display, we have to check for this case and do another
     // style recalc. The extra style recalc needs to happen after our child <iframes> were updated.
     // FIXME: We shouldn't be triggering an extra style recalc in the first place.
+#if ENABLE(SVG)
     if (m_frame->document()->hasSVGFilterElementsRequiringLayerUpdate()) {
         m_frame->document()->updateLayoutTreeIfNeeded();
 
         if (needsLayout())
-            layout();
+            updateLayout();
     }
+#endif
 
     // These asserts ensure that parent frames are clean, when child frames finished updating layout and style.
     ASSERT(!needsLayout());
+#if ENABLE(SVG)
     ASSERT(!m_frame->document()->hasSVGFilterElementsRequiringLayerUpdate());
+#endif
 #if ENABLE(ASSERT)
     m_frame->document()->layoutView()->assertLaidOut();
 #endif

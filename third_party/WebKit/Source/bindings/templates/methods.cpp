@@ -412,6 +412,7 @@ static void {{overloads.name}}Method{{world_suffix}}(const v8::FunctionCallbackI
         {# Then resolve by testing argument #}
         {% for test, method in tests_methods %}
         {% if method.visible %}
+        {% filter conditional(method.conditional_string) %}
         {% filter runtime_enabled(not overloads.runtime_enabled_function_all and
                                   method.runtime_enabled_function) %}
         if ({{test}}) {
@@ -424,7 +425,8 @@ static void {{overloads.name}}Method{{world_suffix}}(const v8::FunctionCallbackI
             {{method.name}}{{method.overload_index}}Method{{world_suffix}}(info);
             return;
         }
-        {% endfilter %}
+        {% endfilter %}{# runtime_enabled() #}
+        {% endfilter %}{# conditional() #}
         {% endif %}
         {% endfor %}
         break;
@@ -687,8 +689,10 @@ v8SetReturnValue(info, wrapper);
 
 {######################################}
 {% macro install_custom_signature(method, instance_template, prototype_template, interface_template, signature) %}
+{% filter conditional(method.conditional_string) %}
 const V8DOMConfiguration::MethodConfiguration {{method.name}}MethodConfiguration = {{method_configuration(method)}};
 V8DOMConfiguration::installMethod(isolate, {{instance_template}}, {{prototype_template}}, {{interface_template}}, {{signature}}, {{method.name}}MethodConfiguration);
+{% endfilter %}
 {%- endmacro %}
 
 {######################################}
@@ -702,12 +706,16 @@ ASSERT(executionContext);
 {% filter exposed(method.overloads.exposed_test_all
                   if method.overloads else
                   method.exposed_test) %}
+{% filter conditional(method.overloads.conditional_string_all
+                      if method.overloads else
+                      method.conditional_string) %}
 {% filter runtime_enabled(method.overloads.runtime_enabled_function_all
                           if method.overloads else
                           method.runtime_enabled_function) %}
 const V8DOMConfiguration::MethodConfiguration {{method.name}}MethodConfiguration = {{method_configuration(method)}};
 V8DOMConfiguration::installMethod(isolate, v8::Local<v8::Object>(), prototypeObject, interfaceObject, defaultSignature, {{method.name}}MethodConfiguration);
 {% endfilter %}{# runtime_enabled() #}
+{% endfilter %}{# conditional() #}
 {% endfilter %}{# exposed() #}
 {% endfor %}
 {% endif %}

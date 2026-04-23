@@ -3,18 +3,25 @@
 // found in the LICENSE file.
 
 #include "core/animation/AnimationInputHelpers.h"
+#include "core/dom/QualifiedName.h"
+#include "platform/RuntimeEnabledFeatures.h"
 
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
 #include "core/XLinkNames.h"
+#endif
 #include "core/css/CSSValueList.h"
 #include "core/css/parser/CSSParser.h"
 #include "core/css/resolver/CSSToStyleMap.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
 #include "core/svg/animation/SVGSMILElement.h"
+#endif
 #include "wtf/text/StringBuilder.h"
 
 namespace blink {
 
+#if ENABLE(SVG)
 const char kSVGPrefix[] = "svg-";
 const unsigned kSVGPrefixLength = sizeof(kSVGPrefix) - 1;
 
@@ -28,6 +35,7 @@ static String removeSVGPrefix(const String& property)
     ASSERT(isSVGPrefixed(property));
     return property.substring(kSVGPrefixLength);
 }
+#endif
 
 CSSPropertyID AnimationInputHelpers::keyframeAttributeToCSSProperty(const String& property)
 {
@@ -45,6 +53,7 @@ CSSPropertyID AnimationInputHelpers::keyframeAttributeToCSSProperty(const String
     return cssPropertyID(builder.toString());
 }
 
+#if ENABLE(SVG)
 CSSPropertyID AnimationInputHelpers::keyframeAttributeToPresentationAttribute(const String& property, const Element& element)
 {
     if (!RuntimeEnabledFeatures::webAnimationsSVGEnabled() || !element.isSVGElement() || !isSVGPrefixed(property))
@@ -56,9 +65,16 @@ CSSPropertyID AnimationInputHelpers::keyframeAttributeToPresentationAttribute(co
 
     return CSSPropertyInvalid;
 }
+#else
+CSSPropertyID AnimationInputHelpers::keyframeAttributeToPresentationAttribute(const String& property, const Element& element)
+{
+    return CSSPropertyInvalid;
+}
+#endif
 
 using AttributeNameMap = HashMap<QualifiedName, const QualifiedName*>;
 
+#if ENABLE(SVG)
 const AttributeNameMap& getSupportedAttributes()
 {
     DEFINE_STATIC_LOCAL(AttributeNameMap, supportedAttributes, ());
@@ -127,6 +143,11 @@ const AttributeNameMap& getSupportedAttributes()
             &SVGNames::radiusAttr,
             &SVGNames::refXAttr,
             &SVGNames::refYAttr,
+            &SVGNames::repeatCountAttr,
+            &SVGNames::repeatDurAttr,
+            &SVGNames::requiredExtensionsAttr,
+            &SVGNames::requiredFeaturesAttr,
+            &SVGNames::restartAttr,
             &SVGNames::resultAttr,
             &SVGNames::rotateAttr,
             &SVGNames::rxAttr,
@@ -161,14 +182,23 @@ const AttributeNameMap& getSupportedAttributes()
             &SVGNames::yAttr,
             &SVGNames::yChannelSelectorAttr,
             &SVGNames::zAttr,
+            &SVGNames::zoomAndPanAttr,
             &XLinkNames::hrefAttr,
         };
-        for (size_t i = 0; i < WTF_ARRAY_LENGTH(attributes); i++)
+        for (size_t i = 0; i < WTF_ARRAY_LENGTH(attributes); ++i)
             supportedAttributes.set(*attributes[i], attributes[i]);
     }
     return supportedAttributes;
 }
+#else
+const AttributeNameMap& getSupportedAttributes()
+{
+    DEFINE_STATIC_LOCAL(AttributeNameMap, supportedAttributes, ());
+    return supportedAttributes;
+}
+#endif
 
+#if ENABLE(SVG)
 QualifiedName svgAttributeName(const String& property)
 {
     ASSERT(!isSVGPrefixed(property));
@@ -197,6 +227,17 @@ const QualifiedName* AnimationInputHelpers::keyframeAttributeToSVGAttribute(cons
 
     return iter->value;
 }
+#else
+QualifiedName svgAttributeName(const String&)
+{
+    return QualifiedName(nullAtom, nullAtom, nullAtom);
+}
+
+const QualifiedName* AnimationInputHelpers::keyframeAttributeToSVGAttribute(const String& property, Element& element)
+{
+    return nullptr;
+}
+#endif
 
 PassRefPtr<TimingFunction> AnimationInputHelpers::parseTimingFunction(const String& string)
 {

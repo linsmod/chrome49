@@ -47,7 +47,9 @@
 #include "core/html/imports/HTMLImport.h"
 #include "core/html/parser/HTMLParserIdioms.h"
 #include "core/inspector/ConsoleMessage.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGScriptElement.h"
+#endif
 #include "platform/MIMETypeRegistry.h"
 #include "platform/weborigin/SecurityOrigin.h"
 #include "public/platform/WebFrameScheduler.h"
@@ -328,7 +330,11 @@ bool isHTMLScriptLoader(Element* element)
 bool isSVGScriptLoader(Element* element)
 {
     ASSERT(element);
+#if ENABLE(SVG)
     return isSVGScriptElement(*element);
+#else
+    return false;
+#endif
 }
 
 void ScriptLoader::logScriptMimetype(ScriptResource* resource, LocalFrame* frame, String mimetype)
@@ -496,8 +502,10 @@ ScriptLoaderClient* ScriptLoader::client() const
     if (isHTMLScriptLoader(m_element))
         return toHTMLScriptElement(m_element);
 
+#if ENABLE(SVG)
     if (isSVGScriptLoader(m_element))
         return toSVGScriptElement(m_element);
+#endif
 
     ASSERT_NOT_REACHED();
     return 0;
@@ -508,8 +516,10 @@ ScriptLoader* toScriptLoaderIfPossible(Element* element)
     if (isHTMLScriptLoader(element))
         return toHTMLScriptElement(element)->loader();
 
+#if ENABLE(SVG)
     if (isSVGScriptLoader(element))
         return toSVGScriptElement(element)->loader();
+#endif
 
     return 0;
 }

@@ -26,6 +26,9 @@
 */
 
 #include "core/style/SVGComputedStyle.h"
+#include "wtf/build_config.h"
+
+#if ENABLE(SVG)
 
 namespace blink {
 
@@ -281,4 +284,17 @@ EPaintOrderType SVGComputedStyle::paintOrderType(unsigned index) const
     return (EPaintOrderType)pt;
 }
 
+} // namespace blink
+
+#else // !ENABLE(SVG)
+
+// Provide stub implementations when SVG is disabled
+namespace blink {
+
+SVGComputedStyle::~SVGComputedStyle()
+{
 }
+
+} // namespace blink
+
+#endif // ENABLE(SVG)

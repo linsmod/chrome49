@@ -28,7 +28,9 @@
 
 #include "core/HTMLNames.h"
 #include "core/MathMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/dom/Element.h"
 #include "core/html/HTMLElement.h"
 
@@ -60,9 +62,11 @@ inline bool isScopeMarker(HTMLStackItem* item)
         || item->hasTagName(MathMLNames::msTag)
         || item->hasTagName(MathMLNames::mtextTag)
         || item->hasTagName(MathMLNames::annotation_xmlTag)
+#if ENABLE(SVG)
         || item->hasTagName(SVGNames::foreignObjectTag)
         || item->hasTagName(SVGNames::descTag)
         || item->hasTagName(SVGNames::titleTag)
+#endif
         || item->hasTagName(templateTag)
         || isRootNode(item);
 }
@@ -299,9 +303,13 @@ bool HTMLElementStack::isHTMLIntegrationPoint(HTMLStackItem* item)
         }
         return false;
     }
+#if ENABLE(SVG)
     return item->hasTagName(SVGNames::foreignObjectTag)
         || item->hasTagName(SVGNames::descTag)
         || item->hasTagName(SVGNames::titleTag);
+#else
+    return false;
+#endif
 }
 
 void HTMLElementStack::popUntilForeignContentScopeMarker()

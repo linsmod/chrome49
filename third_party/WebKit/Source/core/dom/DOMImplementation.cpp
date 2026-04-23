@@ -26,7 +26,9 @@
 
 #include "bindings/core/v8/ExceptionState.h"
 #include "core/HTMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/css/CSSStyleSheet.h"
 #include "core/css/MediaList.h"
 #include "core/css/StyleSheetContents.h"
@@ -80,9 +82,12 @@ PassRefPtrWillBeRawPtr<XMLDocument> DOMImplementation::createDocument(const Atom
 {
     RefPtrWillBeRawPtr<XMLDocument> doc = nullptr;
     DocumentInit init = DocumentInit::fromContext(document().contextDocument());
+#if ENABLE(SVG)
     if (namespaceURI == SVGNames::svgNamespaceURI) {
         doc = XMLDocument::createSVG(init);
-    } else if (namespaceURI == HTMLNames::xhtmlNamespaceURI) {
+    } else
+#endif
+    if (namespaceURI == HTMLNames::xhtmlNamespaceURI) {
         doc = XMLDocument::createXHTML(init.withRegistrationContext(document().registrationContext()));
     } else {
         doc = XMLDocument::create(init);

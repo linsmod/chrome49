@@ -10,6 +10,7 @@
 
 namespace blink {
 
+#if ENABLE(SVG)
 bool AnimatablePath::usesDefaultInterpolationWith(const AnimatableValue* value) const
 {
     // Default interpolation is used if the paths have different lengths,
@@ -39,6 +40,7 @@ PassRefPtr<AnimatableValue> AnimatablePath::interpolateTo(const AnimatableValue*
     if (usesDefaultInterpolationWith(value))
         return defaultInterpolateTo(this, value, fraction);
 
+
     RefPtr<SVGPathByteStream> byteStream = SVGPathByteStream::create();
     SVGPathByteStreamBuilder builder(*byteStream);
 
@@ -50,6 +52,17 @@ PassRefPtr<AnimatableValue> AnimatablePath::interpolateTo(const AnimatableValue*
     ASSERT_UNUSED(ok, ok);
     return AnimatablePath::create(StylePath::create(byteStream.release()));
 }
+#else
+bool AnimatablePath::usesDefaultInterpolationWith(const AnimatableValue*) const
+{
+    return true;
+}
+
+PassRefPtr<AnimatableValue> AnimatablePath::interpolateTo(const AnimatableValue* value, double) const
+{
+    return defaultInterpolateTo(this, value, 0);
+}
+#endif
 
 StylePath* AnimatablePath::path() const
 {

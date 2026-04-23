@@ -14,7 +14,9 @@ StylePath::StylePath(PassRefPtr<SVGPathByteStream> pathByteStream)
     : m_byteStream(pathByteStream)
 {
     ASSERT(m_byteStream);
+#if ENABLE(SVG)
     buildPathFromByteStream(*m_byteStream, m_path);
+#endif
 }
 
 StylePath::~StylePath()

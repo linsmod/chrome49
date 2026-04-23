@@ -201,6 +201,7 @@ def interface_context(interface):
             cpp_ptr_type('PassRefPtr', 'RawPtr', this_gc_type),
             cpp_name(interface)),
         'runtime_enabled_function': runtime_enabled_function_name(interface),  # [RuntimeEnabled]
+        'conditional_string': v8_utilities.conditional_string(interface),  # [Conditional]
         'set_wrapper_reference_from': set_wrapper_reference_from,
         'set_wrapper_reference_to': set_wrapper_reference_to,
         'v8_class': v8_class_name,
@@ -243,10 +244,10 @@ def interface_context(interface):
     unscopeables = []
     for attribute in interface.attributes:
         if 'Unscopeable' in attribute.extended_attributes:
-            unscopeables.append((attribute.name, v8_utilities.runtime_enabled_function_name(attribute)))
+            unscopeables.append((attribute.name, v8_utilities.runtime_enabled_function_name(attribute), v8_utilities.conditional_string(attribute)))
     for method in interface.operations:
         if 'Unscopeable' in method.extended_attributes:
-            unscopeables.append((method.name, v8_utilities.runtime_enabled_function_name(method)))
+            unscopeables.append((method.name, v8_utilities.runtime_enabled_function_name(method), v8_utilities.conditional_string(method)))
 
     context.update({
         'constructors': constructors,
@@ -628,6 +629,7 @@ def constant_context(constant, interface):
         # FIXME: use 'reflected_name' as correct 'name'
         'reflected_name': extended_attributes.get('Reflect', constant.name),
         'runtime_enabled_function': runtime_enabled_function_name(constant),
+        'conditional_string': v8_utilities.conditional_string(constant),
         'value': constant.value,
     }
 
@@ -792,6 +794,7 @@ def overloads_context(interface, overloads):
         'runtime_determined_lengths': runtime_determined_lengths,
         'runtime_determined_maxargs': runtime_determined_maxargs,
         'runtime_enabled_function_all': common_value(overloads, 'runtime_enabled_function'),  # [RuntimeEnabled]
+        'conditional_string_all': common_value(overloads, 'conditional_string'),  # [Conditional]
         'valid_arities': lengths
             # Only need to report valid arities if there is a gap in the
             # sequence of possible lengths, otherwise invalid length means

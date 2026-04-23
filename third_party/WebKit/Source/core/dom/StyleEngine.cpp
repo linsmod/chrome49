@@ -80,7 +80,11 @@ StyleEngine::~StyleEngine()
 
 static bool isStyleElement(Node& node)
 {
+#if ENABLE(SVG)
     return isHTMLStyleElement(node) || isSVGStyleElement(node);
+#else
+    return isHTMLStyleElement(node);
+#endif
 }
 
 #if !ENABLE(OILPAN)

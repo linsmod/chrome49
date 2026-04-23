@@ -6,8 +6,8 @@ KeyboardEvents ImplementedAs=KeyboardEvent
 MouseEvents ImplementedAs=MouseEvent
 MutationEvents ImplementedAs=MutationEvent
 OrientationEvent ImplementedAs=Event, RuntimeEnabled=OrientationEventEnabled
-SVGEvents ImplementedAs=Event
-SVGZoomEvents ImplementedAs=SVGZoomEvent
+SVGEvents ImplementedAs=Event, Conditional=SVG
+SVGZoomEvents ImplementedAs=SVGZoomEvent, Conditional=SVG
 UIEvents ImplementedAs=UIEvent
 WebKitTransitionEvent ImplementedAs=TransitionEvent
 

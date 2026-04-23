@@ -108,6 +108,7 @@ private:
     HashSet<PaintLayer*> m_clientLayers;
 };
 
+#if ENABLE(SVG)
 inline LayoutSVGResourceContainer* getLayoutSVGResourceContainerById(TreeScope& treeScope, const AtomicString& id)
 {
     if (id.isEmpty())
@@ -118,7 +119,9 @@ inline LayoutSVGResourceContainer* getLayoutSVGResourceContainerById(TreeScope& 
 
     return nullptr;
 }
+#endif
 
+#if ENABLE(SVG)
 template<typename Layout>
 Layout* getLayoutSVGResourceById(TreeScope& treeScope, const AtomicString& id)
 {
@@ -128,6 +131,7 @@ Layout* getLayoutSVGResourceById(TreeScope& treeScope, const AtomicString& id)
     }
     return nullptr;
 }
+#endif
 
 DEFINE_LAYOUT_OBJECT_TYPE_CASTS(LayoutSVGResourceContainer, isSVGResourceContainer());
 

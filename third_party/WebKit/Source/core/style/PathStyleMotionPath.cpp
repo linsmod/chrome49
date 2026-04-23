@@ -11,7 +11,9 @@ namespace blink {
 PathStyleMotionPath::PathStyleMotionPath(const String& pathString)
     : m_pathString(pathString.stripWhiteSpace())
 {
+#if ENABLE(SVG)
     buildPathFromString(pathString, m_path);
+#endif
     m_length = m_path.length();
 }
 

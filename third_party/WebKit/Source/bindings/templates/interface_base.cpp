@@ -1,4 +1,5 @@
 {% include 'copyright_block.txt' %}
+{% filter conditional(conditional_string) %}
 #include "{{v8_class_or_partial}}.h"
 
 {% for filename in cpp_includes if filename != '%s.h' % cpp_class_or_partial %}
@@ -99,6 +100,7 @@ static void {{cpp_class}}ConstructorAttributeSetterCallback(v8::Local<v8::Name>,
        attribute_setter_implemented_in_private_script
        with context %}
 {% for attribute in attributes if attribute.should_be_exposed_to_script %}
+{% filter conditional(attribute.conditional_string) %}
 {% for world_suffix in attribute.world_suffixes %}
 {% if not attribute.constructor_type %}
 {% if not attribute.has_custom_getter %}
@@ -116,12 +118,15 @@ static void {{cpp_class}}ConstructorAttributeSetterCallback(v8::Local<v8::Name>,
 {% endif %}
 {% endif %}
 {% endfor %}
+{% endfilter %}
 {% endfor %}
 {##############################################################################}
 {% for attribute in attributes if attribute.needs_constructor_getter_callback %}
+{% filter conditional(attribute.conditional_string) %}
 {% for world_suffix in attribute.world_suffixes %}
 {{constructor_getter_callback(attribute, world_suffix)}}
 {% endfor %}
+{% endfilter %}
 {% endfor %}
 {##############################################################################}
 {% block security_check_functions %}
@@ -144,6 +149,7 @@ bool securityCheck(v8::Local<v8::Context> accessingContext, v8::Local<v8::Object
        with context %}
 {% for method in methods %}
 {% if method.should_be_exposed_to_script %}
+{% filter conditional(method.conditional_string) %}
 {% for world_suffix in method.world_suffixes %}
 {% if not method.is_custom and not method.is_post_message and method.visible %}
 {{generate_method(method, world_suffix)}}
@@ -175,6 +181,7 @@ bool securityCheck(v8::Local<v8::Context> accessingContext, v8::Local<v8::Object
 {{origin_safe_method_getter(method, world_suffix)}}
 {% endif %}
 {% endfor %}
+{% endfilter %}
 {% endif %}
 {% endfor %}
 {% if iterator_method %}
@@ -221,7 +228,8 @@ bool securityCheck(v8::Local<v8::Context> accessingContext, v8::Local<v8::Object
 const V8DOMConfiguration::AttributeConfiguration {{v8_class}}Attributes[] = {
     {% for attribute in attributes
        if not (attribute.exposed_test or
-               attribute.runtime_enabled_function) and
+               attribute.runtime_enabled_function or
+               attribute.conditional_string) and
           attribute.is_data_type_property and
           attribute.should_be_exposed_to_script %}
     {{attribute_configuration(attribute)}},
@@ -240,7 +248,8 @@ const V8DOMConfiguration::AttributeConfiguration {{v8_class}}Attributes[] = {
 const V8DOMConfiguration::AccessorConfiguration {{v8_class}}Accessors[] = {
     {% for attribute in attributes
        if not (attribute.exposed_test or
-               attribute.runtime_enabled_function) and
+               attribute.runtime_enabled_function or
+               attribute.conditional_string) and
           not attribute.is_data_type_property and
           attribute.should_be_exposed_to_script %}
     {{attribute_configuration(attribute)}},
@@ -344,6 +353,26 @@ static void install{{v8_class}}Template(v8::Local<v8::FunctionTemplate> function
     {% endif %}
     {% endfilter %}{# runtime_enabled() #}
     {% endif %}
+    {% set conditional_attributes = [] %}
+    {% for attribute in attributes
+       if attribute.conditional_string and
+          not attribute.exposed_test and
+          not attribute.runtime_enabled_function %}
+        {% set unused = conditional_attributes.append(attribute) %}
+    {% endfor %}
+    {% for attribute in conditional_attributes | sort %}
+    {% filter conditional(attribute.conditional_string) %}
+    {% if attribute.is_data_type_property %}
+    const V8DOMConfiguration::AttributeConfiguration attribute{{attribute.name}}Configuration = \
+    {{attribute_configuration(attribute)}};
+    V8DOMConfiguration::installAttribute(isolate, instanceTemplate, prototypeTemplate, attribute{{attribute.name}}Configuration);
+    {% else %}
+    const V8DOMConfiguration::AccessorConfiguration accessor{{attribute.name}}Configuration = \
+    {{attribute_configuration(attribute)}};
+    V8DOMConfiguration::installAccessor(isolate, instanceTemplate, prototypeTemplate, functionTemplate, defaultSignature, accessor{{attribute.name}}Configuration);
+    {% endif %}
+    {% endfilter %}
+    {% endfor %}
     {% set runtime_enabled_features = dict() %}
     {% for attribute in attributes
        if attribute.runtime_enabled_function and
@@ -359,6 +388,7 @@ static void install{{v8_class}}Template(v8::Local<v8::FunctionTemplate> function
         {% for attribute in runtime_enabled_features.get(runtime_enabled_feature) | sort
            if attribute.name not in distinct_attributes %}
         {% set unused = distinct_attributes.append(attribute.name) %}
+        {% filter conditional(attribute.conditional_string) %}
         {% if attribute.is_data_type_property %}
         const V8DOMConfiguration::AttributeConfiguration attribute{{attribute.name}}Configuration = \
         {{attribute_configuration(attribute)}};
@@ -368,6 +398,7 @@ static void install{{v8_class}}Template(v8::Local<v8::FunctionTemplate> function
         {{attribute_configuration(attribute)}};
         V8DOMConfiguration::installAccessor(isolate, instanceTemplate, prototypeTemplate, functionTemplate, defaultSignature, accessor{{attribute.name}}Configuration);
         {% endif %}
+        {% endfilter %}
         {% endfor %}
     }
     {% endfor %}
@@ -452,3 +483,4 @@ static void install{{v8_class}}Template(v8::Local<v8::FunctionTemplate> function
 {% endfor %}
 {% block partial_interface %}{% endblock %}
 } // namespace blink
+{% endfilter %}

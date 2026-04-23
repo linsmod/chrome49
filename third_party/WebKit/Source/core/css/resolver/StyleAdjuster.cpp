@@ -98,10 +98,17 @@ static EDisplay equivalentBlockDisplay(EDisplay display, bool isFloating, bool s
     return BLOCK;
 }
 
+#if ENABLE(SVG)
 static bool isOutermostSVGElement(const Element* element)
 {
     return element && element->isSVGElement() && toSVGElement(*element).isOutermostSVGSVGElement();
 }
+#else
+static bool isOutermostSVGElement(const Element* element)
+{
+    return false;
+}
+#endif
 
 // CSS requires text-decoration to be reset at each DOM element for
 // inline blocks, inline tables, shadow DOM crossings, floating elements,
@@ -237,6 +244,7 @@ void StyleAdjuster::adjustComputedStyle(ComputedStyle& style, const ComputedStyl
         || style.hasFilter()))
         style.setTransformStyle3D(TransformStyle3DFlat);
 
+#if ENABLE(SVG)
     bool isSVGElement = element && element->isSVGElement();
     if (isSVGElement) {
         // Only the root <svg> element in an SVG document fragment tree honors css position
@@ -251,6 +259,7 @@ void StyleAdjuster::adjustComputedStyle(ComputedStyle& style, const ComputedStyl
         if (isSVGTextElement(*element))
             style.clearMultiCol();
     }
+#endif
     adjustStyleForAlignment(style, parentStyle);
 }
 

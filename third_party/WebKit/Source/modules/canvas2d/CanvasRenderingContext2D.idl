@@ -46,7 +46,7 @@ enum ImageSmoothingQuality {"low", "medium", "high"};
     void restore(); // pop state stack and restore state
 
     // transformations (default transform is the identity matrix)
-    [RuntimeEnabled=ExperimentalCanvasFeatures] attribute SVGMatrix currentTransform;
+    [Conditional=SVG, RuntimeEnabled=ExperimentalCanvasFeatures] attribute SVGMatrix currentTransform;
     void scale(unrestricted double x, unrestricted double y);
     void rotate(unrestricted double angle);
     void translate(unrestricted double x, unrestricted double y);

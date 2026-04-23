@@ -72,7 +72,9 @@ public:
     static GridTrackSize convertGridTrackSize(StyleResolverState&, const CSSValue&);
     template <typename T> static T convertLineWidth(StyleResolverState&, const CSSValue&);
     static Length convertLength(const StyleResolverState&, const CSSValue&);
+#if ENABLE(SVG)
     static UnzoomedLength convertUnzoomedLength(const StyleResolverState&, const CSSValue&);
+#endif
     static Length convertLengthOrAuto(const StyleResolverState&, const CSSValue&);
     static Length convertLengthSizing(StyleResolverState&, const CSSValue&);
     static Length convertLengthMaxSizing(StyleResolverState&, const CSSValue&);
@@ -84,12 +86,16 @@ public:
     static Length convertQuirkyLength(StyleResolverState&, const CSSValue&);
     static PassRefPtr<QuotesData> convertQuotes(StyleResolverState&, const CSSValue&);
     static LengthSize convertRadius(StyleResolverState&, const CSSValue&);
+#if ENABLE(SVG)
     static EPaintOrder convertPaintOrder(StyleResolverState&, const CSSValue&);
+#endif
     static PassRefPtr<ShadowList> convertShadow(StyleResolverState&, const CSSValue&);
     static PassRefPtrWillBeRawPtr<ShapeValue> convertShapeValue(StyleResolverState&, const CSSValue&);
     static float convertSpacing(StyleResolverState&, const CSSValue&);
     template <CSSValueID IdForNone> static AtomicString convertString(StyleResolverState&, const CSSValue&);
+#if ENABLE(SVG)
     static PassRefPtr<SVGDashArray> convertStrokeDasharray(StyleResolverState&, const CSSValue&);
+#endif
     static StyleColor convertStyleColor(StyleResolverState&, const CSSValue&, bool forVisitedLink = false);
     static float convertTextStrokeWidth(StyleResolverState&, const CSSValue&);
     static TransformOrigin convertTransformOrigin(StyleResolverState&, const CSSValue&);

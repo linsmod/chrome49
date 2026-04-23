@@ -60,7 +60,9 @@ void PageAnimator::serviceScriptedAnimations(double monotonicAnimationStartTime)
             }
         }
         // TODO(skyostil): These functions should not run for documents without views.
+#if ENABLE(SVG)
         SVGDocumentExtensions::serviceOnAnimationFrame(*document, monotonicAnimationStartTime);
+#endif
         document->serviceScriptedAnimations(monotonicAnimationStartTime);
     }
 

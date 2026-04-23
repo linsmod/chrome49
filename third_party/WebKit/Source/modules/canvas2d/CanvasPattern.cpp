@@ -56,9 +56,16 @@ CanvasPattern::CanvasPattern(PassRefPtr<Image> image, Pattern::RepeatMode repeat
 {
 }
 
+#if ENABLE(SVG)
 void CanvasPattern::setTransform(SVGMatrixTearOff* transform)
 {
     pattern()->setPatternSpaceTransform(transform ? transform->value() : AffineTransform(1, 0, 0, 1, 0, 0));
 }
+#else
+void CanvasPattern::setTransform(SVGMatrixTearOff*)
+{
+    // SVG is disabled, do nothing
+}
+#endif
 
 }

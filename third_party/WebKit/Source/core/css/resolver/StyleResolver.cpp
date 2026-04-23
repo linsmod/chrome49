@@ -84,8 +84,10 @@
 #include "core/inspector/InspectorInstrumentation.h"
 #include "core/layout/GeneratedChildren.h"
 #include "core/layout/LayoutView.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGDocumentExtensions.h"
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/RuntimeEnabledFeatures.h"
 #include "wtf/StdLibExtras.h"
 
@@ -199,7 +201,11 @@ void StyleResolver::appendCSSStyleSheet(CSSStyleSheet& cssSheet)
     ASSERT(!cssSheet.disabled());
     ASSERT(cssSheet.ownerDocument());
     ASSERT(cssSheet.ownerNode());
+#if ENABLE(SVG)
     ASSERT(isHTMLStyleElement(cssSheet.ownerNode()) || isSVGStyleElement(cssSheet.ownerNode()) || cssSheet.ownerNode()->treeScope() == cssSheet.ownerDocument());
+#else
+    ASSERT(isHTMLStyleElement(cssSheet.ownerNode()) || cssSheet.ownerNode()->treeScope() == cssSheet.ownerDocument());
+#endif
 
     if (cssSheet.mediaQueries() && !m_medium->eval(cssSheet.mediaQueries(), &m_viewportDependentMediaQueryResults, &m_deviceDependentMediaQueryResults))
         return;
@@ -463,8 +469,10 @@ void StyleResolver::matchAllRules(StyleResolverState& state, ElementRuleCollecto
         }
 
         // Now check SMIL animation override style.
+#if ENABLE(SVG)
         if (includeSMILProperties && state.element()->isSVGElement())
             collector.addElementStyleProperties(toSVGElement(state.element())->animatedSMILStyleProperties(), false /* isCacheable */);
+#endif
     }
 
     collector.finishAddingAuthorRulesForTreeScope();
@@ -727,7 +735,11 @@ PassRefPtrWillBeRawPtr<PseudoElement> StyleResolver::createPseudoElementIfNeeded
         return nullptr;
 
     if (pseudoId == FIRST_LETTER && (parent.isSVGElement() || !FirstLetterPseudoElement::firstLetterTextLayoutObject(parent)))
+#if ENABLE(SVG)
         return nullptr;
+#else
+        return !FirstLetterPseudoElement::firstLetterTextLayoutObject(parent) ? nullptr : nullptr;
+#endif
 
     if (!canHaveGeneratedChildren(*parentLayoutObject))
         return nullptr;
@@ -1396,6 +1408,7 @@ void StyleResolver::applyMatchedProperties(StyleResolverState& state, const Matc
         applyMatchedProperties<HighPropertyPriority>(state, range, true, applyInheritedOnly);
     applyMatchedProperties<HighPropertyPriority>(state, matchResult.uaRules(), true, applyInheritedOnly);
 
+#if ENABLE(SVG)
     if (UNLIKELY(isSVGForeignObjectElement(element))) {
         // LayoutSVGRoot handles zooming for the whole SVG subtree, so foreignObject content should not be scaled again.
         //
@@ -1406,6 +1419,7 @@ void StyleResolver::applyMatchedProperties(StyleResolverState& state, const Matc
         // need to find another way of handling the SVG zoom model.
         state.setEffectiveZoom(ComputedStyle::initialZoom());
     }
+#endif
 
     if (cachedMatchedProperties && cachedMatchedProperties->computedStyle->effectiveZoom() != state.style()->effectiveZoom()) {
         state.fontBuilder().didChangeEffectiveZoom();

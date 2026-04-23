@@ -63,6 +63,7 @@ class EventFactoryWriter(in_generator.Writer):
     defaults = {
         'ImplementedAs': None,
         'RuntimeEnabled': None,
+        'Conditional': None,
     }
     default_parameters = {
         'export': '',
@@ -76,8 +77,9 @@ class EventFactoryWriter(in_generator.Writer):
         'script_name': name_utilities.script_name,
     }
 
-    def __init__(self, in_file_path):
+    def __init__(self, in_file_path, feature_defines=''):
         super(EventFactoryWriter, self).__init__(in_file_path)
+        self.feature_defines = feature_defines
         self.namespace = self.in_file.parameters['namespace'].strip('"')
         self.suffix = self.in_file.parameters['suffix'].strip('"')
         self._validate_entries()
@@ -124,11 +126,15 @@ class EventFactoryWriter(in_generator.Writer):
                 subdir_name = 'modules'
             else:
                 subdir_name = 'core'
-            includes[cpp_name] = '#include "%(path)s"\n#include "bindings/%(subdir_name)s/v8/V8%(script_name)s.h"' % {
-                'path': self._headers_header_include_path(entry),
-                'script_name': name_utilities.script_name(entry),
-                'subdir_name': subdir_name,
-            }
+            conditional = entry.get('Conditional')
+            conditional_guard = '#if ENABLE(%s)\n' % conditional if conditional else ''
+            conditional_guard_end = '#endif // ENABLE(%s)\n' % conditional if conditional else ''
+            includes[cpp_name] = '{0}#include "{1}"\n#include "bindings/{2}/v8/V8{3}.h"\n{4}'.format(
+                conditional_guard,
+                self._headers_header_include_path(entry),
+                subdir_name,
+                name_utilities.script_name(entry),
+                conditional_guard_end)
         return includes.values()
 
     def generate_headers_header(self):

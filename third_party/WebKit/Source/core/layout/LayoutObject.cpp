@@ -1808,8 +1808,10 @@ StyleDifference LayoutObject::adjustStyleDifference(StyleDifference diff) const
             || (isText() && !isBR() && toLayoutText(this)->hasTextBoxes())
             // Caret is painted in text color.
             || (isLayoutBlock() && toLayoutBlock(this)->hasCaret())
+#if ENABLE(SVG)
             || (isSVG() && style()->svgStyle().isFillColorCurrentColor())
             || (isSVG() && style()->svgStyle().isStrokeColorCurrentColor())
+#endif
             || isListMarker())
             diff.setNeedsPaintInvalidationObject();
     }

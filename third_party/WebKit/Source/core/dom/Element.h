@@ -802,8 +802,10 @@ inline const AtomicString& Element::getClassAttribute() const
 {
     if (!hasClass())
         return nullAtom;
+#if ENABLE(SVG)
     if (isSVGElement())
         return getAttribute(HTMLNames::classAttr);
+#endif
     return fastGetAttribute(HTMLNames::classAttr);
 }
 
