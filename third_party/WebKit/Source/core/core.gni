@@ -62,6 +62,12 @@ if (enable_svg) {
 } else {
   webcore_svg_files = []
 }
+# Conditionally include accessibility files based on enable_accessibility flag
+if (enable_accessibility) {
+  webcore_accessibility_files = get_path_info(_gypi.webcore_accessibility_files, "abspath")
+} else {
+  webcore_accessibility_files = []
+}
 webcore_testing_idl_files =
     get_path_info(_gypi.webcore_testing_idl_files, "abspath")
 webcore_testing_idl_with_modules_dependency_files =

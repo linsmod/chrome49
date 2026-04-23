@@ -2266,8 +2266,6 @@
             'xmlhttprequest/XMLHttpRequestUpload.h',
         ],
         'webcore_dom_files': [
-            'dom/AXObjectCache.cpp',
-            'dom/AXObjectCache.h',
             'dom/ActiveDOMObject.cpp',
             'dom/AddConsoleMessageTask.cpp',
             'dom/AddConsoleMessageTask.h',
@@ -2702,6 +2700,10 @@
             'input/InputDeviceCapabilities.h',
             'input/TouchActionUtil.cpp',
             'input/TouchActionUtil.h',
+        ],
+        'webcore_accessibility_files': [
+            'dom/AXObjectCache.cpp',
+            'dom/AXObjectCache.h',
         ],
         'webcore_html_files': [
             'html/AutoplayExperimentHelper.cpp',

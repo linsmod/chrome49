@@ -26,6 +26,9 @@ declare_args() {
 
   # Enable SVG support. Set to false to disable SVG and reduce binary size.
   enable_svg = false
+
+  # Enable ARIA/Accessibility support. Set to false to disable and reduce binary size.
+  enable_accessibility = false
 }
 
 # Whether Android build uses OpenMAX DL FFT. Currently supported only on
@@ -90,6 +93,9 @@ if (enable_oilpan) {
 }
 if (enable_svg) {
   feature_defines_list += [ "ENABLE_SVG=1" ]
+}
+if (enable_accessibility) {
+  feature_defines_list += [ "ENABLE_ACCESSIBILITY=1" ]
 }
 if (blink_asserts_off_in_release && !is_debug) {
   feature_defines_list += [ "ENABLE_ASSERT=0" ]

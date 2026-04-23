@@ -112,8 +112,8 @@ interface Element : Node {
     [RaisesException, ImplementedAs=matches, MeasureAs=ElementPrefixedMatchesSelector] boolean webkitMatchesSelector(DOMString selectors);
 
     // Experimental accessibility API
-    [RuntimeEnabled=ComputedAccessibilityInfo] readonly attribute DOMString? computedRole;
-    [RuntimeEnabled=ComputedAccessibilityInfo] readonly attribute DOMString? computedName;
+    [Conditional=ACCESSIBILITY, RuntimeEnabled=ComputedAccessibilityInfo] readonly attribute DOMString? computedRole;
+    [Conditional=ACCESSIBILITY, RuntimeEnabled=ComputedAccessibilityInfo] readonly attribute DOMString? computedName;
 
     // Event handler attributes
     attribute EventHandler onbeforecopy;

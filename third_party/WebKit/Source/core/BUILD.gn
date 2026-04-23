@@ -162,6 +162,7 @@ source_set("core") {
 # GYP version: //third_party/WebKit/Source/core/core.gyp:webcore_dom
 source_set("dom") {
   sources = rebase_path(webcore_dom_files, ".", "//")
+  sources += rebase_path(webcore_accessibility_files, ".", "//")
 
   configs -= core_config_remove
   configs += core_config_add + [

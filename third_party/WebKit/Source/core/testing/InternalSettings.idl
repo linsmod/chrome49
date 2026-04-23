@@ -40,7 +40,7 @@
     [RaisesException] void setTextAutosizingEnabled(boolean enabled);
     [RaisesException] void setTextAutosizingWindowSizeOverride(long width, long height);
     [RaisesException] void setTextTrackKindUserPreference(DOMString preference);
-    [RaisesException] void setAccessibilityFontScaleFactor(float fontScaleFactor);
+    [Conditional=ACCESSIBILITY, RaisesException] void setAccessibilityFontScaleFactor(float fontScaleFactor);
     [RaisesException] void setMediaTypeOverride(DOMString mediaTypeOverride);
     [RaisesException] void setDisplayModeOverride(DOMString displayModeOverride);
     [RaisesException] void setEditingBehavior(DOMString behavior);
