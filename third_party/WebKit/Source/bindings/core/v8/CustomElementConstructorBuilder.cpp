@@ -38,9 +38,13 @@
 #include "bindings/core/v8/V8HTMLElement.h"
 #include "bindings/core/v8/V8HiddenValue.h"
 #include "bindings/core/v8/V8PerContextData.h"
+#if ENABLE(SVG)
 #include "bindings/core/v8/V8SVGElement.h"
+#endif
 #include "core/HTMLNames.h"
+#if ENABLE(SVG)
 #include "core/SVGNames.h"
+#endif
 #include "core/dom/Document.h"
 #include "core/dom/ElementRegistrationOptions.h"
 #include "core/dom/custom/CustomElementDefinition.h"
