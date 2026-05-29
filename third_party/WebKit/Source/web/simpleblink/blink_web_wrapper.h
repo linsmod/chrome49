@@ -71,7 +71,7 @@ public:
     void HandleMouseWheel(int x, int y, int delta);
     void HandleKeyDown(int keyCode);
     void HandleKeyUp(int keyCode);
-    void HandleKeyPress(int keyCode);
+    void HandleChar(int charCode);
 
     // 关闭
     void Close();

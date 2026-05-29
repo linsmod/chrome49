@@ -859,9 +859,7 @@ void BlinkWebRenderer::HandleMouseDown(int x, int y, int button) {
         // SDL_BUTTON_X1 (4) 和 SDL_BUTTON_X2 (5) 是额外按钮
         case 4:
         case 5:
-            // 映射到 ButtonLeft 或忽略
-            event.button = blink::WebMouseEvent::ButtonLeft;
-            break;
+            return;  // ignore X1/X2 buttons
         default:
             event.button = blink::WebMouseEvent::ButtonLeft;
             break;
@@ -914,10 +912,8 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
     WebMouseWheelEvent event;
     event.type = WebInputEvent::MouseWheel;
     
-    // 设置时间戳
     event.timeStampSeconds = monotonicallyIncreasingTime();
     
-    // 设置坐标
     event.x = x;
     event.y = y;
     event.windowX = x;
@@ -925,24 +921,17 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
     event.globalX = x;
     event.globalY = y;
     
-    // 设置滚轮增量
+    // SDL wheel.y > 0 = scroll up, Blink deltaY > 0 = scroll down → negate
     event.deltaX = 0;
     event.deltaY = delta * 120.0f;
     
-    // 设置滚轮刻度
     event.wheelTicksX = 0;
     event.wheelTicksY = delta;
     
-    // 设置精确滚动标志 (对于触控板/高精度滚动)
     event.hasPreciseScrollingDeltas = false;
-    
-    // 允许滚动
     event.canScroll = true;
-    
-    // 设置按钮状态 (鼠标滚轮事件不应该有任何按钮按下)
     event.button = WebMouseEvent::ButtonNone;
     
-    // 设置修饰键，包含当前鼠标按钮状态
     event.modifiers = 0;
     if (m_mouseButton == 1)
         event.modifiers |= WebInputEvent::LeftButtonDown;
@@ -951,12 +940,42 @@ void BlinkWebRenderer::HandleMouseWheel(int x, int y, int delta) {
     else if (m_mouseButton == 3)
         event.modifiers |= WebInputEvent::RightButtonDown;
     
-    // 设置滚动阶段 (用于触控板惯性滚动)
     event.phase = WebMouseWheelEvent::PhaseChanged;
     event.momentumPhase = WebMouseWheelEvent::PhaseNone;
     
     m_webView->handleInputEvent(event);
     m_needsRender = true;
+}
+
+// SDL keycode → Windows VK code mapping
+static int sdlToWindowsVK(int sym) {
+    // Letters: SDL uses ASCII (a=97), VK expects uppercase (VK_A=65)
+    if (sym >= 'a' && sym <= 'z')
+        return sym - 32;
+    // Numbers: SDL ASCII matches VK
+    if (sym >= '0' && sym <= '9')
+        return sym;
+    // Special keys where SDL sym matches VK
+    if (sym == '\r') return 13;      // VK_RETURN
+    if (sym == '\033') return 27;    // VK_ESCAPE
+    if (sym == '\b') return 8;       // VK_BACK
+    if (sym == '\t') return 9;       // VK_TAB
+    if (sym == ' ') return 32;       // VK_SPACE
+    if (sym == '\177') return 46;    // VK_DELETE
+    // Arrow/cursor keys (SDL uses high scancode values)
+    if (sym == 1073741906) return 38;   // VK_UP
+    if (sym == 1073741905) return 40;   // VK_DOWN
+    if (sym == 1073741904) return 37;   // VK_LEFT
+    if (sym == 1073741903) return 39;   // VK_RIGHT
+    if (sym == 1073741898) return 36;   // VK_HOME
+    if (sym == 1073741901) return 35;   // VK_END
+    if (sym == 1073741899) return 33;   // VK_PRIOR (PageUp)
+    if (sym == 1073741902) return 34;   // VK_NEXT (PageDown)
+    if (sym == 1073741897) return 45;   // VK_INSERT
+    // Function keys F1-F12
+    if (sym >= 1073741882 && sym <= 1073741893)
+        return 112 + (sym - 1073741882); // VK_F1=112
+    return sym; // fallback — pass through
 }
 
 void BlinkWebRenderer::HandleKeyDown(int keyCode) {
@@ -965,7 +984,12 @@ void BlinkWebRenderer::HandleKeyDown(int keyCode) {
 
     WebKeyboardEvent event;
     event.type = WebInputEvent::RawKeyDown;
-    event.windowsKeyCode = keyCode;
+    event.windowsKeyCode = sdlToWindowsVK(keyCode);
+    event.nativeKeyCode = keyCode;
+    event.modifiers = 0;
+    event.text[0] = 0;
+    event.unmodifiedText[0] = 0;
+    event.setKeyIdentifierFromWindowsKeyCode();
     
     m_webView->handleInputEvent(event);
 }
@@ -976,18 +1000,27 @@ void BlinkWebRenderer::HandleKeyUp(int keyCode) {
 
     WebKeyboardEvent event;
     event.type = WebInputEvent::KeyUp;
-    event.windowsKeyCode = keyCode;
+    event.windowsKeyCode = sdlToWindowsVK(keyCode);
+    event.nativeKeyCode = keyCode;
+    event.modifiers = 0;
+    event.text[0] = 0;
+    event.unmodifiedText[0] = 0;
     
     m_webView->handleInputEvent(event);
 }
 
-void BlinkWebRenderer::HandleKeyPress(int keyCode) {
+void BlinkWebRenderer::HandleChar(int charCode) {
     if (!m_webView)
         return;
 
     WebKeyboardEvent event;
     event.type = WebInputEvent::Char;
-    event.windowsKeyCode = keyCode;
+    event.windowsKeyCode = charCode;
+    event.modifiers = 0;
+    event.text[0] = charCode;
+    event.text[1] = 0;
+    event.unmodifiedText[0] = charCode;
+    event.unmodifiedText[1] = 0;
     
     m_webView->handleInputEvent(event);
     m_needsRender = true;

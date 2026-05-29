@@ -254,6 +254,9 @@ int main(int argc, char** argv) {
 
     // 15. 主循环 - 等待用户关闭窗口
     printf("Window displayed. Press ESC or close window to exit.\n");
+
+    // Enable text input for form fields
+    SDL_StartTextInput();
     
     bool running = true;
     SDL_Event event;
@@ -267,11 +270,13 @@ int main(int argc, char** argv) {
                     if (event.key.keysym.sym == SDLK_ESCAPE) {
                         running = false;
                     }
-                    // 传递键盘事件到 Blink
                     blinkRenderer->HandleKeyDown(event.key.keysym.sym);
                     break;
                 case SDL_KEYUP:
                     blinkRenderer->HandleKeyUp(event.key.keysym.sym);
+                    break;
+                case SDL_TEXTINPUT:
+                    blinkRenderer->HandleChar(event.text.text[0]);
                     break;
                 case SDL_MOUSEMOTION:
                     blinkRenderer->HandleMouseMove(event.motion.x, event.motion.y);
