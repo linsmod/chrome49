@@ -39,7 +39,9 @@ executable("HTMLViewer") {
     "simple_web_task_runner.cc",
     "simple_web_task_runner.h",
     "web_theme_engine_impl.cc",
-    "web_theme_engine_impl.h", 
+    "web_theme_engine_impl.h",
+    "web_url_loader_curl.cc",
+    "web_url_loader_curl.h",
   ]
   deps = [
     "//base",
@@ -78,6 +80,8 @@ executable("HTMLViewer") {
   # 我们不给路径，直接给 .so 的全路径，绕过链接器的搜索逻辑
   ldflags = [
     "/usr/lib/x86_64-linux-gnu/libSDL2.so",
+    "/usr/lib/x86_64-linux-gnu/libcurl.so",
+    "-lpthread",
   ]
   sources += [
     # "main.cc",

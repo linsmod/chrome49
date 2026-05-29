@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 #include "web/simpleblink/blink_web_wrapper.h"
+#include "web/simpleblink/web_url_loader_curl.h"
+#include <curl/curl.h>
 #include <cstdio>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +37,7 @@
 #include "public/web/WebTreeScopeType.h"
 #include "public/web/WebLocalFrame.h"
 #include "public/platform/WebDragData.h"
+#include "public/platform/WebMimeRegistry.h"
 #include "public/platform/WebImage.h"
 #include "public/web/WebView.h"
 #include "public/web/WebFrame.h"
@@ -164,49 +167,65 @@ private:
     OwnPtr<SimpleWebScheduler> m_scheduler;
 };
 
-// 简单的 WebURLLoader 实现 - 用于 loadHTMLString
-class SimpleWebURLLoader : public WebURLLoader {
+// ============================================================
+// MIME Registry - 告知 Blink 哪些 MIME 类型可以内联显示
+// ============================================================
+
+class SimpleMimeRegistry : public WebMimeRegistry {
 public:
-    SimpleWebURLLoader() : m_client(nullptr) {}
-    ~SimpleWebURLLoader() override {}
-    
-    void loadSynchronously(const WebURLRequest& request,
-                          WebURLResponse& response,
-                          WebURLError& error,
-                          WebData& data) override {
-        // 同步加载 - 不支持
-        error.reason = -1;
-        error.domain = WebString::fromUTF8("SimpleWebURLLoader");
+    SupportsType supportsMIMEType(const WebString& mimeType) override {
+        if (mimeType == "text/html" || mimeType == "text/plain" ||
+            mimeType == "text/css" || mimeType == "application/javascript" ||
+            mimeType == "application/x-javascript" || mimeType == "text/javascript" ||
+            mimeType == "image/png" || mimeType == "image/jpeg" ||
+            mimeType == "image/gif" || mimeType == "image/svg+xml" ||
+            mimeType == "image/webp" || mimeType == "image/x-icon" ||
+            mimeType == "application/json" || mimeType == "application/xml" ||
+            mimeType == "text/xml" || mimeType == "application/pdf")
+            return IsSupported;
+        return IsNotSupported;
     }
-    
-    void loadAsynchronously(const WebURLRequest& request,
-                           WebURLLoaderClient* client) override {
-        m_client = client;
-        m_request = request;
-        
-        // 对于 loadHTMLString，我们需要立即失败
-        // 这样 Blink 会使用 fallback 机制
-        WebURLError error;
-        error.reason = -1;
-        error.domain = WebString::fromUTF8("SimpleWebURLLoader");
-        error.isCancellation = false;
-        error.staleCopyInCache = false;
-        
-        if (m_client) {
-            m_client->didFail(this, error);
-        }
+
+    SupportsType supportsImageMIMEType(const WebString& mimeType) override {
+        if (mimeType == "image/png" || mimeType == "image/jpeg" ||
+            mimeType == "image/gif" || mimeType == "image/svg+xml" ||
+            mimeType == "image/webp" || mimeType == "image/x-icon")
+            return IsSupported;
+        return IsNotSupported;
     }
-    
-    void cancel() override {
-        m_client = nullptr;
+
+    SupportsType supportsImagePrefixedMIMEType(const WebString&) override {
+        return IsNotSupported;
     }
-    
-    void setDefersLoading(bool defers) override {}
-    void setLoadingTaskRunner(WebTaskRunner*) override {}
-    
-private:
-    WebURLLoaderClient* m_client;
-    WebURLRequest m_request;
+
+    SupportsType supportsJavaScriptMIMEType(const WebString& mimeType) override {
+        if (mimeType == "application/javascript" || mimeType == "application/x-javascript" ||
+            mimeType == "text/javascript" || mimeType == "text/ecmascript")
+            return IsSupported;
+        return IsNotSupported;
+    }
+
+    SupportsType supportsMediaMIMEType(const WebString&,
+        const WebString&, const WebString&) override {
+        return IsNotSupported;
+    }
+
+    bool supportsMediaSourceMIMEType(const WebString&,
+        const WebString&) override {
+        return false;
+    }
+
+    SupportsType supportsNonImageMIMEType(const WebString& mimeType) override {
+        return supportsMIMEType(mimeType);
+    }
+
+    WebString mimeTypeForExtension(const WebString&) override {
+        return WebString();
+    }
+
+    WebString wellKnownMimeTypeForExtension(const WebString&) override {
+        return WebString();
+    }
 };
 
 // 自定义 Platform 实现
@@ -303,9 +322,9 @@ public:
         return WebData();
     }
     
-    // URL Loader - 返回简单的实现
+    // URL Loader - 基于 libcurl 实现
     WebURLLoader* createURLLoader() override {
-        return new SimpleWebURLLoader();
+        return new WebURLLoaderCurl();
     }
     
     // 其他必需方法返回空实现
@@ -315,13 +334,14 @@ public:
     WebScrollbarBehavior* scrollbarBehavior() override { return nullptr; }
     WebClipboard* clipboard() override { return nullptr; }
     WebFileUtilities* fileUtilities() override { return nullptr; }
-    WebMimeRegistry* mimeRegistry() override { return nullptr; }
+    WebMimeRegistry* mimeRegistry() override { return &m_mimeRegistry; }
     WebThemeEngine* themeEngine() override { return &theme_engine_; }
     WebCookieJar* cookieJar() override { return nullptr; }
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
     OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
+    SimpleMimeRegistry m_mimeRegistry;
     WebThemeEngineImpl theme_engine_;
 };
 
@@ -377,9 +397,6 @@ private:
     BlinkWebRenderer* m_renderer;
 };
 
-// ============================================================
-// 第三部分: WebViewClient 实现 (最小集)
-// 参考 SimWebViewClient
 // ============================================================
 
 class WebViewClientImpl : public WebViewClient {
@@ -461,8 +478,10 @@ bool BlinkWebRenderer::Initialize() {
     if (m_initialized)
         return true;
 
+    // 0. 全局初始化 libcurl (线程安全，在创建后台线程之前调用)
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
     // 1. 初始化 Platform - 使用自定义的 SimplePlatform
-    // 提供完整的 Platform 实现，包括 WebThread 和 WebScheduler
     m_platform = new SimplePlatform();
 
     // 2. 初始化 Blink (必须传入有效的 Platform)

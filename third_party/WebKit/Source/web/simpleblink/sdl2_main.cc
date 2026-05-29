@@ -4,6 +4,7 @@
 
 // HTMLViewer SDL2 主程序入口
 // 使用 SDL2 窗口显示 Blink 软件渲染结果
+// 用法: HTMLViewer [file.html]
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include "base/i18n/icu_util.h"
 #include "base/message_loop/message_loop.h"
 #include "base/files/file.h"
+#include "base/files/file_util.h"
 #include "base/thread_task_runner_handle.h"
 #include "base/path_service.h"
 #include "base/memory/discardable_memory_allocator.h"
@@ -34,49 +36,47 @@
 #include "v8.h"
 
 // SDL2 headers
-#include <SDL.h>  // BUILD.gn 中已添加 /usr/include/SDL2 到 include_dirs
+#include <SDL.h>
 
 #include "simple_discardable_memory_allocator.h"
 
 using namespace v8;
 using namespace html_viewer;
 
-// V8 snapshot blob 文件路径
 #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
 static const char kNativesBlobPath[] = "/home/wulin/chrome49/src/out/Release/natives_blob.bin";
 static const char kSnapshotBlobPath[] = "/home/wulin/chrome49/src/out/Release/snapshot_blob.bin";
 #endif
 
+static std::string loadFileToString(const std::string& path) {
+    base::FilePath fp = base::FilePath::FromUTF8Unsafe(path);
+    std::string content;
+    if (base::ReadFileToString(fp, &content))
+        return content;
+    return "";
+}
+
 int main(int argc, char** argv) {
     printf("HTMLViewer SDL2 - Blink Software Rendering\n");
     printf("Initializing...\n");
 
-    // 1. 初始化 base 库 (必须在任何其他初始化之前)
     base::CommandLine::Init(argc, argv);
-    
-    // AtExitManager 管理单例对象的析构
     base::AtExitManager exit_manager;
-    
-    // 1.5 初始化 DiscardableMemoryAllocator (Skia 需要)
+
     SimpleDiscardableMemoryAllocator discardable_memory_allocator;
     base::DiscardableMemoryAllocator::SetInstance(&discardable_memory_allocator);
-    
-    // 2. 创建 MessageLoop (Blink 需要)
+
     base::MessageLoop message_loop;
-    
-    // 3. 初始化 WTF Partitions (内存分区) - 必须在 ICU 之前
+
     WTF::Partitions::initialize(nullptr);
-    
-    // 4. 初始化 ICU (国际化支持)
     base::i18n::InitializeICU();
 
 #if defined(V8_USE_EXTERNAL_STARTUP_DATA)
-    // 4.5 使用 gin 加载 V8 snapshot blob 文件
     base::File natives_file(base::FilePath::FromUTF8Unsafe(kNativesBlobPath),
                             base::File::FLAG_OPEN | base::File::FLAG_READ);
     base::File snapshot_file(base::FilePath::FromUTF8Unsafe(kSnapshotBlobPath),
                              base::File::FLAG_OPEN | base::File::FLAG_READ);
-    
+
     if (!natives_file.IsValid()) {
         printf("Failed to open natives_blob.bin: %s\n", kNativesBlobPath);
         return 1;
@@ -85,22 +85,20 @@ int main(int argc, char** argv) {
         printf("Failed to open snapshot_blob.bin: %s\n", kSnapshotBlobPath);
         return 1;
     }
-    
+
     gin::V8Initializer::LoadV8NativesFromFD(natives_file.TakePlatformFile(), 0u, 0u);
     gin::V8Initializer::LoadV8SnapshotFromFD(snapshot_file.TakePlatformFile(), 0u, 0u);
     printf("V8 blobs loaded successfully\n");
 #endif
 
-    // 5. 初始化 SDL2
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL_Init failed: %s\n", SDL_GetError());
         return 1;
     }
-    
-    // 6. 创建窗口
+
     int windowWidth = 1024;
     int windowHeight = 768;
-    
+
     SDL_Window* window = SDL_CreateWindow(
         "HTMLViewer - Blink Software Rendering",
         SDL_WINDOWPOS_CENTERED,
@@ -108,14 +106,13 @@ int main(int argc, char** argv) {
         windowWidth, windowHeight,
         SDL_WINDOW_SHOWN
     );
-    
+
     if (!window) {
         printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
-    
-    // 7. 创建渲染器
+
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (!renderer) {
         printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
@@ -123,15 +120,14 @@ int main(int argc, char** argv) {
         SDL_Quit();
         return 1;
     }
-    
-    // 8. 创建纹理 (用于显示 Blink 渲染结果)
+
     SDL_Texture* texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_RGBA8888,  // Blink 输出 RGBA
+        SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_STREAMING,
         windowWidth, windowHeight
     );
-    
+
     if (!texture) {
         printf("SDL_CreateTexture failed: %s\n", SDL_GetError());
         SDL_DestroyRenderer(renderer);
@@ -140,9 +136,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // 11. 创建渲染器 (会调用 blink::initialize)
     BlinkWebRenderer* blinkRenderer = new BlinkWebRenderer(windowWidth, windowHeight);
-    
+
     if (!blinkRenderer->Initialize()) {
         printf("Failed to initialize renderer\n");
         delete blinkRenderer;
@@ -153,8 +148,26 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // 12. 加载测试 HTML
-    const char* test_html = R"HTML(
+    // 解析命令行参数: HTMLViewer [file.html] 或 HTMLViewer https://example.com
+    if (argc >= 2) {
+        std::string arg = argv[1];
+        // 检测是否为 URL (包含 "://" 或 "file:")
+        if (arg.find("://") != std::string::npos || arg.find("file:") == 0) {
+            printf("Loading URL: %s\n", arg.c_str());
+            blinkRenderer->LoadURL(arg);
+        } else {
+            printf("Loading file: %s\n", arg.c_str());
+            std::string content = loadFileToString(arg);
+            if (content.empty()) {
+                printf("Failed to read file: %s\n", arg.c_str());
+                blinkRenderer->LoadHTML("<html><body><h1>Failed to load file</h1></body></html>");
+            } else {
+                blinkRenderer->LoadHTML(content);
+            }
+        }
+    } else {
+        // 默认测试页面
+        const char* test_html = R"HTML(
 <!DOCTYPE html>
 <html>
 <head>
@@ -217,11 +230,11 @@ int main(int argc, char** argv) {
 </body>
 </html>
 )HTML";
-    
-    blinkRenderer->LoadHTML(test_html);
+
+        blinkRenderer->LoadHTML(test_html);
+    }
     printf("HTML loaded successfully!\n");
 
-    // 13. 渲染一帧
     blinkRenderer->Render();
 
     // 14. 获取像素数据并显示
@@ -278,6 +291,9 @@ int main(int argc, char** argv) {
                     break;
             }
         }
+        
+        // Pump message loop (deliver async callbacks like curl results)
+        base::MessageLoop::current()->RunUntilIdle();
         
         // 始终渲染
         blinkRenderer->Render();
