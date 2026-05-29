@@ -76,7 +76,9 @@
 #include "core/page/Page.h"
 #include "core/style/StyleGeneratedImage.h"
 #include "core/style/StyleImage.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/fonts/Font.h"
 #include "platform/fonts/FontCache.h"
 #include "platform/fonts/GlyphBuffer.h"

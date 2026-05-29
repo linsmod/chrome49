@@ -59,6 +59,8 @@ webcore_html_files = get_path_info(_gypi.webcore_html_files, "abspath")
 # Conditionally include SVG files based on enable_svg flag
 if (enable_svg) {
   webcore_svg_files = get_path_info(_gypi.webcore_svg_files, "abspath")
+  webcore_rendering_files+=get_path_info(_gypi.webcore_rendering_files_svg, "abspath")
+  webcore_non_rendering_files+=get_path_info(_gypi.webcore_non_rendering_files_svg, "abspath")
 } else {
   webcore_svg_files = []
 }

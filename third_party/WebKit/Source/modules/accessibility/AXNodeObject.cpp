@@ -54,7 +54,9 @@
 #include "core/html/shadow/MediaControlElements.h"
 #include "core/layout/LayoutBlockFlow.h"
 #include "core/layout/LayoutObject.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "modules/accessibility/AXObjectCacheImpl.h"
 #include "platform/UserGestureIndicator.h"
 #include "platform/text/PlatformLocale.h"
@@ -611,10 +613,12 @@ bool AXNodeObject::isGenericFocusableElement() const
     if (isHTMLBodyElement(node()))
         return false;
 
+#if ENBALE(SVG)        
     // An SVG root is focusable by default, but it's probably not interactive, so don't
     // include it. It can still be made accessible by giving it an ARIA role.
     if (roleValue() == SVGRootRole)
         return false;
+#endif    
 
     return true;
 }
@@ -2378,6 +2382,8 @@ String AXNodeObject::nativeTextAlternative(AXObjectSet& visited, AXNameFrom& nam
         return textAlternative;
     }
 
+    #if ENABLE(SVG)
+
     // Per SVG AAM 1.0's modifications to 2D of this algorithm.
     if (node()->isSVGElement()) {
         nameFrom = AXNameFromRelatedElement;
@@ -2412,6 +2418,8 @@ String AXNodeObject::nativeTextAlternative(AXObjectSet& visited, AXNameFrom& nam
             }
         }
     }
+
+    #endif
 
     // Fieldset / legend.
     if (isHTMLFieldSetElement(node())) {

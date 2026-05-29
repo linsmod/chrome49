@@ -41,7 +41,9 @@
 #include "core/layout/LayoutImage.h"
 #include "core/layout/LayoutTextFragment.h"
 #include "core/page/FrameTree.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/scroll/Scrollbar.h"
 
 namespace blink {

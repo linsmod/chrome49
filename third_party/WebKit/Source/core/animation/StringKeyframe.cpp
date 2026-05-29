@@ -11,6 +11,7 @@
 #include "core/animation/CSSImageInterpolationType.h"
 #include "core/animation/CSSImageListInterpolationType.h"
 #include "core/animation/CSSLengthInterpolationType.h"
+#include "wtf/PassOwnPtr.h"
 #if ENABLE(SVG)
 #include "core/animation/CSSLengthListInterpolationType.h"
 #endif
@@ -21,7 +22,9 @@
 #include "core/animation/CSSVisibilityInterpolationType.h"
 #include "core/animation/CompositorAnimations.h"
 #include "core/animation/ConstantStyleInterpolation.h"
+#if ENABLE(SVG)
 #include "core/animation/DefaultSVGInterpolation.h"
+#endif
 #include "core/animation/DeferredLegacyStyleInterpolation.h"
 #include "core/animation/DoubleStyleInterpolation.h"
 #include "core/animation/FilterStyleInterpolation.h"
@@ -33,6 +36,7 @@
 #include "core/animation/LengthPairStyleInterpolation.h"
 #include "core/animation/LengthStyleInterpolation.h"
 #include "core/animation/ListStyleInterpolation.h"
+#if ENABLE(SVG)
 #include "core/animation/SVGAngleInterpolationType.h"
 #include "core/animation/SVGIntegerInterpolationType.h"
 #include "core/animation/SVGIntegerOptionalIntegerInterpolationType.h"
@@ -46,12 +50,15 @@
 #include "core/animation/SVGRectInterpolationType.h"
 #include "core/animation/SVGTransformListInterpolationType.h"
 #include "core/animation/SVGValueInterpolationType.h"
+#endif
 #include "core/animation/VisibilityStyleInterpolation.h"
 #include "core/animation/css/CSSAnimations.h"
 #include "core/css/CSSPropertyMetadata.h"
 #include "core/css/resolver/StyleResolver.h"
 #include "core/style/ComputedStyle.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/RuntimeEnabledFeatures.h"
 
 namespace blink {
@@ -124,9 +131,12 @@ PassOwnPtr<Keyframe::PropertySpecificKeyframe> StringKeyframe::createPropertySpe
 
     if (property.isPresentationAttribute())
         return adoptPtr(new CSSPropertySpecificKeyframe(offset(), &easing(), presentationAttributeValue(property.presentationAttribute()), composite()));
-
+#if ENABLE(SVG)    
     ASSERT(property.isSVGAttribute());
     return adoptPtr(new SVGPropertySpecificKeyframe(offset(), &easing(), svgPropertyValue(property.svgAttribute()), composite()));
+#endif
+    ASSERT_NOT_REACHED();
+    return nullptr;
 }
 
 StringKeyframe::CSSPropertySpecificKeyframe::CSSPropertySpecificKeyframe(double offset, PassRefPtr<TimingFunction> easing, CSSValue* value, EffectModel::CompositeOperation op)

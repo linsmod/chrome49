@@ -47,7 +47,9 @@
 #include "core/html/HTMLTemplateElement.h"
 #include "core/html/imports/HTMLImportsController.h"
 #include "core/inspector/InspectorTraceEvents.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/TraceEvent.h"
 #include "wtf/Partitions.h"
 #include "wtf/Vector.h"

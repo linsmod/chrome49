@@ -55,6 +55,8 @@ executable("HTMLViewer") {
     "//ui/gfx",
     "//ui/gfx/geometry",
     "//ui/native_theme",
+    "//third_party/WebKit/public:image_resources",
+    "//third_party/WebKit/public:resources",
   ]
   # Disable accessibility/ARIA module
   # Note: Don't define ENABLE_ACCESSIBILITY=0, the ENABLE macro expects it to be undefined

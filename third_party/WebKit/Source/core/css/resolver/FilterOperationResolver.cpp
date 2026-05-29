@@ -34,8 +34,10 @@
 #include "core/css/resolver/StyleResolverState.h"
 #include "core/frame/UseCounter.h"
 #include "core/layout/svg/ReferenceFilterBuilder.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
 #include "core/svg/SVGURIReference.h"
+#endif
 
 namespace blink {
 

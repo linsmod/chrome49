@@ -6,9 +6,10 @@
 
 #include "core/animation/InterpolationEnvironment.h"
 #include "core/animation/InvalidatableInterpolation.h"
+#if ENABLE(SVG)
 #include "core/animation/SVGInterpolation.h"
 #include "core/svg/SVGElement.h"
-
+#endif
 namespace blink {
 
 SampledEffect::SampledEffect(KeyframeEffect* effect)

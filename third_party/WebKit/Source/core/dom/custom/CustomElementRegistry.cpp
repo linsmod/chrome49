@@ -62,7 +62,11 @@ CustomElementDefinition* CustomElementRegistry::registerElement(Document* docume
     if (!constructorBuilder->validateOptions(type, tagName, exceptionState))
         return 0;
 
-    ASSERT(tagName.namespaceURI() == HTMLNames::xhtmlNamespaceURI || tagName.namespaceURI() == SVGNames::svgNamespaceURI);
+    ASSERT(tagName.namespaceURI() == HTMLNames::xhtmlNamespaceURI
+    #if ENABLE(SVG)
+     || tagName.namespaceURI() == SVGNames::svgNamespaceURI
+     #endif
+    );
 
     ASSERT(!m_documentWasDetached);
 

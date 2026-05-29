@@ -27,7 +27,9 @@
 #include "core/events/EventTarget.h"
 #include "core/frame/OriginsUsingFeatures.h"
 #include "core/frame/UseCounter.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "core/timing/DOMWindowPerformance.h"
 #include "core/timing/Performance.h"
 #include "wtf/CurrentTime.h"

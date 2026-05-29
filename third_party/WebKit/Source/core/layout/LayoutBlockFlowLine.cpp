@@ -727,6 +727,7 @@ RootInlineBox* LayoutBlockFlow::createLineBoxesFromBidiRuns(unsigned bidiLevel, 
     // Now position our text runs vertically.
     computeBlockDirectionPositionsForLine(lineBox, bidiRuns.firstRun(), textBoxDataMap, verticalPositionCache);
 
+#if ENABLE(SVG)    
     // SVG text layout code computes vertical & horizontal positions on its own.
     // Note that we still need to execute computeVerticalPositionsForLine() as
     // it calls InlineTextBox::positionLineBox(), which tracks whether the box
@@ -736,7 +737,7 @@ RootInlineBox* LayoutBlockFlow::createLineBoxesFromBidiRuns(unsigned bidiLevel, 
         ASSERT(isSVGText());
         toSVGRootInlineBox(lineBox)->computePerCharacterLayoutInformation();
     }
-
+#endif
     // Compute our overflow now.
     lineBox->computeOverflow(lineBox->lineTop(), lineBox->lineBottom(), textBoxDataMap);
 

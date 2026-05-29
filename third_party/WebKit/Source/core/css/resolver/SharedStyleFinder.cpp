@@ -46,7 +46,9 @@
 #include "core/html/HTMLOptGroupElement.h"
 #include "core/html/HTMLOptionElement.h"
 #include "core/style/ComputedStyle.h"
+#if ENABLE(SVG)
 #include "core/svg/SVGElement.h"
+#endif
 #include "platform/TraceEvent.h"
 #include "wtf/HashSet.h"
 #include "wtf/text/AtomicString.h"
