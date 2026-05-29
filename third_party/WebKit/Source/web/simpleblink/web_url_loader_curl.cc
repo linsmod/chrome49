@@ -82,6 +82,12 @@ static void deliverCurlResult(std::shared_ptr<bool> alive,
     client->didFinishLoading(nullptr, 0.0, result->data.size());
 }
 
+// Delete CurlTaskData on the main thread (WebURLRequest/WebString dtors
+// touch AtomicString tables which are main-thread-only).
+static void deleteCurlTaskData(CurlTaskData* d) {
+    delete d;
+}
+
 static void runCurlTask(CurlTaskData* d) {
     // Create a temporary loader just for the curl download.
     // We can't use d->self anymore because the WebURLLoaderCurl might be deleted.
@@ -89,14 +95,13 @@ static void runCurlTask(CurlTaskData* d) {
     tempLoader->loadWithCurl(d->reqCopy, nullptr, d->result.get());
     delete tempLoader;
 
-    if (!*d->alive) {
-        delete d;
-        return;
-    }
+    // Always deliver AND delete on main thread (AtomicString safety).
     d->mainRunner->PostTask(FROM_HERE, base::Bind(
         &deliverCurlResult, d->alive, d->result, d->client
     ));
-    delete d;
+    d->mainRunner->PostTask(FROM_HERE, base::Bind(
+        &deleteCurlTaskData, d
+    ));
 }
 
 // ---- helpers ----
