@@ -759,8 +759,8 @@ void BlinkWebRenderer::ExtractPixels() {
     // 软件渲染: 使用 WebViewImpl::paint() 直接绘制到 SkCanvas
     // 注意: paint() 只能在合成未激活时使用 (setAcceleratedCompositingEnabled(false))
     
-    // 创建 Skia 位图和画布
-    SkImageInfo info = SkImageInfo::MakeN32Premul(m_width, m_height);
+    // 创建 Skia 位图和画布，使用非预乘格式（与 SDL 一致）
+    SkImageInfo info = SkImageInfo::MakeN32(m_width, m_height, kUnpremul_SkAlphaType);
     SkBitmap bitmap;
     bitmap.allocPixels(info);
     
@@ -772,18 +772,10 @@ void BlinkWebRenderer::ExtractPixels() {
     WebRect rect(0, 0, m_width, m_height);
     m_webView->paint(&canvas, rect);
     
-    // 复制像素到输出缓冲区，un-premultiply alpha
-    // SDL 使用 ARGB8888: byte[0]=B, byte[1]=G, byte[2]=R, byte[3]=A
+    // 复制像素到输出缓冲区
+    // Skia 输出已是非预乘格式（BGRA 字节序 = SDL ARGB8888）
     const uint8_t* srcPixels = static_cast<const uint8_t*>(bitmap.getPixels());
     memcpy(m_pixels, srcPixels, m_width * m_height * 4);
-    for (int i = 0; i < m_width * m_height; ++i) {
-        uint8_t a = m_pixels[i * 4 + 3];
-        if (a != 0 && a != 255) {
-            m_pixels[i * 4 + 0] = (uint8_t)((uint16_t)m_pixels[i * 4 + 0] * 255 / a);
-            m_pixels[i * 4 + 1] = (uint8_t)((uint16_t)m_pixels[i * 4 + 1] * 255 / a);
-            m_pixels[i * 4 + 2] = (uint8_t)((uint16_t)m_pixels[i * 4 + 2] * 255 / a);
-        }
-    }
     
     // if (!hasContent) {
     //     fprintf(stderr, "Warning: Rendered image is all white - no content rendered\n");
