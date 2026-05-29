@@ -266,6 +266,12 @@ int main(int argc, char** argv) {
                 case SDL_QUIT:
                     running = false;
                     break;
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+                        blinkRenderer->SetFocus(true);
+                    else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+                        blinkRenderer->SetFocus(false);
+                    break;
                 case SDL_KEYDOWN:
                     if (event.key.keysym.sym == SDLK_ESCAPE) {
                         running = false;

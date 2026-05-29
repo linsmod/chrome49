@@ -72,6 +72,7 @@ public:
     void HandleKeyDown(int keyCode);
     void HandleKeyUp(int keyCode);
     void HandleChar(int charCode);
+    void SetFocus(bool focused);
 
     // 关闭
     void Close();

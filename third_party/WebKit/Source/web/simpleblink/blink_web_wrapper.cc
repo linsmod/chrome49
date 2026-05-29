@@ -655,7 +655,10 @@ bool BlinkWebRenderer::Initialize() {
     // 7. 设置视口大小 (在禁用合成之后)
     m_webView->resize(WebSize(m_width, m_height));
 
-    // 8. 分配像素缓冲区
+    // 8. 激活 WebView，使鼠标点击可以聚焦输入元素
+    m_webView->setFocus(true);
+
+    // 9. 分配像素缓冲区
     m_pixels = (uint8_t*)malloc(m_width * m_height * 4);  // RGBA
 
     m_initialized = true;
@@ -1024,6 +1027,11 @@ void BlinkWebRenderer::HandleChar(int charCode) {
     
     m_webView->handleInputEvent(event);
     m_needsRender = true;
+}
+
+void BlinkWebRenderer::SetFocus(bool focused) {
+    if (m_webView)
+        m_webView->setFocus(focused);
 }
 
 void BlinkWebRenderer::Close() {
