@@ -83,6 +83,8 @@
 #include "cc/blink/web_compositor_support_impl.h"
 #include "web/simpleblink/simple_web_task_runner.h"
 #include "base/thread_task_runner_handle.h"
+#include "base/threading/platform_thread.h"
+#include "base/threading/thread.h"
 using namespace blink;
 
 namespace html_viewer {
@@ -165,6 +167,69 @@ public:
 
 private:
     OwnPtr<SimpleWebScheduler> m_scheduler;
+};
+
+// ============================================================
+// Worker thread scheduler - minimal stub for background threads.
+// ============================================================
+
+class SimpleWorkerScheduler : public WebScheduler {
+public:
+    explicit SimpleWorkerScheduler(WebTaskRunner* runner) : m_taskRunner(runner) {}
+    ~SimpleWorkerScheduler() override {}
+
+    void shutdown() override {}
+    bool shouldYieldForHighPriorityWork() override { return false; }
+    bool canExceedIdleDeadlineIfRequired() override { return false; }
+    void postIdleTask(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    void postNonNestableIdleTask(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    void postIdleTaskAfterWakeup(const WebTraceLocation&, WebThread::IdleTask*) override {}
+    WebTaskRunner* loadingTaskRunner() override { return m_taskRunner; }
+    WebTaskRunner* timerTaskRunner() override { return m_taskRunner; }
+    WebPassOwnPtr<WebViewScheduler> createWebViewScheduler(WebView*) override {
+        return adoptWebPtr(static_cast<WebViewScheduler*>(nullptr));
+    }
+    void suspendTimerQueue() override {}
+    void resumeTimerQueue() override {}
+    void addPendingNavigation() override {}
+    void removePendingNavigation() override {}
+    void onNavigationStarted() override {}
+
+private:
+    WebTaskRunner* m_taskRunner;
+};
+
+// Worker thread wrapping base::Thread for background tasks (e.g. ScriptStreamerThread).
+class SimpleWorkerThread : public WebThread {
+public:
+    explicit SimpleWorkerThread(const char* name) {
+        m_baseThread.reset(new base::Thread(name ? name : "SimpleWorker"));
+        bool started = m_baseThread->Start();
+        CHECK(started);
+        m_taskRunner = adoptPtr(new SimpleWebTaskRunner(
+            m_baseThread->task_runner()));
+        m_scheduler = adoptPtr(new SimpleWorkerScheduler(m_taskRunner.get()));
+        m_threadId = m_baseThread->GetThreadId();
+    }
+    ~SimpleWorkerThread() override {
+        if (m_baseThread)
+            m_baseThread->Stop();
+    }
+
+    WebTaskRunner* taskRunner() override { return m_taskRunner.get(); }
+    bool isCurrentThread() const override {
+        return m_threadId == base::PlatformThread::CurrentId();
+    }
+    PlatformThreadId threadId() const override {
+        return static_cast<PlatformThreadId>(m_threadId);
+    }
+    WebScheduler* scheduler() const override { return m_scheduler.get(); }
+
+private:
+    scoped_ptr<base::Thread> m_baseThread;
+    OwnPtr<SimpleWebTaskRunner> m_taskRunner;
+    OwnPtr<SimpleWorkerScheduler> m_scheduler;
+    base::PlatformThreadId m_threadId;
 };
 
 // ============================================================
@@ -325,6 +390,10 @@ public:
     // URL Loader - 基于 libcurl 实现
     WebURLLoader* createURLLoader() override {
         return new WebURLLoaderCurl();
+    }
+
+    WebThread* createThread(const char* name) override {
+        return new SimpleWorkerThread(name);
     }
     
     // 其他必需方法返回空实现
