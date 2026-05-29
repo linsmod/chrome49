@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         windowWidth, windowHeight,
-        SDL_WINDOW_SHOWN
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 
     if (!window) {
@@ -236,17 +236,13 @@ int main(int argc, char** argv) {
     printf("HTML loaded successfully!\n");
 
     blinkRenderer->Render();
-
+    
     // 14. 获取像素数据并显示
+    int pitch = windowWidth * 4;  // 后续在 resize 时更新
     uint8_t* pixels = blinkRenderer->GetPixels();
-    int pitch = windowWidth * 4;  // 移到外面，供后续使用
     if (pixels) {
         printf("Rendered %dx%d pixels\n", blinkRenderer->GetWidth(), blinkRenderer->GetHeight());
-        
-        // 更新 SDL 纹理
         SDL_UpdateTexture(texture, NULL, pixels, pitch);
-        
-        // 渲染到窗口
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
@@ -271,6 +267,16 @@ int main(int argc, char** argv) {
                         blinkRenderer->SetFocus(true);
                     else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
                         blinkRenderer->SetFocus(false);
+                    else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        int newW = event.window.data1;
+                        int newH = event.window.data2;
+                        blinkRenderer->Resize(newW, newH);
+                        SDL_DestroyTexture(texture);
+                        texture = SDL_CreateTexture(
+                            renderer, SDL_PIXELFORMAT_ARGB8888,
+                            SDL_TEXTUREACCESS_STREAMING, newW, newH);
+                        pitch = newW * 4;
+                    }
                     break;
                 case SDL_KEYDOWN:
                     if (event.key.keysym.sym == SDLK_ESCAPE) {
