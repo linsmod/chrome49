@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <map>
 
 // Blink public API headers
 #include "public/platform/Platform.h"
@@ -39,6 +40,10 @@
 #include "public/platform/WebDragData.h"
 #include "public/platform/WebMimeRegistry.h"
 #include "public/platform/WebImage.h"
+#include "public/platform/WebStorageArea.h"
+#include "public/platform/WebStorageNamespace.h"
+#include "public/platform/WebBlobRegistry.h"
+#include "public/platform/WebURL.h"
 #include "public/web/WebView.h"
 #include "public/web/WebFrame.h"
 #include "public/web/WebNode.h"
@@ -233,6 +238,59 @@ private:
 };
 
 // ============================================================
+// Simple storage - in-memory implementation for session/localStorage
+// ============================================================
+
+class SimpleWebStorageArea : public WebStorageArea {
+public:
+    unsigned length() override { return m_values.size(); }
+    WebString key(unsigned index) override {
+        if (index >= m_values.size())
+            return WebString();
+        auto it = m_values.begin();
+        std::advance(it, index);
+        return WebString::fromUTF8(it->first);
+    }
+    WebString getItem(const WebString& key) override {
+        auto it = m_values.find(key.utf8());
+        if (it == m_values.end())
+            return WebString();
+        return WebString::fromUTF8(it->second);
+    }
+    void setItem(const WebString& key, const WebString& newValue,
+                 const WebURL&, Result& result, WebString&) override {
+        m_values[key.utf8()] = newValue.utf8();
+        result = ResultOK;
+    }
+    void removeItem(const WebString& key, const WebURL&, WebString&) override {
+        m_values.erase(key.utf8());
+    }
+    void clear(const WebURL&, bool&) override {
+        m_values.clear();
+    }
+private:
+    std::map<std::string, std::string> m_values;
+};
+
+class SimpleWebStorageNamespace : public WebStorageNamespace {
+public:
+    WebStorageArea* createStorageArea(const WebString&) override {
+        return new SimpleWebStorageArea();
+    }
+};
+
+// ============================================================
+// Simple Blob Registry - no-op in-memory implementation
+// ============================================================
+
+class SimpleWebBlobRegistry : public WebBlobRegistry {
+public:
+    Builder* createBuilder(const WebString& uuid, const WebString& contentType) override {
+        return nullptr;
+    }
+};
+
+// ============================================================
 // MIME Registry - 告知 Blink 哪些 MIME 类型可以内联显示
 // ============================================================
 
@@ -397,7 +455,7 @@ public:
     }
     
     // 其他必需方法返回空实现
-    WebBlobRegistry* blobRegistry() override { return nullptr; }
+    WebBlobRegistry* blobRegistry() override { return &m_blobRegistry; }
     WebFileSystem* fileSystem() override { return nullptr; }
     WebIDBFactory* idbFactory() override { return nullptr; }
     WebScrollbarBehavior* scrollbarBehavior() override { return nullptr; }
@@ -406,11 +464,15 @@ public:
     WebMimeRegistry* mimeRegistry() override { return &m_mimeRegistry; }
     WebThemeEngine* themeEngine() override { return &theme_engine_; }
     WebCookieJar* cookieJar() override { return nullptr; }
+    WebStorageNamespace* createLocalStorageNamespace() override {
+        return new SimpleWebStorageNamespace();
+    }
 
 private:
     OwnPtr<SimpleWebThread> m_thread;
     OwnPtr<cc_blink::WebCompositorSupportImpl> m_compositorSupport;
     SimpleMimeRegistry m_mimeRegistry;
+    SimpleWebBlobRegistry m_blobRegistry;
     WebThemeEngineImpl theme_engine_;
 };
 
@@ -498,6 +560,9 @@ public:
                       WebDragOperationsMask, const WebImage&,
                       const WebPoint&) override {}
     void focusedNodeChanged(const WebNode&, const WebNode&) override {}
+    WebStorageNamespace* createSessionStorageNamespace() override {
+        return new SimpleWebStorageNamespace();
+    }
 
 private:
     LayerTreeViewImpl* m_layerTree;
