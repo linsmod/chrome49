@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 
     SDL_Texture* texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_RGBA8888,
+        SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING,
         windowWidth, windowHeight
     );

@@ -772,23 +772,16 @@ void BlinkWebRenderer::ExtractPixels() {
     WebRect rect(0, 0, m_width, m_height);
     m_webView->paint(&canvas, rect);
     
-    // 复制像素到输出缓冲区
-    // 注意: Skia 使用 BGRA 格式，可能需要转换为 RGBA
+    // 复制像素到输出缓冲区，un-premultiply alpha
+    // SDL 使用 ARGB8888: byte[0]=B, byte[1]=G, byte[2]=R, byte[3]=A
     const uint8_t* srcPixels = static_cast<const uint8_t*>(bitmap.getPixels());
-    
-    // 检查是否有非白色像素
-    bool hasContent = false;
+    memcpy(m_pixels, srcPixels, m_width * m_height * 4);
     for (int i = 0; i < m_width * m_height; ++i) {
-        // BGRA -> RGBA
-        m_pixels[i * 4 + 0] = srcPixels[i * 4 + 2];  // R
-        m_pixels[i * 4 + 1] = srcPixels[i * 4 + 1];  // G
-        m_pixels[i * 4 + 2] = srcPixels[i * 4 + 0];  // B
-        m_pixels[i * 4 + 3] = srcPixels[i * 4 + 3];  // A
-        
-        // 检查是否有非白色像素
-        if (srcPixels[i * 4 + 0] != 0xFF || srcPixels[i * 4 + 1] != 0xFF || 
-            srcPixels[i * 4 + 2] != 0xFF) {
-            hasContent = true;
+        uint8_t a = m_pixels[i * 4 + 3];
+        if (a != 0 && a != 255) {
+            m_pixels[i * 4 + 0] = (uint8_t)((uint16_t)m_pixels[i * 4 + 0] * 255 / a);
+            m_pixels[i * 4 + 1] = (uint8_t)((uint16_t)m_pixels[i * 4 + 1] * 255 / a);
+            m_pixels[i * 4 + 2] = (uint8_t)((uint16_t)m_pixels[i * 4 + 2] * 255 / a);
         }
     }
     
